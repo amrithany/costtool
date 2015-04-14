@@ -5,8 +5,14 @@
 <div class="hero-unit">
     <div class="table-responsive">
         <h2 class="form-signin-heading">Edit geographical indices</h2>
-        <h4> Source of default geographical indices XXXX </h4>
+        <h4> Source of default geographical indices:
+        <br> <br>Aten, B. H., Figueroa, E. B., & Martin, T. M. (2012). Regional price parities for states and metropolitan areas, 2006-2010. Survey of current business (August 2012), pp. 229-242. URL: http://www.bea.gov/scb/pdf/2012/08%20August/0812_regional_price_parities.pdf
+        <br> <br>National price level (all states, all areas)  is set at 100. </h4>
         <h4> If you edit the default geographical indices they will be stored and used for this project only. </h4>
+        <form method="post" id="geoform" enctype="multipart/form-data">
+        <br><input class="btn btn-primary" type="button" name="goto" value="Restore default geographical indices" onclick="PasstoView()">
+        <input class="btn btn-primary" type="submit" name="submit" value="Save">
+        <a href="/project/indices.html"><input class="btn btn-success" type="button" name="button2" value="Back to Indices"></a>
         <table>
         <thead>
            <tr>
@@ -15,10 +21,10 @@
               <th>Index</th>
            </tr>
         </thead>
-        <form method="post" id="geoform"  enctype="multipart/form-data">
         <tbody class="product-instances">
              {% csrf_token %}
              {{ geoform.management_form }}
+             <br><b><font color="red">{{ errtext }} </font></b><br>
              {% for form in geoform %}
               {{ form.non_field_errors }}
               {{ form.errors }}
@@ -32,15 +38,12 @@
 
         </tbody>
         </table> 
-        <input class="btn btn-primary" type="button" name="goto" value="Restore default geographical indices" onclick="PasstoView()">
-        <input class="btn btn-primary" type="submit" name="submit" value="Save" />
-        <a href="/project/indices.html"><input class="btn btn-primary" type="button" name="button2" value="Cancel" /></a>
         </form>
    </div>
    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
    <script type="text/javascript">
        function PasstoView () {
-          if (confirm('Are you sure you want to restore the Geographical Indices?')) {
+          if (confirm('Are you sure you want to restore the Geographical Indices? If you restore the default indices, your cost analyses will be recalculated to express costs for All States, All Areas. After restoring, you can change this state and area in Project Settings.')) {
              document.location.href = "/project/restore_geo.html";
           }
        }

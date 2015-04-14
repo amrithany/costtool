@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load humanize %}
 {% block body_block %}
 
 <div class="hero-unit">
@@ -13,23 +14,33 @@
                 <tr> Sector: {{ price.sector }} </tr><br />
                 <tr> Description of Price: {{price.descriptionPrice}} </tr><br />
                 <tr> Unit Measure Price: {{price.unitMeasurePrice}} </tr><br />
-                <tr> Price: {{price.price}} </tr><br />
+                <tr> Price: ${{price.price|floatformat:"2"|intcomma}} </tr><br />
                 <tr> Year Price: {{price.yearPrice}} </tr><br />
                 <tr> State Price: {{price.statePrice}} </tr><br />
                 <tr> Area Price: {{price.areaPrice}} </tr><br />
                 <tr> Source Price Data: {{price.sourcePriceData}} </tr><br />
                 <tr> URL Price: {{price.urlPrice}} </tr><br />
+                <tr> Last Checked: {{price.lastChecked}} </tr><br />
+                <tr> Next Check Date: {{price.nextCheckDate}} </tr><br />
              </table>
              <br />
 
-             <input type="button" style="background-color:green" name="goto2" value="Back" onclick="goBack()"/>
+             <input type="button" class="btn btn-success" name="goto2" id="goto2" value="Back to MyPrices" onclick="goBack()"/> 
              <input type="hidden" id="myField" name="temp" value="{{ price.priceProvider }}" />
 
              <script language="Javascript">
+               var pp = document.getElementById("myField").value;                                                                 
+               if (pp == 'CBCSE'){
+                  document.getElementById("goto2").value = "Back to CBCSE prices";
+               }
+               else {
+                  document.getElementById("goto2").value = "Back to MyPrices";
+                }
                 function goBack(){
                    var pp = document.getElementById("myField").value;
                    if (pp == 'CBCSE'){
                       document.location.href = "/prices/price_list.html";
+                      document.getElementById("goto2").value = "Back to CBCSE prices";
                    }
                    else {
                       document.location.href = "/prices/my_price_list.html";

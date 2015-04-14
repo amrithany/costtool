@@ -1,85 +1,328 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block body_block %}
+{% load humanize %}
 
+<style TYPE="text/css" MEDIA=all>
+.td1 {background:#EEEEEE;color:#000;border:1px solid #000;}
+.th{background:blue;color:white;border:1px solid #000;}
+A:link {COLOR: #0000EE;}
+A:hover {COLOR: #0000EE;}
+A:visited {COLOR: #0000EE;}
+A:hover {COLOR: #0000EE;}
+
+.div_freezepanes_wrapper{
+    position:relative;width:160%;height:500px;
+    overflow:hidden;background:#fff;border-style: ridge;
+}
+
+.div_verticalscroll{
+    position: absolute;right:0px;width:18px;height:100%;
+    background:#EAEAEA;border:1px solid #C0C0C0;
+}
+
+.buttonUp{
+    width:20px;position: absolute;top:2px;
+}
+
+.buttonDn{
+    width:20px;position: absolute;bottom:22px;
+}
+
+.div_horizontalscroll{
+    position: absolute;bottom:0px;width:100%;height:18px;
+    background:#EAEAEA;border:1px solid #C0C0C0;
+}
+
+.buttonRight{
+    width:20px;position: absolute;left:0px;padding-top:2px;
+}
+
+.buttonLeft{
+    width:20px;position: absolute;right:22px;padding-top:2px;
+}
+
+}
+</style>
 <div class="hero-unit">
-<h3 class="form-signin-heading">Complete table of  Ingredients</h3>
+<div class="container" style="color: blue">
+    <div class="row">
+     <h4 style="float:left;"> Project Name:  {{projectname}}      </h4>
+     <h4 style="float:right;">  Program Name:  {{programname}}</h4>
+     <h4 style="float:left;"> Discount Rate for programs is {{discountRateEstimates}}. The year and geographical location for which costs are expressed is {{infEstimate}}, {{geoEstimate}} and {{geoEstimate.areaIndex}}. 
+      Change these settings by clicking on <input class="btn btn-success" type="button" name="sett" value="Project Settings"  onclick="gotosett();"/>  </h4> 
+     </div>  
+</div>
+
+<div class="container">
+<div class="row">    
+<h3 class="form-signin-heading">Expanded cost table</h3>
 <div id="sheetParent" title="Complete table of Ingredients">
+This table shows the same information as the Cost Information Table plus more details about the prices and price adjustments.  Advanced users can use this table to change any of the values in white cells and to conduct “what-if tests.”  These changes will also be reflected in the Cost Information Table.  Go back to the Cost Information Table to add more ingredients using the wizard.
+<br><br>
+<h4 style="text-align:left;float:left;">Total Cost: ${{total_cost|intcomma}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </h4>
+<h4 style="text-align:center;float:left;">Average Cost per participant: ${{avg_cost|intcomma}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </h4> 
+<h4 style="text-align:right;float:left;">Average Cost per participant/ average effectiveness: ${{eff_ratio|intcomma}}</h4>
+</div>
+<script type="text/javascript">
+function cancelout() {
+        document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=costform";                
+}
+
+function gotosett() {
+    document.location.href = "/project/" +{{ project_id }} + "/add_settings.html";                                                     
+}
+</script>
 <form class="form-signin span8" id="form1" method="post"  enctype="multipart/form-data">
 {% csrf_token %}
-    <table title="Ingredients" class="table table-condensed">
-        <tbody>
-            <tr>
-                <td><b>Category</b></td>
-                <td><b>Ingredient Name</b></td>
-                <td><b>Original Price</b></td>
-                <td><b>Original Unit of Measure</b></td>
-                <td><b>Converted Unit of Measure</b></td>
-                <td><b>Year Quantity Used</b></td>
-                <td><b>Quantity Used</b></td>
-                <td><b>Lifetime Asset</b></td>
-                <td><b>Interest Rate</b></td>
-                <td><b>Price</b></td>
-                <td><b>PriceAdjAmortization</b></td>
-                <td><b>Benefit Rate</b></td>
-                <td><b>PriceAdjBenefits</b></td>
-                <td><b>Percentage of Usage</b></td>
-                <td><b>Year Price</b></td>
-                <td><b>IndexCPI of Year Price</b></td>
-                <td><b>PriceAdjInflation</b></td>
-                <td><b>State Price</b></td>
-                <td><b>Area Price</b></td>
-                <td><b>Geographical Index of State Price & Area Price</b></td>
-                <td><b>PriceAdjGeographicalArea</b></td>
-                <td><b>Price Net Present Value</b></td>
-                <td><b>AdjPricePerIngredient</b></td>
-                <td><b>Cost Per Ingredient</b></td>
-                <td><b>Ed Level of Price</b></td>
-                <td><b>Sector of Price</b></td>
-                <td><b>URL of Price</b></td>
-                <td><b>Source of Price<b></td>
-                <td><b>Source of Benefit Rate</b></td>
-            </tr>
+<br><input class="btn btn-primary" type="submit" name="submit" id="submit" value="Save changes"/>
+<input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/><br>
+<div class="div_freezepanes_wrapper">
 
+    <div class="div_verticalscroll" onmouseover="this.style.cursor='pointer'">
+    <div style="height:50%;" onmousedown="upp();" onmouseup="upp(1);"><img class="buttonUp" src="{% static "uparrow.png" %}"></div>
+    <div style="height:50%;" onmousedown="down();" onmouseup="down(1);"><img class="buttonDn" src="{% static "downarrow.png" %}"></div>
+    </div>
+
+    <div class="div_horizontalscroll" onmouseover="this.style.cursor='pointer'">
+    <div style="float:left;width:50%;height:100%;" onmousedown="right();" onmouseup="right(1);"><img class="buttonRight" src="{% static "leftarrow.png" %}"></div>
+    <div style="float:right;width:50%;height:100%;" onmousedown="left();" onmouseup="left(1);"><img class="buttonLeft" src="{% static "rightarrow.png" %}"></div>
+    </div>
+
+    <table title="Ingredients" id="t1" style="font-size:16px;">
+             <tr> 
+                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Cost Per Ingredient</b></td>
+                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>% of Total Cost</b></td> 
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Cost Per Participant</b></td> 
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Ingredient Name</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Category</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Original Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Original Unit of Measure</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Converted Unit of Measure</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Year Quantity Used</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Quantity Used</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Lifetime</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Interest Rate</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"> <b>Variable, Fixed or lumpy </b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Price After Conversion</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>PriceAdjAmortization</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Benefit Rate</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>PriceAdjBenefits</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Percentage of Usage</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Year Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>IndexCPI of Year Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>PriceAdjInflation</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>State Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Area Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Geographical Index of State Price & Area Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>PriceAdjGeographicalArea</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Price Net Present Value</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>AdjPricePerIngredient</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Ed Level of Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Sector of Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>URL of Price</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Source of Price<b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Source of Benefit Rate</b></td>
+                <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Year Benefit</b></td>
+            </tr>
+            <tbody style="overflow:auto;">
             {% for i in ingredients  %}
-            <tr> 
-                <td>{{ i.category }}</td>
-	        <td><div id="ingredient{{i.id}}" contenteditable>{{ i.ingredient }}</div></td>
-	        <td>{{ i.price }}</td>
-	        <td>{{ i.unitMeasurePrice }}</td>
-	        <td>{{ i.newMeasure }}</td>
-	        <td><div id="yearQtyUsed{{i.id}}" contenteditable>{{ i.yearQtyUsed }}</div></td>
-                <td><div id="quantityUsed{{i.id}}" contenteditable>{{ i.quantityUsed }}</div></td>
-	        <td><div id="lifetimeAsset{{i.id}}" contenteditable>{{ i.lifetimeAsset }}</div></td>
-	        <td><div id="interestRate{{i.id}}" contenteditable>{{ i.interestRate }}</div></td>
-	        <td>{{ i.convertedPrice }}</td>
-                <td>{{ i.priceAdjAmortization }}</td> 
-                <td><div id="benefitRate{{i.id}}" contenteditable>{{ i.benefitRate }}</div></td>
-                <td>{{ i.priceAdjBenefits }}</td>
-                <td><div id="percentageofUsage{{i.id}}" contenteditable>{{ i.percentageofUsage }}</div></td>
-                <td>{{ i.yearPrice }}</td>
-                <td>{{ i.indexCPI }}</td>
-                <td>{{ i.priceAdjInflation }}</td>
-                <td>{{ i.statePrice }}</td>
-                <td>{{ i.areaPrice }}</td>
-                <td>{{ i.geoIndex }}</td>
-                <td>{{ i.priceAdjGeographicalArea }}</td>
-                <td>{{ i.priceNetPresentValue }}</td>
-                <td>{{ i.adjPricePerIngredient }}</td>
-                <td>{{ i.costPerIngredient }}</td>
-                <td>{{ i.edLevel }}</td>
-                <td>{{ i.sector }}</td>
-                <td>{{ i.urlPrice }}</td>
-                <td>{{ i.sourcePriceData }}</td>
-                <td>{{ i.SourceBenefitData }}</td>
+            <tr>
+            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.costPerIngredient|floatformat:"2"|intcomma }}</td>
+            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{i.percentageCost|floatformat:"2"|intcomma}}</td>    
+            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{i.costPerParticipant|floatformat:"2"|intcomma}}</td>     
+	        <td bgcolor="white" style="white-space: nowrap; border: 1px solid grey;"><div id="ingredient{{i.id}}" contenteditable>{{ i.ingredient }}</div></td>
+            <td bgcolor="white" style="border: 1px solid grey;" contenteditable><select style="max-width: 160px;" id="category{{i.id}}"> 
+                    <option value="Personnel">Personnel</option>
+                    <option value="Facilities">Facilities</option>
+                    <option value="Material/Equipment">Material/Equipment</option>
+                    <option value="Other Inputs">Other Inputs</option>
+            </select></td>        
+            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.price|floatformat:"2"|intcomma }}</td>
+	        <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.unitMeasurePrice }}</td>
+	        <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.newMeasure }}</td>
+	        <td bgcolor="white" style="border: 1px solid grey;"><div id="yearQtyUsed{{i.id}}" contenteditable>{{ i.yearQtyUsed }}</div></td>
+                <td bgcolor="white" style="border: 1px solid grey;"><div id="quantityUsed{{i.id}}" contenteditable>{{ i.quantityUsed|floatformat:"2"|intcomma }}</div></td>
+	        <td bgcolor="white" style="border: 1px solid grey;"><div id="lifetimeAsset{{i.id}}" contenteditable>{{ i.lifetimeAsset }}</div></td>
+	        <td bgcolor="white" style="border: 1px solid grey;"><div id="interestRate{{i.id}}" contenteditable>{{ i.interestRate }}</div></td>
+            <td bgcolor="white" style="border: 1px solid grey;" contenteditable><select id="variableFixed{{i.id}}"> 
+              <option value="Fixed">Fixed</option>
+              <option value="Variable">Variable</option>
+              <option value="Lumpy">Lumpy</option>
+            </select></td>    
+            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.convertedPrice|floatformat:"2"|intcomma }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.priceAdjAmortization|floatformat:"2"|intcomma }}</td> 
+                <td bgcolor="white" style="border: 1px solid grey;"><div id="benefitRate{{i.id}}" contenteditable>{{ i.benefitRate }}</div></td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.priceAdjBenefits|floatformat:"2"|intcomma }}</td>
+                <td bgcolor="white" style="border: 1px solid grey;"><div id="percentageofUsage{{i.id}}" contenteditable>{{ i.percentageofUsage }}</div></td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.yearPrice }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;"><div id="indexCPI{{i.id}}">{{i.indexCPI}}</div></td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;"><div id="priceAdjInflation{{i.id}}">{{ i.priceAdjInflation }}</div></td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.statePrice }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.areaPrice }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;"><div id="geoIndex{{i.id}}">{{ i.geoIndex}}</div></td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;"><div id="priceAdjGeographicalArea{{i.id}}">{{ i.priceAdjGeographicalArea}}</div></td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.priceNetPresentValue|floatformat:"2"|intcomma }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;"><div id="adjPricePerIngredient{{i.id}}">{{ i.adjPricePerIngredient}}</div></td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.edLevel }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.sector }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.urlPrice }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.sourcePriceData }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.SourceBenefitData }}</td>
+                <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.YearBenefit }}</td>
                 <td style="display:none;"> {{i.id}} </td>
             </tr>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+            </tbody>
+        </div>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
 <script type="text/javascript">
+var myRow=1;
+var myCol=4;
+var myTable;
+var noRows;
+var myCells,ID;
+      
+$(document).ready(function () {
+  setUp();
+  var element = document.getElementById('variableFixed{{i.id}}');
+  var cat = document.getElementById('category{{i.id}}');
+  var adj = '{{i.adjPricePerIngredient}}';
+  var inf = '{{i.indexCPI}}';
+  var geo = '{{i.geoIndex}}';
+  var infPrice = '{{i.priceAdjInflation}}';
+  var geoPrice = '{{i.priceAdjGeographicalArea}}';
 
-    $("form").submit(function (e) {
+  if (adj != 'No geographical index available'){
+     adj  = '{{i.adjPricePerIngredient|floatformat:"2"|intcomma}}';
+     $('#adjPricePerIngredient{{i.id}}').html(adj);
+     } 
+  
+   if (inf != 'No inflation index available'){
+      inf   = '{{i.indexCPI|floatformat:"2"|intcomma}}';
+      $('#indexCPI{{i.id}}').html(inf);
+   }    
+  
+   if (geo != 'No geographical index available'){
+       geo  = '{{i.geoIndex|floatformat:"2"|intcomma}}';
+       $('#geoIndex{{i.id}}').html(geo);
+  } 
+  
+   if (infPrice != 'No index available'){
+       infPrice   = '{{i.priceAdjInflation|floatformat:"2"|intcomma}}';
+       $('#priceAdjInflation{{i.id}}').html(infPrice);
+   }    
+   
+   if (geoPrice != 'No index available'){
+      geoPrice  = '{{i.priceAdjGeographicalArea|floatformat:"2"|intcomma}}';
+      $('#priceAdjGeographicalArea{{i.id}}').html(geoPrice);
+   }  
+  cat.value = '{{i.category}}';
+  element.value = '{{i.variableFixed}}';
+});
+
+$("#Up").on('click', function (e) {                                                                                               
+        e.preventDefault();
+});
+
+$("#Down").on('click', function (e) {                                                                                               
+        e.preventDefault();
+});  
+
+$("#Left").on('click', function (e) {                                                                                               
+         e.preventDefault();
+});  
+
+$("#Right").on('click', function (e) {                                                                                               
+        e.preventDefault();
+});  
+
+function setUp(){
+    if(!myTable){myTable=document.getElementById("t1");}
+        myCells = myTable.rows[0].cells.length;
+        noRows=myTable.rows.length;
+
+    for( var x = 0; x < myTable.rows[0].cells.length; x++ ) {
+        colWdth=myTable.rows[0].cells[x].offsetWidth;
+        myTable.rows[0].cells[x].setAttribute("width",colWdth-4);
+
+} 
+}
+
+function right(up){
+    if(up){window.clearTimeout(ID);return;}
+    if(!myTable){setUp();}
+
+        if(myCol<(myCells)){
+          for( var x = 0; x < noRows; x++ ) {
+                myTable.rows[x].cells[myCol].style.display="";
+          }
+          if(myCol >1){myCol--;}
+
+          ID = window.setTimeout('right()',100);
+        }
+}
+  
+function left(up){
+    if(up){window.clearTimeout(ID);return;}
+    if(!myTable){setUp();}
+
+    if(myCol<(myCells-1)){
+        for( var x = 0; x < noRows; x++ ) {
+            myTable.rows[x].cells[myCol].style.display="none";
+        }
+        myCol++
+        ID = window.setTimeout('left()',100);
+                                            
+    }
+}
+  
+function down(up){
+    if(up){window.clearTimeout(ID);
+    return;}
+    if(!myTable){setUp();}
+
+    if(myRow<(noRows-1)){
+        myTable.rows[myRow].style.display="none";
+        myRow++    ;
+                                                    
+        ID = window.setTimeout('down()',100);
+    }    
+}
+ 
+function upp(up){
+    if(up){window.clearTimeout(ID);
+    return;}
+    if(!myTable){setUp();}
+
+    if(myRow<=noRows){
+        myTable.rows[myRow].style.display="";
+        if(myRow >1){myRow--;}
+        ID = window.setTimeout('upp()',100);
+    }    
+}
+
+$('#submit').off('click');
+
+$("#submit").on('click', function (e) {
+        if ($('#yearQtyUsed{{i.id}}').html() <= 0) {
+          alert('Year Quantity Used should not be 0');
+          e.preventDefault();
+       }
+       else if ($('#lifetimeAsset{{i.id}}').html() <= 0) {
+            alert('Lifetime Asset should not be 0 or less than 0');
+            e.preventDefault();
+       }
+       else if ($('#interestRate{{i.id}}').html() < 0.0) {
+          alert('Interest Rate should not be less than 0.0');
+          e.preventDefault();
+       }
+       else if ($('#percentageofUsage{{i.id}}').html() < 0 || $('#percentageofUsage{{i.id}}').html() > 100){
+          alert('Percentage of Usage should not be greater than 100 or less than 0.');                                                                         
+          e.preventDefault();
+       }
+       else {
        e.preventDefault();
-
        $.ajax({
                  type:"POST",
                  url:"/project/programs/costs/full_table.html",
@@ -87,31 +330,32 @@
                         csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
                         'id':{{i.id}},
                         'ingredient':$('#ingredient{{i.id}}').html(),
+                        'category':$('#category{{i.id}}').val(),
                         'yearQtyUsed':$('#yearQtyUsed{{i.id}}').html(),
+                        'variableFixed':$('#variableFixed{{i.id}}').val(),
                         'quantityUsed': $('#quantityUsed{{i.id}}').html(),
                         'lifetimeAsset':$('#lifetimeAsset{{i.id}}').html(),
                         'interestRate':$('#interestRate{{i.id}}').html(),
                         'benefitRate':$('#benefitRate{{i.id}}').html(),
                         'percentageofUsage':$('#percentageofUsage{{i.id}}').html()
                         },
-                 success: function(){
-                    }
-            });
+                  success: function(){
+                  window.location.reload(true);
+                  },
+                  error: function(){
+                  //alert('failure');
+                  }    
+            });}
             return false;
 
     });
 
-    function cancelout() {
-       document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=costform";
-    }
-
 </script>
+
 {% endfor %}
-</tbody>
 </table>
-<input class="btn btn-primary" type="submit" name="submit" id="submit" value="Save"/>
-<input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
 </form>
+</div>
 </div>
 </div>
 {% endblock %}

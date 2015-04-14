@@ -3,25 +3,29 @@
 {% block body_block %}
 
 <div class="hero-unit">
+    <div class="container" style="color: blue">
+        <h4>Project Name:  {{projectname}}</h4>                                                                                       
+        <h4>Program Name:  {{programname}}</h4>
+    </div>
     <div class="container">
              {% csrf_token %}
              <h2 class="form-signin-heading">Add ingredient</h2>
-             Use wage converter to adjust unit of measure if needed.
+             Use wage converter to adjust unit of measure for {{price.category}} ingredient {{price.ingredient}}, if needed.
              <br /><br />
              
              <table class="table table-condensed">
                 <tr> Unit of Measure: <input type="text" id="measure" readonly></tr><br />
                 <tr> Price per unit: <input type="text" id="price" readonly> </tr><br /><br />
                  If you want to convert your price per unit to a different unit you can try using the wage converter.
-                <br /> <input type="button" style="background-color:green" name="goto3" value="Wage Converter" onclick="wage();"/> <br />
-                <br /> To which geographical location does this price correspond to? <br />
+                <br /> <input type="button" class="btn btn-warning" name="goto3" value="Wage Converter" onclick="wage();"/> <br />
+                <br /> Price details: <br />
                 <tr>  {{price.statePrice}}  {{price.areaPrice}} </tr><br />
                 <tr> Year of listed price: {{price.yearPrice}} </tr><br />
                 <tr> Source: {{price.sourcePriceData}} </tr><br />
              </table> 
-             <input type="button" style="background-color:green" name="goto2" value="< Back" onclick="back();"/>
-             <input type="button" style="background-color:green" name="goto" value="Next >>" onclick="Pass();" />
-             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+             <input type="button" class="btn btn-success" name="goto2" value="<< Back" onclick="back();"/>
+             <input type="button" class="btn btn-success"  name="goto" value="Next >>" onclick="Pass();" />
+             <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/>
            <script type="text/javascript">
 
              if ({{new_price}} != 0){

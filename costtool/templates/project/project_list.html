@@ -1,11 +1,16 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block body_block %}
+{% load tz %}
 
 <div class="hero-unit">
     <div class="table-responsive">
-        <h2 class="form-signin-heading">Project Details</h2>
-        <h3> Click on the project you want to work on </h3>
+        <h2 class="form-signin-heading">Project List</h2>
+        <h3> Click on "Add new project" to get started or select an existing project </h3>
+        <h4> “Projects” are collections of one or more educational programs that you are interested in comparing in a cost or cost-effectiveness analysis.  Name your project to reflect the collection of programs that you expect to include, e.g., “Early Reading” or “Dropout Prevention”. If you will not be comparing programs, you can create a project with only one program in it.
+            <br><br>
+            Note that certain settings will apply to all programs in the project to allow for comparability, for example, the year and geographical location in which costs will be expressed.  
+        </h4>    
             <table class="table table-condensed">               
                 <thead>
                     <th></th>
@@ -13,6 +18,7 @@
                     <th>Project Name</th>
                     <th>Type of Analysis</th>
                     <th>Created on</th><br />
+                    {% localtime on %}
                     {% for proj in allprojects %}
                         <tr onmouseover="javascript:style.background='#dcfac9'" onmouseout="javascript:style.background='#DCDCDC'" bgcolor="#DCDCDC">
                             <td><input type="checkbox" id="{{proj.id}}" value="unchecked" onclick="setId(this);"  style="margin-left:auto; margin-right:auto;"></td>
@@ -22,6 +28,7 @@
                             <td>{{proj.created_at}}</td>
                         </tr>
                     {% endfor %}
+                    {% endlocaltime %}
                    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
                    <script type="text/javascript">
                        var passvar = 000;
@@ -45,33 +52,30 @@
                              document.location.href = "/project/programs/" + passvar +"/program_list.html";}
                        }
 
+                       function PasstoRep () {                                                                                      
+                          if (passvar == 000){
+                             alert('Select a Project to work on');}
+                          else {
+                              document.location.href = "/reports/" + passvar +"/reports.html";}
+                       }
+
                        function PasstoDel () {
                           if (passvar == 000){
                              alert('Select a Project to delete');}
                           else {
                              if (confirm('Are you sure you want to delete this project? All the programs, settings and other records associated with this project will be deleted too.')) {
-                                //document.location.href = "/project/" + passvar +"/del_project.html";
-                                alert('This will be done after all the screens are ready');
+                                document.location.href = "/project/" + passvar +"/del_project.html";
                              }}
-                       }
-
-                       function PasstoSett () {
-                          if (passvar == 000){
-                             alert('Select a Project to edit settings');}
-                          else {
-                             document.location.href = "/project/" + passvar +"/add_settings.html";}
                        }
 
 		   </script>
                </thead>
             </table>
-            <input class="btn btn-primary" type="button" name="goto" value="Go to Project" onclick="PasstoView();">
             <a href="/project/add_project.html"> <input class="btn btn-primary" type="button" name="add" id="add" value="Add New Project" /></a>
-            <input class="btn btn-primary" type="button" name="button" value="Export as Excel" />
+            <!--<input class="btn btn-primary" type="button" name="button" value="Export as Excel" />-->
             <input class="btn btn-primary" type="button" name="button" value="Delete Project" onclick="PasstoDel();" />
-            <input class="btn btn-primary" type="button" name="addset" id="addset" value="Settings" onclick="PasstoSett();"/>
-            <br><a href="/login/login.html"> <input type="button" style="background-color:green" name="goto2" value="Back" /></a>
-
+            <input class="btn btn-success" type="button" name="goto" value="Go to Project" onclick="PasstoView();">
+            <input class="btn btn-success" type="button" name="goto2" value="Reports" onclick="PasstoRep();">
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+
+<style TYPE="text/css">
+ul li {
+     list-style: none;
+      }
+</style>
+<div class="hero-unit">
+<div class="container">
+<form class="form-signin span8" id="licenseform" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<h2 class="form-signin-heading">License Agreement</h2>
+Please review the License Agreement and see if you agree to its terms.
+<br>
+{{licenseform}}
+<!-- Provide a button to click to submit the form. -->                                                                  
+<input class="btn btn-success" type="submit" name="submit" value="Register / Log out" />
+</form>
+</div>
+</div>
+{% endblock %}

@@ -3,17 +3,24 @@
 {% load crispy_forms_tags %}
 {% block body_block %}
 
+<style TYPE="text/css">
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+/* display: none; <- Crashes Chrome on hover */
+-webkit-appearance: none;
+margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+ }
+</style>            
+
 <div class="hero-unit">
     <div class="container">
              <form class="form-signin span8" id="settingsform" method="post"  enctype="multipart/form-data">
              {% csrf_token %}
-             <h2 class="form-signin-heading">Settings</h2>
+             <h2 class="form-signin-heading">Settings for {{projname}}</h2>
+             <input class="btn btn-primary" type="submit" name="submit" value="Save changes" />
+             <a href="/project/project_list.html"> <input class="btn btn-success" type="button" name="cancel" value="Back to Project List" /></a><br>
              {% crispy frm1 %}
              <br />
-
-             <!-- Provide a button to click to submit the form. -->
-             <input class="btn btn-primary" type="submit" name="submit" value="Save" />
-             <a href="/project/project_list.html"> <input class="btn btn-primary" type="button" name="cancel" value="Cancel" /></a>
              </form>
       </div>
        <script type="text/javascript">

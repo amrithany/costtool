@@ -1,40 +1,63 @@
 {% extends 'index.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
-
+{% load humanize %}
 {% block body_block %}
+
+<style TYPE="text/css">
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+        /* display: none; <- Crashes Chrome on hover */
+        -webkit-appearance: none;
+            margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+</style>
 
 <div class="hero-unit">
     <div class="container">
-       <h4>Project:  {{project}}</h4>
-       <h4>Type of Analysis: {{project.typeanalysis}}</h4>
-       <h4>Type of Cost: {{project.typeofcost}}</h4>
-       <input type="hidden" id="myField" name="temp" value="{{project.typeanalysis}}" />
-    </div>
+       <h4 style="float: left;">Project:  {{project}}</h4>
+       <a href="/project/project_list.html"><input class="btn btn-success" type="button" name="proj" value="Project List" style="float: right;"/></a>
+       <br><h4>Type of Analysis: {{project.typeanalysis}}</h4>
+       <h4 style="float: left;">Type of Cost: {{project.typeofcost}}</h4>
+       <input class="btn btn-success" type="button" name="sett" value="Project Settings" style="float: right;" onclick="gotosett();"/>
+       <input type="hidden" id="myField" name="temp" value="{{project.typeanalysis}}" /> 
+   </div>
+
     <br />
 
    <div class="container">
-       <h4>Name of the Program:  {{program}}</h4>
-       <h4>Short Name: {{program.progshortname}}</h4>
+       <h4 style="float: left;">Name of the Program:  {{program}}</h4>
+       <input class="btn btn-success" type="button" name="program" value="Program List" style="float: right;" onclick="cancelout();"/>
+       <br><h4>Short Name: {{program.progshortname}}</h4>
     </div>
     <br />
 
     <div class="row">
-    <div class="col-12 col-sm-12 col-lg-12">
+    <div>
         <ul class="nav nav-tabs" id="myTab">
             <li class="active"><a href="#form1" id="Program" data-toggle="tab" data-value="#form1">Program Description</a></li>
             <li><a href="#form2" data-toggle="tab" id="Effect" data-value="#form2">Effectiveness Information</a></li>
             <li><a href="#form3" data-toggle="tab" id="Cost" data-value="#form3">Cost Information</a></li>
         </ul>
     </div>
-
+    
     <div id="content" class="tab-content">
        <div class="tab-pane active" id="form1">
             <form class="form-signin span8" id="form1" method="post"  enctype="multipart/form-data">
+                <input class="btn btn-primary" type="submit" name="submit1" id="submit1" value="Save" /></br>
              {% csrf_token %}
              {{form1.errors}}
-             {% crispy frm1 %}
-             <div id="extra-content">
+             <b><font color="red">{{ errtext }} </font></b><br>   
+             <font size="3">Objective of the program:</font> <br>
+             {{frm1.progobjective}} <br>
+             <font size="3">Subjects / Participants:</font> <br>
+             {{frm1.progsubjects}} <br>
+             <font size="3">Brief description:</font> <br>
+             {{frm1.progdescription}} <br>
+             <font size="3">Length of the program (once you save this page, you cannot change this selection):</font><br>
+             {{frm1.lengthofprogram}} <br>
+             <b>Number of years: {{noofyears}}</b><br>
+             <div id="extra-content"><br>
              <table>
                 <thead>
                   <tr>
@@ -43,53 +66,66 @@
                   </tr>
                 </thead>
                 <tbody class="product-instances">
-                  <form method="post" action="">
-                  {{ partform.management_form }}
-                  {{partform.errors}}
-                  {% for form in partform %}
-                        {{ form.id }}
-                      <tr>
-                         <td>{{ form.yearnumber }}</td>
-                         <td>{{ form.noofparticipants }}</td>
-                      </tr>
-                  {% endfor %}
-                  </form>
-                 </tbody>
+                <form method="post" action="">
+                {{ partform.management_form }}
+                {% if partform.total_error_count %}
+                   {{partform.errors}}
+                {% endif %}   
+                {% for form in partform %}
+                  {{ form.id }}
+                <tr>
+                  <td>{{ form.yearnumber }}</td>
+                  <td>{{ form.noofparticipants }}</td>
+                </tr>
+                {% endfor %}
+                </form>
+                </tbody>
              </table>
              </div>
-             <input class="btn btn-primary" type="submit" name="submit1" id="submit1" value="Save" />
-             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
-
+             <font size="3">Average number of participants:</font> <br>
+             {{frm1.numberofparticipants}} <br><font color="blue">This number will be used to calculate the average costs of this program per participant. You can edit this number if you wish but the default will always be the average of years 1,2,3 etc.</font> <br>
              </form>
         </div>
 
-        <div class="tab-pane" id="form2">
-            <form class="form-signin span8" id="form2" method="post" enctype="multipart/form-data">
-             {% csrf_token %}
-                {% crispy frm2 %}
-                {{effectform.errors}}
-                <input class="btn btn-primary" type="submit" name="submit" id="submit" value="Save" />
-                <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
-             </form>
-        </div>
-      
-       <div class="tab-pane" id="form3">
+          <div class="tab-pane" id="form2">
+             <form class="form-signin span8" id="form2" method="post" enctype="multipart/form-data">
+                  <input class="btn btn-primary" type="submit" name="submit2" id="submit2" value="Save" />
+                   {% csrf_token %}
+                   <br>
+                   {{form2.errors}}
+                  {% crispy frm2 %}
+               </form>
+         </div>
+
+        <div class="tab-pane" id="form3">
             <form class="form-signin span8" id="form3" method="post" enctype="multipart/form-data">
-             <p style="white-space:pre-wrap; width:90ex">
-             Click the Add Ingredient button to start adding ingredients for which there are prices available in CBCSE database of Educational Resource Prices or in Database My Prices. You can take a look at these databases or add new prices in the "Prices" Tab. You can define which price database to use in the "Settings" Tab.</p>
+             <h3> Cost Information Table <h3>  
+                     <div class=".container-fluid" style="width:1200px;"><h4>
+             Click “Add ingredient” button to add each ingredient needed to implement this program.  A wizard will guide you through providing details and choosing a price. White cells can be edited AFTER you have added the ingredient using the wizard.  Do NOT copy and paste.
+             <br><br>
+             Prices will be available from the CBCSE Database of Educational Resource Prices or from MyPrices Database where you can create and store a list of your own prices that you might need to use across multiple programs and projects. Go to Prices tab if you wish to create your own prices or review the databases.
+             <br><br>
+             If you want to see more details about the ingredient and the price adjustments click on “Expanded cost table”.
+     </h4></div>
              <input class="btn btn-primary" type="button" name="cost" value="Add ingredient" onclick="search();"/>
-             <input class="btn btn-primary" type="submit" name="editIng" value="Save ingredient"/>
+             <input class="btn btn-primary" type="submit" name="editIng" value="Save changes"/>
              <input class="btn btn-primary" type="button" name="duplIng" value="Delete ingredient" onclick="PasstoDel();"/>
-             <input class="btn btn-primary" type="button" name="duplIng" value="Duplicate ingredient" onclick="PasstoDupl();"/></br>
-             <input style="background-color:orange" type="button" name="comp2" value="See Complete table" onclick="completetable2();"/>
-             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+             <input class="btn btn-primary" type="button" name="duplIng" value="Duplicate ingredient" onclick="PasstoDupl();"/>
+             <input class="btn btn-warning" type="button" name="comp2" value="Expanded cost table" onclick="completetable2();"/>
+             <h4>Total Cost: ${{ total_cost|intcomma }}</h4>
+             <h4>Average Cost per participant: ${{avg_cost|intcomma}}</h4> 
+             <div class=".container-fluid" style="width:1200px;">
+             <h4 style="float: left;">Average Cost per participant / average effectiveness: ${{eff_ratio|intcomma}}</h4>      
+             <img align="right" src="{% static "rightarrow.png" %}"> <h4 style="float: right;"><font color="blue"> Click the Right arrow on your keyboard to see more columns&nbsp;  </font></h4>
+             </div>
              <input type="hidden" id="activeTab" name="temp2" value="program" />
-
-            <table>
+              
+             <table>
             <thead>
             <tr>
               <th></th>
               <th>Ingredients</th>
+              <th>Year in which quantity is used</th>
               <th>Quantity of Ingredient</th>
               <th>Unit of measure</th>
               <th>Variable, fixed or lumpy</th>
@@ -109,16 +145,59 @@
              <tr> 
                 <td><input type="checkbox" id="{{form.initial.id}}" value="unchecked" onclick="setId(this);"></td>
                 <td>{{ form.ingredient }} </td>
+                <td>{{form.yearQtyUsed}}</td> 
                 <td>{{ form.quantityUsed }}</td>
                 <td>{{ form.newMeasure }}</td>
-                <td>{{ form.variableFixed }}</td>
-                <td>{{ form.convertedPrice }}</td>
+                <td><select id="variableFixed{{form.initial.id}}">
+                <option value="Fixed">Fixed</option>
+                <option value="Variable">Variable</option>
+                <option value="Lumpy">Lumpy</option>
+                </select></td>
+                <td>{{ form.adjPricePerIngredient }}</td>
                 <td>{{ form.costPerIngredient }}</td>
                 <td>{{ form.percentageCost }}</td>
                 <td>{{ form.costPerParticipant }}</td>
+                <td style="visibility:hidden;">{{ form.variableFixed }}</td>
              </tr>
-             {% endfor %}
+             <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+             <script type="text/javascript">{
+                        var element = document.getElementById('variableFixed{{form.initial.id}}');
+                        var orig = document.getElementById('id_{{form.prefix}}-variableFixed').value;
+                        var format0 = document.getElementById('id_{{form.prefix}}-quantityUsed');
+                        var format1 = document.getElementById('id_{{form.prefix}}-adjPricePerIngredient');
+                        var format2 = document.getElementById('id_{{form.prefix}}-costPerIngredient');
+                        var format3 = document.getElementById('id_{{form.prefix}}-percentageCost');
+                        var format4 = document.getElementById('id_{{form.prefix}}-costPerParticipant');
 
+                        if (orig != '') {
+                            element.value = orig;
+                        }                    
+                         
+                        $("#variableFixed{{form.initial.id}}").on('change', function (e) {                                                                                               
+                           var element = document.getElementById('variableFixed{{form.initial.id}}');
+                           var orig = document.getElementById('id_{{form.prefix}}-variableFixed');
+                           orig.value = element.value;     
+                         });        
+                        
+                        format0.value = '{{form.instance.quantityUsed|floatformat:"2"}}';            
+                        if (format1.value != 'No geographical index available'){
+                          format1.value = '{{form.instance.adjPricePerIngredient|floatformat:"2"}}';}
+                        format2.value = '{{form.instance.costPerIngredient|floatformat:"2"}}';                                    
+                        format3.value = '{{form.instance.percentageCost|floatformat:"2"}}'; 
+                        format4.value = '{{form.instance.costPerParticipant|floatformat:"2"}}';                                    
+                        $('#format1').val(commaSeparateNumber(format1.value));
+
+                        function commaSeparateNumber(val){
+                                while (/(\d+)(\d{3})/.test(val.toString())){
+                                          val = val.toString().replace(/(\d+)(\d{3})/, '$1'+','+'$2');
+                                              }
+                                return val;
+                        }
+
+                        $('#format2').html(commaSeparateNumber({{form.instance.costPerIngredient}})); 
+             } 
+             </script>
+             {% endfor %}
              </tbody>
              </table>
              </form>
@@ -129,6 +208,7 @@
            var proj = {{project.id}};
            var prog = {{program.id}};
            var passvar = 000;
+
            function setId(chkBox){
               var inputs = document.getElementsByTagName("input");
               for (i = 0; i<inputs.length; i++ ) {
@@ -165,9 +245,9 @@
               document.location.href = "/project/programs/"  + proj + "/program_list.html";
            }
 
-           //function completetable() {
-             // document.location.href = "/project/programs/costs/comp_table.html";
-           //}
+           function gotosett() {
+              document.location.href = "/project/" + proj + "/add_settings.html";
+           }
 
            function completetable2() {
               document.location.href = "/project/programs/costs/full_table.html";
@@ -207,7 +287,7 @@
                  $('#myTab a[href="#form1"]').tab('show');
               }
 
-              if (anal != 'Cost-Effectiveness Analysis') {
+               if (anal != 'Cost-Effectiveness Analysis') {
                   $($('.nav-tabs').find("li")[1]).hide();
                   $($('.nav-tabs').find('#form2')).hide();
                }
@@ -244,11 +324,16 @@
                  }
 
            });
-           //$("form").submit(function(){
-             //yrs = document.getElementById('id_numberofyears').value;
-             //x = document.getElementById('id_lengthofprogram').value;
-          //});
+           //$("#form1").submit(function(){
+             //part = document.getElementById('id_numberofparticipants').value;
+             //part2 = document.getElementById('id_noofparticipants').value;    
+             //if ((anal == 'Cost-Effectiveness Analysis') && (part == '')) {
+               // alert('Average number of participants is a required field for Cost Effectiveness Analysis');
+                //event.preventDefault();
+             //}
+            // });
 
+           
       </script>  
       </div><!-- end content -->
    </div><!-- end row -->

@@ -2,6 +2,15 @@
 {% load static %}
 {% block body_block %}
 
+<style TYPE="text/css">
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+/* display: none; <- Crashes Chrome on hover */
+-webkit-appearance: none;
+margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+ }
+</style>            
+
 <div class="hero-unit">
     <div class="container">
              <form class="form-signin span8" id="form" method="post"  enctype="multipart/form-data">
@@ -11,7 +20,7 @@
              <br /><br />
               {{ form }}
              <br /><br />
-             <a href="/project/programs/costs/wage_converter.html"> <input type="button" style="background-color:green" name="goto2" value="< Back to wage converter" /></a>
+             <a href="/project/programs/costs/wage_converter.html"> <input type="button" class="btn btn-success" name="goto2" value="Back to wage converter" /></a>
              <input class="btn btn-primary" type="submit"  name="save" value="Save changes"  />
            </form>
     </div>

@@ -40,10 +40,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'crispy_forms',
-    'django_tables2',
     'costtool',
-    'djangojs',
-    'eztables',
+    'easy_timezones',
+    'django.contrib.humanize',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -54,7 +53,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'easy_timezones.middleware.EasyTimezoneMiddleware',
 )
+
+GEOIP_DATABASE = '/home/amritha/costtool/documents/GeoLiteCity.dat'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -94,10 +96,10 @@ LOGGING = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'costtool',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST' :'',
+        'NAME': 'amritha$costtool',
+        'USER': 'amritha',
+        'PASSWORD': 'pass',
+        'HOST' :'mysql.server',
         'PORT':'',
     }
 }
@@ -119,6 +121,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '/home/amritha/costtool/costtool/static/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3' 
 

@@ -2,12 +2,25 @@
 {% load static %}
 {% block body_block %}
 
+<style TYPE="text/css">
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+/* display: none; <- Crashes Chrome on hover */
+-webkit-appearance: none;
+margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+ }
+</style>
+
 <div class="hero-unit">
+    <div class="container" style="color: blue">
+        <h4>Project Name:  {{projectname}}</h4>                                                                                       
+        <h4>Program Name:  {{programname}}</h4>                                                                                     
+    </div>    
     <div class="container">
              <form class="form-signin span8" id="form" method="post"  enctype="multipart/form-data">
              {% csrf_token %}
              <h2 class="form-signin-heading">Add ingredient</h2>
-             Use unit measure converter to adjust unit of measure if needed.
+             Use unit measure converter to adjust unit of measure for {{price.category}} ingredient {{price.ingredient}}, if needed.
              <br />
              Amortize assets indicating lifetime of the asset and interest rate if needed.
              <br /><br />
@@ -15,20 +28,20 @@
              <table class="table table-condensed">
                 <tr> Unit of Measure: <input type="text" id="measure" readonly></tr><br />
                 <tr> Price per unit: <input type="text" id="price" readonly> </tr><br /><br />
-                 If you want to convert your price per unit to a different unit:
-                <br /> <input type="button" style="background-color:green" name="goto3" value="Unit Measure Converter" onclick="unitmeasure();"/> <br /><br />
+                <div id="umc"> If you want to convert your price per unit to a different unit:
+                    <br /> <input type="button" class="btn btn-warning" name="goto3"  value="Unit Measure Converter" onclick="unitmeasure();"/> <br /><br /></div>
                 {{ form.non_field_errors }}
                 {{ form.errors }}
                 <tr> Lifetime of the asset:  {{form.lifetimeAsset}} </tr><br />
-                <tr> Interest rate: {{form.interestRate}} </tr><br />
-                <br /> Is the price a national average or a local price? <br />
+                <tr> Interest rate (input a number from 0 to 100): {{form.interestRate}} </tr><br />
+                <br /> Price details: <br />
                 <tr>  {{price.statePrice}}  {{price.areaPrice}} </tr><br />
                 <tr> Year of listed price: {{price.yearPrice}} </tr><br />
                 <tr> Source: {{price.sourcePriceData}} </tr><br />
              </table> 
-             <input type="button" style="background-color:green" name="goto2" value="< Back" onclick="back();"/>
-             <input type="submit" style="background-color:green" name="goto" value="Next >>" onclick="Pass();" />
-             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+             <input type="button" class="btn btn-success" name="goto2" value="<< Back" onclick="back();"/>
+             <input type="submit" class="btn btn-success"  name="goto" value="Next >>" onclick="Pass();" />
+             <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/>
              </form>
            <script type="text/javascript">
 
@@ -40,7 +53,11 @@
                 document.getElementById('price').value = {{price.price}};
                 document.getElementById('measure').value = '{{price.unitMeasurePrice}}';
              }
-
+             x = document.getElementById('measure').value;
+             if (x == 'Other')
+             {
+               document.getElementById("umc").style.display="none";
+             }    
              function cancelout() {
                 document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=costform";
              }
@@ -50,7 +67,7 @@
              }
 
              function Pass(){
-                document.location.href = "/project/programs/costs/nonper_summary.html";
+                document.location.href = "/project/programs/costs/summary.html";
              }   
 
              function unitmeasure(){

@@ -7,13 +7,39 @@
              <form class="form-signin span8" id="projectform" method="post" action="/project/add_project.html" enctype="multipart/form-data">
              {% csrf_token %}
              <h2 class="form-signin-heading">My Project</h2>
+             <h4> To execute a "cost analysis" you will be asked to enter information about each “ingredient” or resource needed to implement one or more educational programs/interventions.  You will be guided to assign prices to each ingredient and the CBCSE Cost Tool Kit will estimate the costs of the program(s) for you.
+             <br><br>
+             You can consider “Total costs” of the program or only the “Incremental Costs,” i.e., the additional costs of your program above a baseline such as business as usual or a comparison condition.
+             <br><br>
+             A "cost-effectiveness analysis" compares two or more  programs. For each program, you will need to provide information about the program’s effectiveness relative to a comparison condition and the ingredients or resources used above and beyond what is used for the comparison condition (i.e., the incremental costs). 
+             <br></h4>
              {{ projectform.as_p }}
              <br />
 
              <!-- Provide a button to click to submit the form. -->
-             <input class="btn btn-primary" type="submit" name="submit" value="Save" />
-             <a href="/project/project_list.html"> <input class="btn btn-primary" type="button" name="cancel" value="Cancel" /></a>
-             </form>
+             <input class="btn btn-primary" type="submit" name="submit" value="Save" onclick="onsave();"/>
+             <a href="/project/project_list.html"><input class="btn btn-primary" type="button" name="cancel" value="Cancel" /></a>
+
+         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+         <script type="text/javascript">
+         var element = document.getElementById('id_typeanalysis');
+         var select=document.getElementById('id_typeofcost')
+
+          $("#id_typeanalysis").on('change', function (e) {                                                                                               
+             if (element.value == 'Cost-Effectiveness Analysis'){  
+               for (i=0;i<select.length;  i++) {
+                  if (select.options[i].value=='Total Costs') {
+                       select.remove(i);
+                  }
+                  }}
+             else {
+                  var option = document.createElement('option');
+                  option.text = option.value = 'Total Costs';
+                  select.add(option, 0);
+                  }     
+          });
+         </script>
+         </form>
       </div>
 </div>
 {% endblock %}

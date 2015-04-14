@@ -4,14 +4,16 @@
 
 <div class="hero-unit">
     <div class="container">
-       <h4> Project: {{project.projectname}}</h4>
-       <h4>Type of Analysis: {{project.typeanalysis}}</h4>
-       <h4>Type of Cost: {{project.typeofcost}}</h4>
+       <h4 style="float: left;"> Project: {{project.projectname}}</h4>
+       <a href="/project/project_list.html"><input class="btn btn-success" type="button" name="goto2" value="Project List" style="float: right;"></a>
+       <br> <h4>Type of Analysis: {{project.typeanalysis}}</h4>
+       <h4 style="float: left;">Type of Cost: {{project.typeofcost}}</h4>
+       <input class="btn btn-success" type="button" name="goto3" value="Project Settings" style="float: right;" onclick="gotosett();">
     </div>
     <br />
-    <br />
-    <h4 class="form-signin-heading">Programs:</h4>
-    <h4> Click on the program you want to work on </h4>
+    <h2 class="form-signin-heading">Program List</h2>
+    <h2> Click on “Add new program” or select an existing program </h2>
+    <h4> Create programs one at a time to be compared in the current project.  For example, if your project is “Early Reading” you may want to compare “Literacy Ladders,”  “Reading Now” and “I Can Read!” </h4><br>
         <table class="table table-condensed">
                   <thead>
                     <th></th>
@@ -48,27 +50,29 @@
                              document.location.href = "/project/programs/effect/" + proj + "/" + passvar + "/tabbedview.html";}
                        }
 
-                       function PasstoDupl () {
+                       function PasstoDel () {
                            if (passvar == 000){
-                             alert('Select or Add a Program to duplicate');
+                             alert('Select or Add a Program to delete');
                            }
                            else {
-                                alert('This will be done after all the screens are ready');
-                             }
-
+                               if (confirm('Are you sure you want to delete this program?')) { 
+                                  document.location.href = "/project/programs/" + passvar + "/del_program.html";    
+                               }}
                        }
 
                       function AddProg () {
                           document.location.href = "/project/programs/add_program.html";
                       }
 
+                      function gotosett() {
+                             document.location.href = "/project/" + proj + "/add_settings.html";
+                      }
                    </script>
                   </thead>
         </table>
-        <input class="btn btn-primary" type="button" name="goto" value="Go to Program" onclick="PasstoView();">
         <input class="btn btn-primary" type="button" name="add" value="Add New Program" onclick="AddProg();">
-        <input class="btn btn-primary" type="button" name="dupl" value="Duplicate Program" onclick="PasstoDupl();">
-        <br><a href="/project/project_list.html"> <input type="button" style="background-color:green" name="goto2" value="Back" /></a>
+        <input class="btn btn-primary" type="button" name="del" value="Delete Program" onclick="PasstoDel();">
+        <input class="btn btn-success" type="button" name="goto" value="Go to Program" onclick="PasstoView();"> 
 
 </div>
 

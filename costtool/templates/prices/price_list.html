@@ -1,29 +1,39 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load humanize %}
 {% block body_block %}
 
 <div class="hero-unit">
     <h2 class="form-signin-heading">Database of Prices</h2>
     <div class="table-responsive">
         <h3 class="form-signin-heading">CBCSE Database of Educational Resource Prices</h3>
-            <table class="table table-condensed">
+        <input class="btn btn-primary" type="button" name="goto" value="View Price" onclick="PasstoView();">
+        <input type="button" name="button" class="btn btn-primary" value="Export as Excel" />                                                     
+        <a href="/prices/prices.html"> <input type="button" class="btn btn-success" name="goto2" value="Back to Prices" /></a> 
+        <table class="table table-condensed">
                 <thead>
                     <th></th>
                     <th>Ingredient</th>
-                    <th>Ed. Level</th>
+                    <th>Educational Level</th>
                     <th>Price</th>
                     <th>Unit of Measure</th>
                     <th>Sector</th>
-                    <th>Category</th><br />
+                    <th>Category</th>
+                    <th>Year</th>
+                    <th>State</th>
+                    <th>Area</th><br />
                     {% for prc in allprices %}
                         <tr onmouseover="javascript:style.background='#dcfac9'" onmouseout="javascript:style.background='#DCDCDC'" bgcolor="#DCDCDC">
                             <td><input type="checkbox" id="{{prc.id}}" value="unchecked" onclick="setId(this);"  style="margin-left:auto; margin-right:auto;"></td>
                             <td>{{prc.ingredient}}</td>
                             <td>{{prc.edLevel}}</td>
-                            <td>{{prc.price}}</td>
-                            <td>{{prc.unitMeasurePrice}}</td>
+                            <td>${{prc.price|floatformat:"2"|intcomma}}</td>
+                            <td style="white-space: nowrap;">{{prc.unitMeasurePrice}}</td>
                             <td>{{prc.sector}}</td>
                             <td>{{prc.category}}</td>
+                            <td>{{prc.yearPrice}}</td>
+                            <td style="white-space: nowrap;">{{prc.statePrice}}</td>
+                            <td>{{prc.areaPrice}}</td>
                         </tr>
                     {% endfor %}
                    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
@@ -58,9 +68,6 @@
                    </script>
                </thead>
             </table>
-            <input class="btn btn-primary" type="button" name="goto" value="View Price" onclick="PasstoView();">
-            <br><input type="button" name="button" style="background-color:orange" value="Export as Excel" />
-           <a href="/prices/prices.html"> <input type="button" style="background-color:green" name="goto2" value="Go Back" /></a>
     </div>
 </div>
 {% endblock %}

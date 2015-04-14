@@ -1,0 +1,37 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+
+<div class="hero-unit">
+    <div class="container">
+             {% csrf_token %}
+             <h3 class="form-signin-heading">Price Details</h2>
+             <table class="table table-condensed">
+                <tr> Category: {{ price.category }} </tr><br />
+                <tr> Ingredient: {{ price.ingredient}} </tr><br />
+                <tr> Education Level: {{ price.edLevel }} </tr><br />
+                <tr> Sector: {{ price.sector }} </tr><br />
+                <tr> Description of Price: {{price.descriptionPrice}} </tr><br />
+                <tr> Unit Measure Price: {{price.unitMeasurePrice}} </tr><br />
+                <tr> Price: {{price.price}} </tr><br />
+                <tr> Year Price: {{price.yearPrice}} </tr><br />
+                <tr> State Price: {{price.statePrice}} </tr><br />
+                <tr> Area Price: {{price.areaPrice}} </tr><br />
+                <tr> Source Price Data: {{price.sourcePriceData}} </tr><br />
+                <tr> URL Price: {{price.urlPrice}} </tr><br />
+                <tr> Last Checked: {{price.lastChecked}} </tr><br />
+                <tr> Next Check Date: {{price.nextCheckDate}} </tr><br />
+             </table>
+             <br />
+
+             <input type="button" class="btn btn-success" name="goto2" id="goto2" value="Back to Price Search" onclick="goBack()"/> 
+
+             <script language="Javascript">
+             function goBack(){
+                 document.location.href ="/project/programs/costs/price_search_results.html?category=" + '{{price.category}}' + "&edLevel=" + '{{price.edLevel}}' + "&sector=" + '{{price.sector}}' + "&ingredient=" + '{{price.ingredient}}' + "&search=Search";
+              }
+             </script>
+      </div>
+</div>
+{% endblock %}
+

@@ -1,13 +1,16 @@
 {% extends 'index.html' %}
 {% load static %}
+{% load humanize %}
 {% block body_block %}
 
 <div class="hero-unit">
+     <div class="container" style="color: blue">
+        <h4>Project Name:  {{projectname}}</h4>
+        <h4>Program Name:  {{programname}}</h4>                                                                                     
+      </div>      
     <h3 class="form-signin-heading">Add Ingredient</h3>
     {% if pcount == 0 %}
-    The number of records returned after your search is 0. 
-    <br />
-    You searched for Category {{cat}}, Ed Level {{edLevel}}, Sector {{sector}} and Ingredient {{ingredient}}.
+    The number of records returned after your search is 0. You can create your own price to use by clicking on the Prices tab and adding an ingredient with its price to the MyPrices Database.
     {% else %}
     Select the price most appropriate for your requirements.
     <br />
@@ -15,7 +18,13 @@
     <br />
     {% endif %}
     <div class="table-responsive">
-            <table class="table table-condensed">
+        </table>
+        <br><a href="/project/programs/costs/search_costs.html"> <input type="button" class="btn btn-success" name="goto2" value="<< Back"> </a>
+        <input type="button" class="btn btn-success"name="goto" value="Next >>" onclick="Pass();" />
+        <input class="btn btn-primary" type="button" name="goto" value="See Price details" onclick="PasstoView();">
+        <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/>
+               
+        <table class="table table-condensed">
                 <thead>
                     <th></th>
                     <th>Ingredient</th>
@@ -33,7 +42,7 @@
                             <td><input type="checkbox" id="{{prc.id}}" value="unchecked" onclick="setId(this);"  style="margin-left:auto; margin-right:auto;"></td>
                             <td>{{prc.ingredient}}</td>
                             <td>{{prc.edLevel}}</td>
-                            <td>{{prc.price}}</td>
+                            <td>{{prc.price|floatformat:"2"|intcomma}}</td>
                             <td>{{prc.unitMeasurePrice}}</td>
                             <td>{{prc.sector}}</td>
                             <td>{{prc.category}}</td>
@@ -70,6 +79,13 @@
                              document.location.href = "/project/programs/costs/"+passvar+"/decideCat.html";
                          }
                        }
+                       
+                       function PasstoView () {
+                            if (passvar == 000){
+                                alert('Select a Price to view details');}
+                            else {
+                                document.location.href = "/prices/" + passvar +"/view_price2.html";}
+                        }            
 
                        function cancelout() {
                           document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=costform";
@@ -78,9 +94,6 @@
                    </script>
                </thead>
             </table>
-           <a href="/project/programs/costs/search_costs.html"> <input type="button" style="background-color:green" name="goto2" value="< Back" /></a>
-           <input type="button" style="background-color:green" name="goto" value="Next >>" onclick="Pass();" />
-           <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
 
             <a href="/project/programs/costs/price_search_results.html?category=" + '{{cat}}' + "&edLevel=" + 'Grades K-12' + "&sector=" + '{{sector}}' + "&ingredient=" + '{{ingredient}}' + "&search=Search></a>
     </div>

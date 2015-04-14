@@ -29,16 +29,20 @@ class Settings(m.Model):
         return self.discountRateEstimates
 
 class GeographicalIndices(m.Model):
-    stateIndex = m.CharField(max_length=2000,null=True, blank=True)
-    areaIndex  = m.CharField(max_length=2000,null=True, blank=True)
+    stateIndex = m.CharField(max_length=250,null=True, blank=True)
+    areaIndex  = m.CharField(max_length=250,null=True, blank=True)
     geoIndex = m.CharField(max_length=100,null=True,blank=True)
+    projectId = m.IntegerField(null=True,blank=True)
+
+    class Meta:
+       unique_together = ("stateIndex","areaIndex","projectId")
 
     def __unicode__(self):
         return self.stateIndex
 
 class GeographicalIndices_orig(m.Model):
-    stateIndex = m.CharField(max_length=2000,null=True, blank=True)
-    areaIndex  = m.CharField(max_length=2000,null=True, blank=True)
+    stateIndex = m.CharField(max_length=250,null=True, blank=True)
+    areaIndex  = m.CharField(max_length=250,null=True, blank=True)
     #geoIndex = m.DecimalField(max_digits=6,decimal_places=2,null=True,blank=True)
     geoIndex = m.CharField(max_length=100,null=True,blank=True)
 
@@ -48,6 +52,10 @@ class GeographicalIndices_orig(m.Model):
 class InflationIndices(m.Model):
     yearCPI  = m.CharField(max_length=10,null=True, blank=True)
     indexCPI = m.CharField(max_length=10,null=True,blank=True)
+    projectId = m.IntegerField(null=True,blank=True)
+
+    class Meta:
+       unique_together = ("yearCPI","projectId")
 
     def __unicode__(self):
         return unicode(self.yearCPI)
@@ -62,13 +70,14 @@ class InflationIndices_orig(m.Model):
 
 class Benefits(m.Model):
     SectorBenefit = m.CharField(max_length=100,null=True,blank=True)	
-    EdLevelBenefit = m.CharField(max_length=100,null=True,blank=True)
     PersonnelBenefit = m.CharField(max_length=256,null=True,blank=True)	
     TypeRateBenefit = m.CharField(max_length=256,null=True,blank=True)	
     YearBenefit = m.CharField(max_length=100,null=True,blank=True)	
     BenefitRate = m.CharField(max_length=100,null=True,blank=True)	
     SourceBenefitData = m.CharField(max_length=100,null=True,blank=True)	
     URLBenefitData = m.CharField(max_length=256,null=True,blank=True)
+    LastChecked = m.CharField(max_length=2000,null=True, blank=True)
+    NextCheckDate = m.CharField(max_length=256,null=True, blank=True)
 
     def __unicode__(self):
         return self.SectorBenefit
@@ -85,17 +94,17 @@ class ProgramDesc(m.Model):
     progobjective = m.CharField(max_length=2000,null=True, blank=True)
     progsubjects = m.CharField(max_length=2000,null=True, blank=True)
     progdescription = m.CharField(max_length=2000,null=True, blank=True)
-    numberofparticipants = m.DecimalField(max_digits=6,decimal_places=2)
+    numberofparticipants = m.DecimalField(max_digits=6,decimal_places=2,null=True, blank=True)
     lengthofprogram = m.CharField(max_length=256)
     numberofyears = m.IntegerField(null=True, blank=True)
     programId = m.OneToOneField(Programs, null=True)
 
     def __unicode__(self):
-        return unicode(self.numberofparticipants)
+        return self.id
 
 class ParticipantsPerYear(m.Model):
     yearnumber = m.IntegerField(null=True, blank=True)
-    noofparticipants = m.DecimalField(max_digits=6,decimal_places=2,null=True, blank=True)
+    noofparticipants = m.DecimalField(max_digits=6,decimal_places=2, null=True, blank=True)
     programdescId = m.ForeignKey(ProgramDesc)
 
     def __unicode__(self):
@@ -123,6 +132,19 @@ class UserProfile(m.Model):
     def __unicode__(self):
         return self.user.username
 
+class Login(m.Model):
+    user = m.CharField(max_length=2000)
+    email = m.CharField(max_length=200, null=True, blank=True)
+    password = m.CharField(max_length=200)
+    organisation = m.CharField(max_length=2000,null=True, blank=True)
+    position = m.CharField(max_length=2000,null=True, blank=True)
+    publicOrPrivate = m.CharField(max_length=8,null=True, blank=True) 
+    licenseSigned = m.CharField(max_length=3,null=True, blank=True)
+    signed_at = m.DateTimeField(default=datetime.datetime.now,null=True, blank=True)
+
+    def __unicode__(self):
+        return self.user
+
 class Prices(m.Model):
     priceProvider = m.CharField(max_length=256,null=True, blank=True)
     category = m.CharField(max_length=256,null=True, blank=True)
@@ -149,7 +171,7 @@ class Ingredients(m.Model):
     edLevel = m.CharField(max_length=256,null=True, blank=True)
     sector = m.CharField(max_length=256,null=True, blank=True)
     unitMeasurePrice = m.CharField(max_length=256,null=True, blank=True)
-    price = m.CharField(max_length=100,null=True, blank=True)
+    price = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
     sourcePriceData = m.CharField(max_length=256,null=True, blank=True)
     urlPrice = m.CharField(max_length=2000,null=True, blank=True)
     hrsCalendarYr = m.IntegerField(null=True,blank=True)
@@ -159,30 +181,38 @@ class Ingredients(m.Model):
     newMeasureVol = m.CharField(max_length=256,null=True, blank=True)
     newMeasureLen = m.CharField(max_length=256,null=True, blank=True)
     newMeasureTime = m.CharField(max_length=256,null=True, blank=True)
-    convertedPrice = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    lifetimeAsset = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    interestRate = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    priceAdjAmortization = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    benefitYN = m.CharField(max_length=1,null=True,blank=True)
-    benefitRate = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
+    convertedPrice = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
+    lifetimeAsset = m.CharField(max_length=2000,null=True, blank=True)
+    interestRate = m.CharField(max_length=2000,null=True, blank=True)
+    priceAdjAmortization = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
+    benefitRate = m.CharField(max_length=2000,null=True, blank=True)
     SourceBenefitData = m.CharField(max_length=100,null=True,blank=True)
-    priceAdjBenefits = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    percentageofUsage  = m.IntegerField(null=True,blank=True)
-    yearPrice = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    statePrice = m.CharField(max_length=2000,null=True, blank=True)
-    areaPrice = m.CharField(max_length=2000,null=True, blank=True)
-    geoIndex = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    indexCPI = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
+    YearBenefit = m.CharField(max_length=100,null=True,blank=True)
+    priceAdjBenefits = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
+    percentageofUsage  = m.DecimalField(max_digits=10,decimal_places=3,null=True,blank=True)
+    yearPrice = m.IntegerField(null=True, blank=True)
+    statePrice = m.CharField(max_length=256,null=True, blank=True)
+    areaPrice = m.CharField(max_length=256,null=True, blank=True)
+    geoIndex = m.CharField(max_length=500,null=True, blank=True)
+    indexCPI = m.CharField(max_length=500,null=True, blank=True)  
     yearQtyUsed = m.IntegerField(null=True,blank=True)
-    quantityUsed = m.IntegerField(null=True,blank=True)
+    quantityUsed = m.CharField(max_length=15,null=True,blank=True)
     variableFixed = m.CharField(max_length=10,null=True,blank=True)
-    priceAdjInflation = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    priceAdjGeographicalArea = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    priceNetPresentValue = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    adjPricePerIngredient = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
-    costPerIngredient = m.DecimalField(max_digits=12,decimal_places=2,null=True,blank=True)
+    priceAdjInflation = m.CharField(max_length=2000,null=True, blank=True)  
+    priceAdjGeographicalArea = m.CharField(max_length=500,null=True, blank=True)  
+    priceNetPresentValue = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
+    adjPricePerIngredient = m.CharField(max_length=500,null=True, blank=True)  
+    costPerIngredient = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
+    totalCost = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
+    averageCost = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)                    
+    effRatio = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)            
+    percentageCost = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
+    costPerParticipant = m.DecimalField(max_digits=12,decimal_places=3,null=True,blank=True)
     programId = m.IntegerField(null=True,blank=True)
 
+    class Meta:
+        ordering = ['ingredient','category']
+
     def __unicode__(self):
-        return self.ingredient
+        return unicode(self.id)
 

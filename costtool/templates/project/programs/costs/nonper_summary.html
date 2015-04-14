@@ -3,6 +3,10 @@
 {% block body_block %}
 
 <div class="hero-unit">
+    <div class="container" style="color: blue">
+        <h4>Project Name:  {{projectname}}</h4>                                                                                       
+        <h4>Program Name:  {{programname}}</h4>                                                                                     
+    </div>  
     <div class="container">
              {% csrf_token %}
              <h2 class="form-signin-heading">Add ingredient</h2>
@@ -20,9 +24,9 @@
              <table>
                  <thead>
                  <tr>
-                 <th>Length of program (years)</th>
+                 <th>Program Year</th>
                  <th>Quantity</th>
-                 <th>Percentage of usage</th>
+                 <th>% of time used (number from 0 to 100)</th>
                  </tr>
                  </thead>
                  <form method="post" id="form" action="/project/programs/costs/nonper_summary.html"  enctype="multipart/form-data">
@@ -47,9 +51,9 @@
                  <input type="radio" name="variableFixed" value="Variable" checked>No. This is a Variable quantity. <br>
                  <input type="radio" name="variableFixed" value="Lumpy">No. This is a Lumpy quantity. <br></br>
                  <input type="hidden" id="variableFixed2" name="variableFixed2">
-                 <input type="button" style="background-color:green" name="goto2" value="< Back" onclick="goback();"/>
-                 <input class="btn btn-primary" type="submit"  name="goto" value="Next >>"/>
-                 <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+                 <input type="button" class="btn btn-success" name="goto2" value="<< Back" onclick="goback();"/>
+                 <input class="btn btn-primary" type="submit"  name="goto" value="Save Ingredient"/>
+                 <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/>
                  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
                  <script type="text/javascript">
                   $("form").submit(function(){
@@ -66,11 +70,16 @@
                  {% csrf_token %}
                  {{ form.non_field_errors }}
                  {{ form.errors }}
-                 {{ form }}
+                 Quantity of ingredient needed:{{ form.quantityUsed }}
+                 </br>
+                 Percentage of time used (input a number from 0 to 100):{{form.percentageofUsage}}
+                 </br>
+                 Does this number stay fixed even if number of participants change? {{form.variableFixed}} 
                  </br> 
-                 <input type="button" style="background-color:green" name="goto2" value="< Back" onclick="goback();"/>
-                 <input class="btn btn-primary" type="submit"  name="goto" value="Next >>"/>
-                 <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/> 
+
+                 <input class="btn btn-success" name="goto2" value="<< Back" onclick="goback();"/>
+                 <input class="btn btn-primary" type="submit"  name="goto" value="Save Ingredient"/>
+                 <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/> 
                 </form>
              {% endif %}
            <script type="text/javascript">
@@ -79,9 +88,6 @@
                  document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=costform";
               }
 
-              function Pass() {
-                 document.location.href = "/project/programs/costs/finish.html";
-              }
 
               function goback() {
                 document.location.href = "/project/programs/costs/"  + {{price.id}} + "/nonper_indices.html";

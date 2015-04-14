@@ -2,7 +2,20 @@
 {% load static %}
 {% block body_block %}
 
+<style TYPE="text/css">
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  /* display: none; <- Crashes Chrome on hover */
+  -webkit-appearance: none;
+  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+</style>
+
 <div class="hero-unit">
+    <div class="container" style="color: blue">
+        <h4>Project Name:  {{projectname}}</h4>
+        <h4>Program Name:  {{programname}}</h4>                                                                                        
+    </div>
     <div class="container">
              {% csrf_token %}
              <h2 class="form-signin-heading">Add ingredient</h2>
@@ -21,36 +34,41 @@
              <table>
                  <thead>
                  <tr>
-                 <th>Length of program (years)</th>
+                 <th>Program year</th>
                  <th>Quantity</th>
+                 <th>% of time used (number from 0 to 100, e.g., “5” to indicate 5%)</th>
                  </tr>
                  </thead>
                  <form method="post" id="form"  enctype="multipart/form-data">
                  <tbody class="product-instances">
                      {% csrf_token %}
                      {{ form.management_form }}
-
                      {% for form in form %}
                         {{ form.non_field_errors }}
                         {{ form.errors }}
-
                          {{ form.id }}
                      <tr>
                          <td>{{ form.yearQtyUsed}}</td>
                          <td>{{ form.quantityUsed }}</td>
+                         <td>{{ form.percentageofUsage}}</td>
                      </tr>
                      {% endfor %}
                  </tbody>
                  </table>
                  </br>
-                 Does this number stay fixed even if number of participants change? <br>
-                 <input type="radio" name="variableFixed" value="Fixed">Yes. This is a Fixed quantity. <br>
-                 <input type="radio" name="variableFixed" value="Variable" checked>No. This is a Variable quantity. <br>
-                 <input type="radio" name="variableFixed" value="Lumpy">No. This is a Lumpy quantity. <br></br>
-                 <input type="button" style="background-color:green" name="goto2" value="< Back" onclick="goback();"/>
+                 Does the quantity needed stay fixed even if the number of participants change? <br>
+                 <input type="radio" name="variableFixed" value="Fixed">Yes, this is a Fixed quantity. (i.e., stays the same regardless of the number of program participants)
+                 <br>
+                 <input type="radio" name="variableFixed" value="Variable" checked>No, this is a Variable quantity (i.e., changes in direct proportion to the number of program participants) <br>
+                 <input type="radio" name="variableFixed" value="Lumpy">No, this is a Lumpy quantity (i.e., changes when the number of participants increases or decreases by a certain amount, e.g., goes up after 30 more participants are added, then again at 60 etc.)  <br></br>
+                 <div id="extra-content">If you want to spread the costs of this personnel ingredient over a number of years, enter the number of years below, e.g., if it is used in teacher training time in Year 1 but this training will not need to be repeated for 5 years, you can spread the costs over 5 years. <input type="text" name="lifetimeAsset" id="lifetimeAsset" value="1">
+                 <br>
+                 You can change the default rate used to calculate interest on the undepreciated portion each year. <input type="text" name="interestRate" id="interestRate" value="3.5">
+                 <br><br></div>
+                 <input type="button" class="btn btn-success"  name="goto2" value="<< Back" onclick="goback();"/>
                  <input type="hidden" id="variableFixed2" name="variableFixed2">
-                 <input class="btn btn-primary" type="submit"  name="goto" value="Next >>"/>
-                 <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+                 <input class="btn btn-primary" type="submit"  name="goto" value="Save ingredient"/>
+                 <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/>
                  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
                  <script type="text/javascript">
                   $("form").submit(function(){
@@ -68,26 +86,45 @@
                  {{ form.non_field_errors }}
                  {{ form.errors }} 
                  Quantity of ingredient needed: {{ form.quantityUsed }}
-                 </br></br>
-                 Does this number stay fixed even if number of participants change? {{ form.variableFixed }}
-                 </br> 
-                 <input type="button" style="background-color:green" name="goto2" value="< Back" onclick="goback();"/>
-                 <input class="btn btn-primary" type="submit"  name="goto" value="Next >>"/>
-                 <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/> 
+                 </br>
+                  Percentage of time used (input a number from 0 to 100, e.g., “5” to indicate 5%):{{form.percentageofUsage}}
+                 </br>
+                 Does the quantity needed stay fixed even if the number of participants change? {{ form.variableFixed }}
+                 </br>
+                 <div id="extra-content2">
+                 If you want to spread the costs of this personnel ingredient over a number of years, enter the number of years below, e.g., if it is used in teacher training time in Year 1 but this training will not need to be repeated for 5 years, you can spread the costs over 5 years. {{form.lifetimeAsset}}
+                 <br>
+                 You can change the default rate used to calculate interest on the undepreciated portion each year. {{form.interestRate}} 
+                 <br><br></div>
+                 <input type="button" class="btn btn-success" name="goto2" value="<< Back" onclick="goback();"/>
+                 <input class="btn btn-primary" type="submit"  name="goto" value="Save ingredient"/>
+                 <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/> 
                 </form>
              {% endif %}
+           <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>   
            <script type="text/javascript">
+              var cat = '{{price.category}}';                                                                                     
+              if (cat  == 'Personnel') {  
+                 $("#extra-content").show();
+                 $("#extra-content2").show();
+              }
+              else {
+                 $("#extra-content").hide();
+                 $("#extra-content2").hide();
+              }
 
               function cancelout() {
                  document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=costform";
               }
 
-              function Pass() {
-                 document.location.href = "/project/programs/costs/finish.html";
-              }
-
               function goback() {
-                document.location.href = "/project/programs/costs/"  + {{price.id}} + "/price_benefits.html";
+                  var cat = '{{price.category}}';
+                  if (cat  == 'Personnel') {  
+                      document.location.href = "/project/programs/costs/"  + {{price.id}} + "/price_benefits.html";
+                  }
+                  else {  
+                      document.location.href = "/project/programs/costs/"  + {{price.id}} + "/nonper_indices.html"; 
+                  }
               }
 
            </script>

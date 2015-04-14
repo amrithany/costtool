@@ -6,18 +6,26 @@
     <div class="table-responsive">
         <h2 class="form-signin-heading">Add Ingredient</h2>
         <h3> Select benefit rate for the ingredient</h3>
+            <input type="button" class="btn btn-success" name="goto2" value="Back to Add Ingredient" onclick="goback();" />
+            <input class="btn btn-primary" type="submit"  name="save" value="Select rate" onclick="selectrate();">
             <table class="table table-condensed">
                 <thead>
                     <th></th>
                     <th>Sector</th>
                     <th>Personnel</th>
+                    <th>Year Benefit</th>
                     <th>Benefit Rate</th>
+                    <th>Last Checked</th>
+                    <th>Next Check Date</th>
                     {% for ben in allbenefits %}
                         <tr onmouseover="javascript:style.background='#dcfac9'" onmouseout="javascript:style.background='#DCDCDC'" bgcolor="#DCDCDC">
                             <td><input type="checkbox" id="{{ben.id}}" value="unchecked" onclick="setId(this);"  style="margin-left:auto; margin-right:auto;"></td>
                             <td>{{ben.SectorBenefit}}</td>
                             <td>{{ben.PersonnelBenefit}}</td>
+                            <td>{{ben.YearBenefit}}</td>
                             <td>{{ben.BenefitRate}}</td>
+                            <td>{{ben.LastChecked}}</td>
+                            <td>{{ben.NextCheckDate}}</td>
                         </tr>
                     {% endfor %}
                    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
@@ -51,8 +59,6 @@
                    </script>
                </thead>
             </table>
-            <input type="button" style="background-color:green" name="goto2" value="< Back" onclick="goback();" />
-            <input class="btn btn-primary" type="submit"  name="save" value="Select rate" onclick="selectrate();" />
     </div>
 </div>
 {% endblock %}

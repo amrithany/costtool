@@ -11,7 +11,7 @@
                  <br />
                  Wage: {{price}} USD per {{measure}} <br /><br />
                  Convert to  {{ form.newMeasure }}
-                 <a href="/project/programs/costs/wage_converter.html"><input type="submit" style="background-color:red" name="compute" value="Compute"/></a> <br />
+                 <a href="/project/programs/costs/wage_converter.html"><input type="submit" class="btn btn-danger" name="compute" value="Compute"/></a> <br />
                  Converted value:
                  {{ form.convertedPrice }}
 
@@ -31,9 +31,9 @@
               }
 
               </script>
-             <a href="/project/programs/costs/wage_defaults.html"><input type="button" style="background-color:green" name="goto" value="Change default number of hours per year" /></a><br /> <br />
+             <a href="/project/programs/costs/wage_defaults.html"><input type="button" class="btn btn-warning" name="goto" value="Change default number of hours per year" /></a><br /><br />
              <input class="btn btn-primary" type="submit" name="use" value="Use converted value"/>
-             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+             <input class="btn btn-success" type="button" name="cancel" value="Back to Add ingredient" onclick="cancelout();"/>
              </form>
     </div>
 </div>

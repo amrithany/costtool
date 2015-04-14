@@ -3,31 +3,32 @@
 {% block body_block %}
 
 <div class="hero-unit">
+    <div class="container" style="color: blue">
+          <h4>Project Name:  {{projectname}}</h4>
+          <h4>Program Name:  {{programname}}</h4>
+      </div>      
     <div class="container">
              <form  id="form3" action="/project/programs/costs/price_search_results.html" method="get">
              {% csrf_token %}
              <h2 class="form-signin-heading">Add ingredient</h2>
-             Select parameters to search ingredient prices in database of prices.
+             Name of Ingredient:<br /> 
+             {{ costform.ingredient }}
              <br />
-             The database of prices used for the search are those you selected in the "settings" tab.
-             <br />
-             <br />
+             Select parameters for the price search.  The CBCSE Cost Tool Kit will look for relevant prices in the CBCSE Database of Educational Resource Prices and also in your own MyPrices Database unless you limit the search to only one of these databases in Project Settings.
+             <br><br>
              Category:<br />
              {{ costform.category }} 
              <br />
-             Ed Level to be served:<br />
+             Educational Level:<br />
              <select name="edLevel" id="edLevel"> 
              </select>
              <br />
              Sector:<br />
              <select name="sector" id="sector">
              </select>
-             <br />
-             Ingredient:<br /> 
-             {{ costform.ingredient }}
-             <br />
+             <br /><br>
              <input class="btn btn-primary" type="submit" name="search" value="Search"/>
-             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+             <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/>
            </form>
            <script type="text/javascript">
               var x = '{{choicesEdn}}';

@@ -2,20 +2,20 @@
 {% load static %}
 {% block body_block %}
 <div class="hero-unit">
-     CBCSE CTK provide indices to adjust the year of tested price to the year in which you want to express costs. You can edit these indices.
+     CBCSE CTK provides indices to adjust the year of tested price to the year in which you want to express costs. You can edit these indices.
      <br />
      <br />
      <a href="inflation.html"><input class="btn btn-primary" type="button" name="goto" value="Edit inflation indices"></a>
      <br />
      <br />
 
-     CBCSE CTK also provide indices to adjust the listed price to the geographical location for which you want to express costs. You can edit these indices.
+     CBCSE CTK also provides indices to adjust the listed price to the geographical location for which you want to express costs. You can edit these indices.
      <br />
      <br />
      <a href="geo.html"><input class="btn btn-primary" type="button" name="goto2" value="Edit geographical indices"></a>
      <br />
      <br />
-     <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="gotofunc()"/>
+     <input class="btn btn-success" type="button" name="cancel" value="Back to Settings" onclick="gotofunc()"/>
        <script type="text/javascript">
          function gotofunc(){
             document.location.href = "/project/"+ {{project_id}} +"/add_settings.html";

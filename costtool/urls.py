@@ -6,6 +6,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Examples:
     url(r'^$', 'costtool.views.about', name='about'),
+    url(r'^about.html$', 'costtool.views.about', name='about'), 
     url(r'^projects/(?P<projects_id>\d+)/detail.html$',
         'costtool.views.project_detail', name='project_detail'),
 
@@ -15,6 +16,13 @@ urlpatterns = patterns('',
     url(r'^prices/price_list.html$', 'costtool.views.price_list', name='price_list'),
     url(r'^prices/my_price_list.html$', 'costtool.views.my_price_list', name='my_price_list'),
     url(r'^prices/prices.html$', 'costtool.views.prices', name='prices'),
+
+    url(r'^reports/(?P<project_id>\d+)/reports.html$', 'costtool.views.reports', name='reports'),
+    url(r'^reports/costanal.html$', 'costtool.views.costanal', name='costanal'),
+    url(r'^reports/costanalbyyear.html$', 'costtool.views.costanalbyyear', name='costanalbyyear'),
+    url(r'^reports/costeff.html$', 'costtool.views.costeff', name='costeff'),
+    url(r'^reports/compcostanal.html$', 'costtool.views.compcostanal', name='compcostanal'),
+
     url(r'^prices/imports.html$', 'costtool.views.imports', name='imports'),
     url(r'^prices/clear_prices.html$', 'costtool.views.clear_prices', name='clear_prices'),
     url(r'^prices/(?P<price_id>\d+)/view_price.html$', 'costtool.views.view_price', name='view_price'),
@@ -24,20 +32,22 @@ urlpatterns = patterns('',
     url(r'^prices/import_geo.html$', 'costtool.views.import_geo', name='import_geo'),
     url(r'^prices/import_inf.html$', 'costtool.views.import_inf', name='import_inf'),
     url(r'^prices/import_benefits.html$', 'costtool.views.import_benefits', name='import_benefits'),
+    url(r'^prices/(?P<price_id>\d+)/view_price2.html$', 'costtool.views.view_price2', name='view_price2'),
 
     url(r'^project/add_project.html$', 'costtool.views.add_project', name='add_project'),
     url(r'^project/project_list.html$', 'costtool.views.project_list', name='project_list'),
-    url(r'^project/(?P<proj_id>\d+)/del_project.html$', 'costtool.views.del_project', name='del_project'),
-
+    url(r'^project/(?P<project_id>\d+)/del_project.html$', 'costtool.views.del_project', name='del_project'),
+    url(r'^project/settings.html$', 'costtool.views.settings', name='settings'),
     url(r'^project/(?P<project_id>\d+)/add_settings.html$', 'costtool.views.add_settings', name='add_settings'),
     url(r'^project/indices.html$', 'costtool.views.indices', name='indices'),
     url(r'^project/geo.html$', 'costtool.views.addedit_geo', name='addedit_geo'),
     url(r'^project/restore_geo.html$', 'costtool.views.restore_geo', name='restore_geo'),
     url(r'^project/inflation.html$', 'costtool.views.addedit_inf', name='addedit_inf'),
     url(r'^project/restore_inf.html$', 'costtool.views.restore_inf', name='restore_inf'),
-    
+
     url(r'^project/programs/(?P<project_id>\d+)/program_list.html$','costtool.views.program_list', name='program_list'),
     url(r'^project/programs/add_program.html$', 'costtool.views.add_program', name='add_program'),
+    url(r'^project/programs/(?P<program_id>\d+)/del_program.html$','costtool.views.del_program', name='del_program'),
     url(r'^project/programs/effect/(?P<project_id>\d+)/(?P<program_id>\d+)/tabbedview.html$', 'costtool.views.tabbedlayout', name='tabbedlayout'),
 
     url(r'^project/programs/costs/search_costs.html$', 'costtool.views.search_costs', name='search_costs'),
@@ -52,9 +62,6 @@ urlpatterns = patterns('',
     url(r'^project/programs/costs/wage_converter.html$', 'costtool.views.wage_converter', name='wage_converter'),
     url(r'^project/programs/costs/wage_defaults.html$', 'costtool.views.wage_defaults', name='wage_defaults'),
     url(r'^project/programs/costs/summary.html$', 'costtool.views.price_summary', name='price_summary'),
-
-    url(r'^project/programs/costs/nonper_summary.html$', 'costtool.views.nonper_summary', name='nonper_summary'),
-    url(r'^project/programs/costs/finish.html$', 'costtool.views.finish', name='finish'),
     url(r'^project/programs/costs/full_table.html$', 'costtool.views.full_table',  name='full_table'),
 
     url(r'^project/programs/costs/umconverter.html$', 'costtool.views.um_converter', name='um_converter'),
@@ -63,8 +70,9 @@ urlpatterns = patterns('',
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^register/register.html$', 'costtool.views.register', name='register'), 
-    url(r'^login/login.html$', 'costtool.views.user_login', name='user_login'),
+    url(r'^register/register.html$', 'costtool.views.register', name='register'),
+    url(r'^register/license.html$', 'costtool.views.license', name='license'),
+    url(r'^login/login.html$', 'costtool.views.login', name='login'),
     url(r'^index.html$', 'costtool.views.index', name='index'),
 )
 

@@ -13,11 +13,13 @@ listTime=['Minutes','Hours','Days','Weeks','Years']
              {% if measureType == 'mylist' %}
              Convert Area to other units: Sq. Inch, Sq. Foot, Sq. Yard, Acre, Sq. Mile, Sq. Meter, Sq. Kilometer and Hectare.
              {% elif measureType == 'listVol' %}
-             Convert Volume to other units: Ounces, Cups, Pints, Quarts, Gallons and  Liters.
+             Convert Volume to other units: Fluid Ounces, Cups, Pints, Quarts, Gallons and  Liters.
              {% elif measureType == 'listLen' %}
-             Convert Length to other units: Inches, Feet, Yards, Miles, Millimeter, Centimeter, Kilometer
+             Convert Length to other units: Inches, Feet, Yards, Miles, Millimeter, Centimeter and Kilometer.
              {% elif measureType == 'listTime' %}
-             Convert Time to other units: Minutes, Hours, Days, Weeks, Years
+             Convert Time to other units: Hour, Day, Week, K-12 Academic Year, Calendar Year and Higher Ed Academic Year.
+             {% elif measureType == 'allList' %}
+             Convert to other units: Sq. Inch, Sq. Foot, Sq. Yard, Acre, Sq. Mile, Sq. Meter, Sq. Kilometer,Ounces, Cups, Pints, Quarts, Gallons, Liters,Inches, Feet, Yards, Miles, Millimeter, Centimeter, Kilometer, Minutes, Hours, Days, Weeks and Years.
              {% endif %}
              <form class="form-signin span8" id="form" method="post" enctype="multipart/form-data">
                  {% csrf_token %}
@@ -31,8 +33,10 @@ listTime=['Minutes','Hours','Days','Weeks','Years']
                  Convert to  {{ form.newMeasureLen }}
                  {% elif measureType == 'listTime' %}
                  Convert to  {{ form.newMeasureTime }}
+                 {% elif measureType == 'allList' %}
+                 Convert to  {{ form.newMeasureAll }}
                  {% endif %} 
-                 <a href="/project/programs/costs/umconverter.html"><input type="submit" style="background-color:red" name="compute" value="Compute"/></a> <br />
+                 <a href="/project/programs/costs/umconverter.html"><input type="submit" class="btn btn-danger" name="compute" value="Compute"/></a> <br />
                  Converted value:
                  {{ new_price }}
                  <br /> <br />
@@ -44,7 +48,7 @@ listTime=['Minutes','Hours','Days','Weeks','Years']
 
               </script>
              <input class="btn btn-primary" type="submit" name="use" value="Use converted value"/>
-             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+             <input class="btn btn-success" type="button" name="cancel" value="Back to Add ingredient" onclick="cancelout();"/>
              </form>
     </div>
 </div>

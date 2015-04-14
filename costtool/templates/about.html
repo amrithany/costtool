@@ -1,20 +1,39 @@
 {% extends 'index.html' %}
 {% load static %}
-{% block body_block %}
-<div class="hero-unit">
-    <h1>CBCSE Cost Tool Kit</h1>
-        This is Fiona's and Barbara's cost tool kit. This tool will be helpful for users. Who are the intended users? Something, something
-    <br />
+ {% block body_block %} 
+<div class="container-fluid">
+    <div class="row-fluid">
+           <div class="span3">
+                <div class="well sidebar-nav">
+                <br>    
+                <h5 style="color:darkblue;text-align:center">CBCSE Cost Tool Kit Terms & Policies</h5>
+                <h5>License Agreement</h5>
+                <h5>Data Use Policy</h5>
+                <br />
+                <h5 style="color:darkblue;text-align:center">Learn more</h5>
+                <h5>Tutorials</h5>
+                <h5>Examples</h5>
+                <h5>Additional resources</h5>
+            </div>
+    </div>
+    <div class="span9">
+    <div class="hero-unit">
+    <h1>CBCSE Cost Tool Kit ©</h1>
+    <br>This tool is designed to facilitate the estimation of costs and cost-effectiveness of educational or other social programs. It is primarily designed for researchers, analysts, educational administrators, and policymakers, but it is free for anyone to use provided you sign a license agreement when you register. <br>
+    <br>To get started, click on <a href="/register/register.html"> <b>Register</b></a> if you are a first time user, or <a href="login/login.html"><b>Login</b></a> if you are a returning user.  
+    <br><br />
     <img src="{% static "pencil_graph.jpg" %}" alt="Picture of Cost Tool" /> <!-- New line -->
      <br />
      <br />
+    </div>
+    </div>
+</div>
 </div>
 {% endblock %}
-
+<footer>
 {% block footer_block %}
-            CBCSE Cost Tool Kit © has been developed by the Center for Benefit-Cost Studies of Education<br />
-            TEACHERS COLLEGE • COLUMBIA UNIVERSITY<br />
-            BOX 181, 525 WEST 120TH STREET, NEW YORK, N.Y. 10027-6696<br />
-            (212) 678-3259 • FAX (212) 678-3473 <br />
+            CBCSE Cost Tool Kit © has been developed by the Center for Benefit-Cost Studies of Education, Teachers College, Columbia University, funded by the U.S. Department of Education, Institute of Education Sciences, Award Number R305U130001<br />
+            <br><br />
             WEB www.cbcse.org • EMAIL cbcse@tc.columbia.edu <br />
 {% endblock %}
+</footer>
