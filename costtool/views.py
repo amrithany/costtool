@@ -10,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from django.db.models import Max, Min
 from costtool import models as m
 from costtool.forms import RegisterForm,License, LoginForm, PricesForm, PricesSearchForm, PriceIndicesForm, NonPerIndicesForm, WageDefaults, WageConverter,UMConverter, PriceBenefits, PriceSummary,MultipleSummary, UserForm, UserProfileForm, ProjectsForm, ProgramsForm, ProgramDescForm, ParticipantsForm, EffectForm,SettingsForm, GeographicalForm, GeographicalForm_orig, InflationForm, InflationForm_orig, IngredientsForm,IngredientsFullForm
 from costtool.functions import calculations
@@ -69,7 +69,7 @@ def prices(request):
        password = 'ccc'
 
     login = m.Login.objects.get(id=1)
-    if user != 'cbcse' or user != login.user or password != 'apr16' or password != login.password:
+    if user != 'cbcse' or user != login.user or password != 'aug31' or password != login.password:
        return render(request,'prices/message.html')
     else:
        return render(request, 'prices/prices.html')
@@ -92,7 +92,8 @@ def costeff(request):
           try:
              ret['average_cost'] = ingredients[0].averageCost
              ret['total_cost'] = ingredients[0].totalCost
-             ret['effRatio'] = ingredients[0].effRatio
+             if eff.avgeffectperparticipant is not None  and ingredients[0].averageCost is not None and ingredients[0].averageCost != 0:
+                ret['effRatio'] = float(ingredients[0].averageCost) / float(eff.avgeffectperparticipant)
           except:
              ret['average_cost'] = 'n/a'
              ret['total_cost'] = 'n/a'
@@ -119,28 +120,31 @@ def compcostanal(request):
    project_id = request.session['project_id']
    project = m.Projects.objects.get(pk=project_id)
    ProgList = []
+   MaxTotal = []
    try:
       program = m.Programs.objects.filter(projectId=project_id)
-      total_partcost = 0
       for p in program:
          ret = {}
          ingredients = m.Ingredients.objects.filter(programId = p.id)
-         for i in ingredients:
-            if i.costPerParticipant is None:
-               i.costPerParticipant = 0
-            total_partcost =  total_partcost + i.costPerParticipant
-         ret['total_partcost'] = total_partcost   
+         #MaxTotal = m.Ingredients.objects.filter(programId = p.id).aggregate(Max('totalCost'))
+         #MinTotal = m.Ingredients.objects.filter(programId = p.id).aggregate(Max('totalCost'))
+         #MaxTotal = m.Ingredients.objects.filter(programId = p.id).order_by('totalCost')[0]
+         #MinTotal = m.Ingredients.objects.filter(programId = p.id).order_by('-totalCost')[0] 
          try:
             ret['total_cost'] = ingredients[0].totalCost 
             ret['avg_cost'] = ingredients[0].averageCost
+            MaxTotal.append(ingredients[0].totalCost)
+            MinTotal = m.Ingredients.objects.filter(programId = p.id).aggregate(Max('totalCost'))
          except:
             ret['total_cost'] = 'n/a'
             ret['avg_cost'] = 'n/a'
+            MaxTotal.append('n/a')
+            MinTotal = 'n/a'
          ret['short_name'] = p.progshortname
          ProgList.append(ret)
    except ObjectDoesNotExist:
       return HttpResponse('A Project and/or Program does not exist! Cannot proceed further.')
-   return render(request,'reports/compcostanal.html', {'ProjectName': project.projectname, 'ProgList':ProgList})
+   return render(request,'reports/compcostanal.html', {'ProjectName': project.projectname, 'ProgList':ProgList, 'MaxTotal':MaxTotal,'MinTotal':MinTotal})
 
 def login(request):
    context = RequestContext(request)
@@ -155,7 +159,7 @@ def login(request):
          login = loginform.save(commit=False)
          request.session['user'] = login.user
          request.session['password'] = login.password
-         if login.user == 'cbcse' and login.password == 'apr16':
+         if login.user == 'cbcse' and login.password == 'aug31':
             return HttpResponseRedirect('/project/project_list.html')
          else:
             form_errors = 'Yes'
@@ -372,8 +376,11 @@ def tabbedlayout(request,project_id,program_id):
                   else:
                      for q in queryset:
                         total = float(total) + float(q.noofparticipants)
-                     if numberofparticipants == programdesc.numberofparticipants:
+                     if (numberofparticipants == programdesc.numberofparticipants) and total != 0:
                         programdesc.numberofparticipants = total / programdesc.numberofyears   
+                  if programdesc.lengthofprogram == 'One year or less':
+                     programdesc.numberofyears = 1 
+                     m.ParticipantsPerYear.objects.filter(programdescId=id.id).delete()
                   programdesc.save()
                   ing = m.Ingredients.objects.filter(programId = program_id)
                   for i in ing:
@@ -393,7 +400,8 @@ def tabbedlayout(request,project_id,program_id):
                         i.effRatio = None 
                      try:
                         partperyear = m.ParticipantsPerYear.objects.get(programdescId_id=programdesc.id, yearnumber=i.yearQtyUsed)                 
-                        i.costPerParticipant = float(i.costPerIngredient) / float(partperyear.noofparticipants)
+                        if i.costPerIngredient is not None:
+                           i.costPerParticipant = float(i.costPerIngredient) / float(partperyear.noofparticipants)
                      except ObjectDoesNotExist:
                         i.costPerParticipant = float(i.costPerIngredient) / float(numberofparticipants)
                      i.save(update_fields=['averageCost','effRatio','costPerParticipant'])
@@ -454,11 +462,13 @@ def tabbedlayout(request,project_id,program_id):
 
     if request.method == 'POST':
        if 'editIng' in request.POST:
-          ingform = IngFormSet(request.POST,request.FILES,prefix="ingform")
+          ingform = IngFormSet(request.POST,request.FILES,queryset = ing,prefix="ingform")
           if ingform.is_valid():
              f = ingform.save(commit=False)
              for ing in f:
                 if ing.priceAdjInflation != 'No index' and ing.priceAdjGeographicalArea != 'No index':
+                   perc = m.Ingredients.objects.get(pk = ing.id)
+                   ing.percentageofUsage = perc.percentageofUsage
                    if ing.percentageofUsage is None:
                       ing.percentageofUsage = 100     
                    if ing.adjPricePerIngredient != 'No geographical index available' and ing.adjPricePerIngredient != 'No inflation index available' and ing.adjPricePerIngredient != '':
@@ -468,10 +478,12 @@ def tabbedlayout(request,project_id,program_id):
                          ing.costPerIngredient = float(ing.adjPricePerIngredient) * float(ing.quantityUsed) * float(ing.percentageofUsage) / 100 
                    try:
                       partperyear = m.ParticipantsPerYear.objects.get(programdescId_id=progid, yearnumber=ing.yearQtyUsed)
-                      ing.costPerParticipant = float(ing.costPerIngredient) / float(partperyear.noofparticipants)
+                      if ing.costPerIngredient is not None: 
+                         ing.costPerParticipant = float(ing.costPerIngredient) / float(partperyear.noofparticipants)
                       ing.save(update_fields=['ingredient', 'quantityUsed','variableFixed','costPerIngredient','costPerParticipant']) 
                    except ObjectDoesNotExist:
-                      ing.costPerParticipant = float(ing.costPerIngredient) 
+                      if ing.costPerIngredient is not None: 
+                         ing.costPerParticipant = float(ing.costPerIngredient)
                       ing.save(update_fields=['ingredient', 'quantityUsed','variableFixed','costPerIngredient','costPerParticipant'])
           
              ing1 = m.Ingredients.objects.filter(programId = program_id)
@@ -953,13 +965,13 @@ def um_converter(request):
 
     try:
        sett = m.Settings.objects.get(projectId=project_id)
-       hrsCalendarYr = sett.hrsCalendarYr
-       hrsAcademicYr = sett.hrsAcademicYr
-       hrsHigherEdn = sett.hrsHigherEdn
+       hrsCalendarYr = float(sett.hrsCalendarYr)
+       hrsAcademicYr = float(sett.hrsAcademicYr)
+       hrsHigherEdn = float(sett.hrsHigherEdn)
     except ObjectDoesNotExist:
-       hrsCalendarYr = 2080
-       hrsAcademicYr = 1440
-       hrsHigherEdn = 1560
+       hrsCalendarYr = float(2080)
+       hrsAcademicYr = float(1440)
+       hrsHigherEdn = float(1560)
 
     if 'price' in request.session:
        price = float(request.session['price'])
@@ -987,7 +999,7 @@ def um_converter(request):
     mylist = ['Sq. Inch', 'Sq. Foot','Sq. Yard','Acre','Sq. Mile','Sq. Meter','Sq. Kilometer','Hectare']
     listVol=['Fluid Ounces','Cups','Pints','Quarts','Gallons','Liters']
     listLen=['Inches','Feet','Yards','Miles','Millimeter','Centimeter','Kilometer']
-    listTime=['Hour', 'Day', 'Week', 'Minutes','Hours','Days','Weeks','Years']
+    listTime=['Hour', 'Day', 'Week', 'K-12 Academic Year','Higher Ed Academic Year','Calendar Year']
     allList = ['Sq. Inch', 'Sq. Foot','Sq. Yard','Acre','Sq. Mile','Sq. Meter','Sq. Kilometer','Hectare','Ounces','Cups','Pints','Quarts','Gallons','Liters','Inches','Feet','Yards','Miles','Millimeter','Centimeter','Kilometer','Minutes','Hours','Days','Weeks','Years']
     measureType = 'mylist'
 
@@ -2178,7 +2190,7 @@ def project_list(request):
     #user = login.user
     #password = login.password
 
-    if user != 'cbcse' or user != login.user or password != 'apr16' or password != login.password:
+    if user != 'cbcse' or user != login.user or password != 'aug31' or password != login.password:
        template = loader.get_template('prices/message.html')
     else:   
        template = loader.get_template('project/project_list.html')

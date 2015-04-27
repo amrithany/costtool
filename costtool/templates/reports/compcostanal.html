@@ -13,7 +13,7 @@
 var mySeries = [];
 var partSeries = [];
 var avgSeries = [];
-var progName = [];                                                                                                                   
+var progName = [];
 </script>
 {% for prog in ProgList %}
 <script type="text/javascript">
@@ -29,7 +29,7 @@ $(function () {
             borderWidth:1,
             borderColor:'#ccc',
             marginLeft:90,
-            marginRight:60,
+            marginRight:90,
             backgroundColor:'#eee',
             plotBackgroundColor:'#fff',
         },
@@ -62,8 +62,8 @@ $(function () {
         //},
         yAxis: {
            // min: -500,
-            min: -200000,
-            max: 200000,
+            min: -100000,
+            max: 100000,
             title: {
                 text: 'Total Cost',
                 align: 'high'
@@ -112,7 +112,7 @@ $(function () {
               borderWidth:1,
               borderColor:'#ccc',
               marginLeft:90,
-              marginRight:50,
+              marginRight:90,
               backgroundColor:'#eee',
               plotBackgroundColor:'#fff',
           },
@@ -122,14 +122,30 @@ $(function () {
           subtitle: {
               text: 'Source: www.cbcsecosttoolkit.org'                                                                             
               }, 
-          xAxis: {
-             categories: progName,
-              title: {
-                 text: null
-              }
-          },
+          //xAxis: {
+             //categories: progName,
+              //title: {
+                // text: null
+             // }
+          //},
+          xAxis: [{
+                  categories: progName,
+                  reversed: false,
+                  labels: {
+                      step: 1
+                  }
+              }, { // mirror axis on right side
+                  opposite: true,
+                  reversed: false,
+                  categories: progName,
+                  linkedTo: 0,
+                  labels: {
+                     step: 1
+                  }
+             }],
           yAxis: {
-              min: -100,
+              min: -10000,
+              max: 10000,
             title: {
                  text: 'Average cost per participant',
                   align: 'high'
@@ -157,7 +173,8 @@ $(function () {
               floating: true,
               borderWidth: 1,
               backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
-              shadow: true
+              shadow: true,
+              valueSuffix: ' $'
           },                                                                                                                           
           credits: {
               enabled: false
@@ -165,7 +182,8 @@ $(function () {
          series: [{
               name: 'Program',
               color: 'rgba(223, 83, 83, .5)',
-              data: avgSeries
+              data: avgSeries,
+              valueSuffix: ' $'
           }]
       });
   });

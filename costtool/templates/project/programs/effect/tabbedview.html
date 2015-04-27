@@ -324,14 +324,14 @@ input::-webkit-inner-spin-button {
                  }
 
            });
-           //$("#form1").submit(function(){
-             //part = document.getElementById('id_numberofparticipants').value;
-             //part2 = document.getElementById('id_noofparticipants').value;    
-             //if ((anal == 'Cost-Effectiveness Analysis') && (part == '')) {
-               // alert('Average number of participants is a required field for Cost Effectiveness Analysis');
-                //event.preventDefault();
-             //}
-            // });
+           $("#form1").submit(function(){
+             part = document.getElementById('id_numberofparticipants').value;
+             x = document.getElementById('id_lengthofprogram').value;
+             if ((anal == 'Cost-Effectiveness Analysis') && (part == '') && (x == 'One year or less')) {
+                alert('Average number of participants is a required field for Cost Effectiveness Analysis');
+                event.preventDefault();
+             }
+            });
 
            
       </script>  
