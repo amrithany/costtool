@@ -4,6 +4,16 @@
 {% load humanize %}
 {% block body_block %}
 
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script> 
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                                                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+        ga('send', 'pageview');
+</script>      
+
 <style TYPE="text/css">
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -11,15 +21,97 @@ input::-webkit-inner-spin-button {
         -webkit-appearance: none;
             margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
-</style>
 
+table.mytable {
+    border-collapse: collapse;
+}
+
+table.mytable, .mytable td, .mytable th {
+    border: 1px solid black;
+}
+
+.mytable th {
+    background-color: grey;
+    color: white;
+}
+
+table.mytable1 {
+    border-collapse: collapse;
+}
+
+table.mytable1, .mytable1 td, .mytable1 th {
+    border: 1px solid black;
+}
+
+
+.mytable1 th {
+    background-color: grey;
+    color: white;
+}
+
+table.id_of_table, .id_of_table td, .id_of_table th {
+  width: 10%;
+}
+
+table.costtable {
+  position: relative;
+  overflow: hidden;
+  width: 1750px;
+  border-collapse: collapse;
+}
+
+
+/*thead*/
+#costtable thead {
+  position: relative;
+  display: block; /*seperates the header from the body allowing it to be positioned*/
+  width: 1750px;
+  overflow: visible;
+}
+
+#costtable thead th {
+  min-width: 120px;
+  height: 32px;
+  border: 1px;
+}
+
+#costtable thead th:nth-child(2) {/*first cell in the header*/
+  position: relative;
+  display: block; /*seperates the first cell in the header from the header*/
+  min-width: 100px; 
+}
+
+
+/*tbody*/
+#costtable tbody {
+  position: relative;
+  display: block; /*seperates the tbody from the header*/
+  width: 1750px;
+  height: 750px;
+  overflow: scroll;
+}
+
+#costtable tbody td {
+  min-width: 120px;
+  border: 1px;
+}
+
+#costtable tbody tr td:nth-child(2) {  /*the first cell in each tr*/
+  position: relative;
+  display: block; /*seperates the first column from the tbody*/
+  height: 40px;
+  min-width: 100px; 
+}
+</style>
+<!-- https://css-tricks.com/persistent-headers/ -->
 <div class="hero-unit">
+    <div style="color:#0000FF" align="right"><h4>Logged in as {{loggedinuser}}</h4></div>
     <div class="container">
-       <h4 style="float: left;">Project:  {{project}}</h4>
-       <a href="/project/project_list.html"><input class="btn btn-success" type="button" name="proj" value="Project List" style="float: right;"/></a>
-       <br><h4>Type of Analysis: {{project.typeanalysis}}</h4>
-       <h4 style="float: left;">Type of Cost: {{project.typeofcost}}</h4>
-       <input class="btn btn-success" type="button" name="sett" value="Project Settings" style="float: right;" onclick="gotosett();"/>
+       <!--<div align="right" class="display:inline-block;" id="extra-btn"><input class="btn btn-danger" type="button" name="button" value="Admin" onmouseup="PasstoOpt();" /></div>-->
+       <h4>Project:  {{project}}</h4>
+       <h4>Type of Analysis: {{project.typeanalysis}}</h4>
+       <h4>Type of Cost: {{project.typeofcost}}</h4>
+       <input class="btn btn-success" type="button" name="sett" value="Project Settings" style="float: right;" onmouseup="gotosett();"/>
        <input type="hidden" id="myField" name="temp" value="{{project.typeanalysis}}" /> 
    </div>
 
@@ -27,7 +119,7 @@ input::-webkit-inner-spin-button {
 
    <div class="container">
        <h4 style="float: left;">Name of the Program:  {{program}}</h4>
-       <input class="btn btn-success" type="button" name="program" value="Program List" style="float: right;" onclick="cancelout();"/>
+       <input class="btn btn-success" type="button" name="program" value="Program List" style="float: right;" onmouseup="cancelout();"/>
        <br><h4>Short Name: {{program.progshortname}}</h4>
     </div>
     <br />
@@ -38,22 +130,20 @@ input::-webkit-inner-spin-button {
             <li class="active"><a href="#form1" id="Program" data-toggle="tab" data-value="#form1">Program Description</a></li>
             <li><a href="#form2" data-toggle="tab" id="Effect" data-value="#form2">Effectiveness Information</a></li>
             <li><a href="#form3" data-toggle="tab" id="Cost" data-value="#form3">Cost Information</a></li>
+            <li><a href="#form4" data-toggle="tab" id="Dist" data-value="#form4">Distribution of Cost</a></li>
+            <li><a href="#form5" data-toggle="tab" id="Trans" data-value="#form5">Transfers/Subsidies/Fees</a></li>
         </ul>
     </div>
     
     <div id="content" class="tab-content">
        <div class="tab-pane active" id="form1">
             <form class="form-signin span8" id="form1" method="post"  enctype="multipart/form-data">
-                <input class="btn btn-primary" type="submit" name="submit1" id="submit1" value="Save" /></br>
              {% csrf_token %}
              {{form1.errors}}
              <b><font color="red">{{ errtext }} </font></b><br>   
-             <font size="3">Objective of the program:</font> <br>
-             {{frm1.progobjective}} <br>
-             <font size="3">Subjects / Participants:</font> <br>
-             {{frm1.progsubjects}} <br>
-             <font size="3">Brief description:</font> <br>
-             {{frm1.progdescription}} <br>
+             <font size="3">Objective of the program:</font><br> {{frm1.progobjective}} <br>
+             <font size="3">Subjects / Participants:</font><br>{{frm1.progsubjects}} <br>
+             <font size="3">Brief description:</font><br>{{frm1.progdescription}} <br>
              <font size="3">Length of the program (once you save this page, you cannot change this selection):</font><br>
              {{frm1.lengthofprogram}} <br>
              <b>Number of years: {{noofyears}}</b><br>
@@ -82,19 +172,21 @@ input::-webkit-inner-spin-button {
                 </tbody>
              </table>
              </div>
-             <font size="3">Average number of participants:</font> <br>
-             {{frm1.numberofparticipants}} <br><font color="blue">This number will be used to calculate the average costs of this program per participant. You can edit this number if you wish but the default will always be the average of years 1,2,3 etc.</font> <br>
+             <font size="3">Number of unique participants served over the period of time for which you are estimating costs (and, for CEA, providing effectiveness data):</font> <br>
+             {{frm1.numberofparticipants}} <br><font color="blue">This number will be used to calculate the average costs of this program per participant (total program cost/number of participants). For a multi-year program the default value is the mean of years 1,2,3 etc. If this is not appropriate for your program, enter the correct value here. For example, if Yr 2, Yr 3 etc. participants are all new to the program, it may make more sense to enter the total number served over the life of the program.</font> <br>
+             <br><input class="btn btn-primary" type="submit" name="submit1" id="submit1" value="Save" />
+             <input class="btn btn-warning" type="button" name="exp2" value="Excel report" onmouseup="exptoexcel2();"/>
              </form>
         </div>
 
           <div class="tab-pane" id="form2">
              <form class="form-signin span8" id="form2" method="post" enctype="multipart/form-data">
-                  <input class="btn btn-primary" type="submit" name="submit2" id="submit2" value="Save" />
                    {% csrf_token %}
-                   <br>
                    {{form2.errors}}
                   {% crispy frm2 %}
-               </form>
+               <br><input class="btn btn-primary" type="submit" name="submit2" id="submit2" value="Save" />
+               <input class="btn btn-warning" type="button" name="exp2" value="Excel report" onmouseup="exptoexcel2();"/> 
+             </form>
          </div>
 
         <div class="tab-pane" id="form3">
@@ -103,15 +195,16 @@ input::-webkit-inner-spin-button {
                      <div class=".container-fluid" style="width:1200px;"><h4>
              Click “Add ingredient” button to add each ingredient needed to implement this program.  A wizard will guide you through providing details and choosing a price. White cells can be edited AFTER you have added the ingredient using the wizard.  Do NOT copy and paste.
              <br><br>
-             Prices will be available from the CBCSE Database of Educational Resource Prices or from MyPrices Database where you can create and store a list of your own prices that you might need to use across multiple programs and projects. Go to Prices tab if you wish to create your own prices or review the databases.
+             Prices will be available from the <i>CostOut</i> Database of Educational Resource Prices or from MyPrices Database where you can create and store a list of your own prices that you might need to use across multiple programs and projects. Go to Prices tab if you wish to create your own prices or review the databases.
              <br><br>
              If you want to see more details about the ingredient and the price adjustments click on “Expanded cost table”.
-     </h4></div>
-             <input class="btn btn-primary" type="button" name="cost" value="Add ingredient" onclick="search();"/>
+     </h4>
+             <input class="btn btn-primary" type="button" name="cost" value="Add ingredient" onmouseup="search();"/>
              <input class="btn btn-primary" type="submit" name="editIng" value="Save changes"/>
-             <input class="btn btn-primary" type="button" name="duplIng" value="Delete ingredient" onclick="PasstoDel();"/>
-             <input class="btn btn-primary" type="button" name="duplIng" value="Duplicate ingredient" onclick="PasstoDupl();"/>
-             <input class="btn btn-warning" type="button" name="comp2" value="Expanded cost table" onclick="completetable2();"/>
+             <input class="btn btn-primary" type="button" name="duplIng" value="Delete ingredient" onmouseup="PasstoDel();"/>
+             <input class="btn btn-primary" type="button" name="duplIng" value="Duplicate ingredient" onmouseup="PasstoDupl();"/>
+             <input class="btn btn-warning" type="button" name="comp2" value="Expanded cost table" onmouseup="completetable2();"/>
+             <input class="btn btn-warning" type="button" name="exp" value="Excel report" onmouseup="exptoexcel();"/></div>
              <h4>Total Cost: ${{ total_cost|intcomma }}</h4>
              <h4>Average Cost per participant: ${{avg_cost|intcomma}}</h4> 
              <div class=".container-fluid" style="width:1200px;">
@@ -119,12 +212,14 @@ input::-webkit-inner-spin-button {
              <img align="right" src="{% static "rightarrow.png" %}"> <h4 style="float: right;"><font color="blue"> Click the Right arrow on your keyboard to see more columns&nbsp;  </font></h4>
              </div>
              <input type="hidden" id="activeTab" name="temp2" value="program" />
-              
-             <table>
+             <!-- id='costtable'--> 
+             <b><font color="red">{{ errtext }} </font></b><br>     
+            <table>
             <thead>
             <tr>
               <th></th>
               <th>Ingredients</th>
+              <th>Description</th> 
               <th>Year in which quantity is used</th>
               <th>Quantity of Ingredient</th>
               <th>Unit of measure</th>
@@ -143,8 +238,9 @@ input::-webkit-inner-spin-button {
              {{ ingform.errors }}
              {{ form.id }}
              <tr> 
-                <td><input type="checkbox" id="{{form.initial.id}}" value="unchecked" onclick="setId(this);"></td>
+                <td><input type="checkbox" id="{{form.initial.id}}" value="unchecked" onmouseup="setId(this);"></td>
                 <td>{{ form.ingredient }} </td>
+                <td> {{form.notes}}</td>
                 <td>{{form.yearQtyUsed}}</td> 
                 <td>{{ form.quantityUsed }}</td>
                 <td>{{ form.newMeasure }}</td>
@@ -159,7 +255,6 @@ input::-webkit-inner-spin-button {
                 <td>{{ form.costPerParticipant }}</td>
                 <td style="visibility:hidden;">{{ form.variableFixed }}</td>
              </tr>
-             <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
              <script type="text/javascript">{
                         var element = document.getElementById('variableFixed{{form.initial.id}}');
                         var orig = document.getElementById('id_{{form.prefix}}-variableFixed').value;
@@ -168,11 +263,23 @@ input::-webkit-inner-spin-button {
                         var format2 = document.getElementById('id_{{form.prefix}}-costPerIngredient');
                         var format3 = document.getElementById('id_{{form.prefix}}-percentageCost');
                         var format4 = document.getElementById('id_{{form.prefix}}-costPerParticipant');
+                        //var loggedinuser = '{{loggedinuser}}';
 
                         if (orig != '') {
                             element.value = orig;
                         }                    
                          
+                       //if (loggedinuser == 'Demo admin'){
+                           //$("#extra-btn").show();
+                       //}
+                       //else {
+                           //$("#extra-btn").hide();
+                       //}
+
+                       //function PasstoOpt () {
+                          //document.location.href = "/admin/options.html";
+                       //}
+
                         $("#variableFixed{{form.initial.id}}").on('change', function (e) {                                                                                               
                            var element = document.getElementById('variableFixed{{form.initial.id}}');
                            var orig = document.getElementById('id_{{form.prefix}}-variableFixed');
@@ -180,22 +287,52 @@ input::-webkit-inner-spin-button {
                          });        
                         
                         format0.value = '{{form.instance.quantityUsed|floatformat:"2"}}';            
-                        if (format1.value != 'No geographical index available'){
-                          format1.value = '{{form.instance.adjPricePerIngredient|floatformat:"2"}}';}
-                        format2.value = '{{form.instance.costPerIngredient|floatformat:"2"}}';                                    
+                        /*if (format1.value != 'No geographical index available'){
+                          format1.value = '{{form.instance.adjPricePerIngredient|floatformat:"2"}}';
+                          format1.value = numberWithCommas(format1.value);
+                        }
+                       
+                        if (format2.value != ''){
+                           format2.value = '{{form.instance.costPerIngredient|floatformat:"2"}}';                                   
+                           var format2ValueWithCommas = numberWithCommas($(format2).val());
+                           var textFormat2 = updateNumberInputToTextInput(format2, format2ValueWithCommas);
+                        }
                         format3.value = '{{form.instance.percentageCost|floatformat:"2"}}'; 
                         format4.value = '{{form.instance.costPerParticipant|floatformat:"2"}}';                                    
-                        $('#format1').val(commaSeparateNumber(format1.value));
-
-                        function commaSeparateNumber(val){
-                                while (/(\d+)(\d{3})/.test(val.toString())){
-                                          val = val.toString().replace(/(\d+)(\d{3})/, '$1'+','+'$2');
-                                              }
-                                return val;
+                        //format4.value = numberWithCommas(format4.value);
+ 
+                        function updateNumberInputToTextInput(element, textValue) {
+                                var newInputHtml = $(element).parent().html().replace('type="number"', 'type="text"');
+                                newInputHtml = newInputHtml.replace(/value\=\"([^"])*\"/, 'value="'+textValue+'"');
+                                console.log(newInputHtml);
+                                $(element).parent().html(newInputHtml);
+                                return $(element);
                         }
 
-                        $('#format2').html(commaSeparateNumber({{form.instance.costPerIngredient}})); 
-             } 
+                        function numberWithCommas(x){
+                                var parts = x.toString().split(".");
+                                console.log(parts);
+                                parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");
+                                console.log(parts);
+                                return parts.join(".");
+                           
+                        }*/
+
+
+             }
+
+$(document).ready(function() {
+  $('#costtable tbody').scroll(function(e) { //detect a scroll event on the tbody
+    /*
+    Setting the thead left value to the negative valule of tbody.scrollLeft will make it track the movement
+    of the tbody element. Setting an elements left value to that of the tbody.scrollLeft left makes it maintain             it's relative position at the left of the table.    
+    */
+    $('#costtable thead').css("left", -$("#costtable tbody").scrollLeft()); //fix the thead relative to the body scrolling
+    $('#costtable thead th:nth-child(2)').css("left", $("#costtable tbody").scrollLeft()); //fix the first cell of the header
+    $('#costtable tbody td:nth-child(2)').css("left", $("#costtable tbody").scrollLeft()); //fix the first column of tdbody
+  });
+});
+ 
              </script>
              {% endfor %}
              </tbody>
@@ -203,12 +340,216 @@ input::-webkit-inner-spin-button {
              </form>
         </div>
 
-      <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script> 
+        <div class="tab-pane" id="form4">
+           <form class="form-signin span8" id="form4" method="post" enctype="multipart/form-data">
+             <div class=".container-fluid" style="width:1200px;"><h4>
+             Use this table to show how the cost of each ingredient is spread across different funding agencies. The editable cells are in white. 
+            <br><br><input class="btn btn-primary" type="button" name="fund" value="Name funding agencies" onmouseup="nameagency();"/>
+            <input class="btn btn-primary" type="submit" name="editDist" value="Save changes"/>
+            <input class="btn btn-warning" type="button" name="exp3" value="Excel report" onmouseup="exptoexcel3();"/>
+            <font color="blue"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Click the Right arrow on your keyboard to see more columns </font><img src="{% static "rightarrow.png" %}"></h4>
+            </div>
+            <br>
+            <table id='mytable' class="mytable table-condensed">
+            <thead>
+            <tr>
+              <th>Grand Total (Social Costs)</th>
+              <th id='ag1h'>Total Cost to {{agency1}}</th>
+              <th id='ag2h'>Total Cost to {{agency2}}</th>
+              <th id='ag3h'>Total Cost to {{agency3}}</th>
+              <th id='ag4h'>Total Cost to {{agency4}}</th>
+              <th id='agotherh'>Total Cost to Other</th>
+            </tr>
+            <thead>
+            <tr>
+                <td>${{ total_cost|intcomma }}</td>
+                <td id='ag1'>${{ total_agency1|intcomma }}</td>
+                <td id='ag2'>${{total_agency2|intcomma}}</td>
+                <td id='ag3'>${{total_agency3|intcomma}}</td>
+                <td id='ag4'>${{total_agency4|intcomma}}</td>
+                <td id='agother'>${{total_other|intcomma}}</td>
+            </tr>
+            </table>
+            <table id='id_of_table'>
+            <thead>
+            <tr>
+              <th>Ingredients</th>
+              <th>Year</th>
+              <th>Cost</th>
+              <th>Cost to {{agency1}} (%)</th>
+              <th>Cost to {{agency1}} ($)</th>
+              <th>Cost to {{agency2}} (%)</th>
+              <th>Cost to {{agency2}} ($)</th>
+              <th>Cost to {{agency3}} (%)</th>
+              <th>Cost to {{agency3}} ($)</th>
+              <th>Cost to {{agency4}} (%)</th>
+              <th>Cost to {{agency4}} ($)</th>
+              <th>Other (%)</th>  
+              <th>Other ($)</th>
+            </tr>
+            </thead>
+             <form method="post" id="frm4">
+             <tbody class="product-instances">
+             {% csrf_token %}
+             {{ frm4.management_form }}
+             <div class=".container-fluid"><h4>
+             <br><b><font color="red">{{ distform_errors }} </font></b><br>
+             {{ distform.errors }}
+             </div>
+             {% for form in frm4 %}
+             {{ form.id }}
+             <tr>
+                <td>{{ form.ingredient }} </td>
+                <td>{{form.yearQtyUsed}}</td>
+                <td>{{form.cost}}</td>
+                <td>{{ form.cost_agency1_percent }} </td>
+                <td>{{form.cost_agency1}}</td>
+                <td>{{ form.cost_agency2_percent }} </td>
+                <td>{{form.cost_agency2}}</td>
+                <td>{{ form.cost_agency3_percent }} </td>
+                <td>{{form.cost_agency3}}</td>
+                <td>{{ form.cost_agency4_percent }} </td>
+                <td>{{form.cost_agency4}}</td>
+                <td>{{ form.cost_other_percent }} </td>
+                <td>{{form.cost_other}}</td>
+             </tr>
+              {% endfor %}
+             </tbody>
+             </table>
+             </form>
+        </div>
+        <div class="tab-pane" id="form5">
+        <div id="showscreen">
+        <form class="form-signin span8" id="form5" method="post" enctype="multipart/form-data">
+             <div class=".container-fluid" style="width:1200px;"><h4>
+             Use this table to indicate any cash transfers or subsidies between the funding agencies.<br>
+             Use the Add cash transfer or subsidy or fee button.<br><br>
+             <input class="btn btn-primary" type="button" name="trans" value="Add cash transfer or subsidy or fee" onmouseup="addtrans();"/>
+             <!--<input class="btn btn-primary" type="submit" name="editTrans" value="Save changes"/>-->
+             <input class="btn btn-primary" type="button" name="duplTrans" value="Delete Transfer/Subsidy/Fee" onmouseup="PasstoDel2();"/>
+             <input class="btn btn-warning" type="button" name="exp4" value="Excel report" onmouseup="exptoexcel3();"/><br>
+             <h4 style="float: right;"><font color="blue"> Click the Right arrow on your keyboard to see more columns </font><img src="{% static "rightarrow.png" %}"></h4></h4>
+            <br>
+            <h4>Total Cost: ${{ total_cost|intcomma }}</h4>
+            <table class="mytable1">
+            <thead>
+            <tr>
+              <th></th>
+              <th id='ag11h'>Cost to {{agency1}}</th>
+              <th id='ag22h'>Cost to {{agency2}}</th>
+              <th id='ag33h'>Cost to {{agency3}}</th>
+              <th id='ag44h'>Cost to {{agency4}}</th>
+              <th id='agothh'>Cost to Other</th>
+            </tr>
+            <thead>
+            <tr>
+                <td>Gross Cost</td>
+                <td id='tot1'>${{ total_agency1|intcomma }}</td>
+                <td id='tot2'>${{total_agency2|intcomma}}</td>
+                <td id='tot3'>${{total_agency3|intcomma}}</td>
+                <td id='tot4'>${{total_agency4|intcomma}}</td>
+                <td id='tototh'>${{total_other|intcomma}}</td>
+            </tr>
+            <tr>
+                <td>Net Cost</td>
+                <td id='net1'>${{ net_agency1|intcomma }}</td>
+                <td id='net2'>${{net_agency2|intcomma}}</td>
+                <td id='net3'>${{net_agency3|intcomma}}</td>
+                <td id='net4'>${{net_agency4|intcomma}}</td>
+                <td id='netoth'>${{net_other|intcomma}}</td>
+            </tr>
+
+            </table>
+            <br>
+            <table id='transfertable'>
+            <thead>
+            <tr>
+              <th></th>
+              <th>Cash transfers, subsidies and fees</th>
+              <th>Year</th>
+              <th>Cost to {{agency1}}</th>
+              <th>Cost to {{agency2}}</th>
+              <th>Cost to {{agency3}}</th>
+              <th>Cost to {{agency4}}</th>
+              <th>Other</th>
+            </tr>
+            </thead>
+             <form method="post" id="frm5">
+             <tbody class="product-instances">
+             {% csrf_token %}
+             {{ frm5.management_form }}
+             <div class=".container-fluid" style="width:1200px;"><h4>
+             {{ transform.errors }}
+             </div>
+             {% for form in frm5 %}
+             {{ form.id }}
+             <tr>
+                <td><input type="checkbox" id="{{form.initial.id}}" value="unchecked" onmouseup="setId2(this);"></td>
+                <td>{{ form.grantName }} </td>
+                <td>{{form.grantYear}}</td>
+                <td>{{form.cost_agency1}}</td>
+                <td>{{form.cost_agency2}}</td>
+                <td>{{form.cost_agency3}}</td>
+                <td>{{form.cost_agency4}}</td>
+                <td>{{form.cost_other}}</td>
+             </tr>
+              {% endfor %}
+             </tbody>
+             </table>
+             </form>
+           </div>
+         </div>  
+           <div id="showmessage"><h4>
+             Please add the Program Description, Cost Information and/or Distribution of Costs Information to add Transfers, Subsidies and Fees for this program.<br>
+           </h4></div>  
+      </div>
+
       <script type="text/javascript">
            var proj = {{project.id}};
            var prog = {{program.id}};
            var passvar = 000;
+           var passvar2 = 000;
+           var noofpart = {{noofpart}}; 
+           var ingRecordExists = '{{ingRecordExists}}';
+           //document.getElementById("agotherh").style.display = "table-cell";
+           //document.getElementById("agother").style.display = "block";
 
+           if ('{{agency2}}' == '') {
+             $('#id_of_table td:nth-child(6),#id_of_table th:nth-child(6)').hide();
+             $('#id_of_table td:nth-child(7),#id_of_table th:nth-child(7)').hide();
+             $('#transfertable td:nth-child(5),#transfertable th:nth-child(5)').hide();
+             document.getElementById("ag2h").style.display = "none";
+             document.getElementById("ag2").style.display = "none";
+             document.getElementById("ag22h").style.display = "none";
+             document.getElementById("tot2").style.display = "none";
+             document.getElementById("net2").style.display = "none";
+             document.getElementById("agotherh").style.display = "block";
+             document.getElementById("agothh").style.display = "block";
+           }
+
+           if ('{{agency3}}' == '') {
+             $('#id_of_table td:nth-child(8),#id_of_table th:nth-child(8)').hide();
+             $('#id_of_table td:nth-child(9),#id_of_table th:nth-child(9)').hide();
+             $('#transfertable td:nth-child(6),#transfertable th:nth-child(6)').hide();
+             document.getElementById("ag3h").style.display = "none";
+             document.getElementById("ag3").style.display = "none";
+             document.getElementById("ag33h").style.display = "none";
+             document.getElementById("tot3").style.display = "none";
+             document.getElementById("net3").style.display = "none";
+           }
+
+           if ('{{agency4}}' == '') {
+             $('#id_of_table td:nth-child(10),#id_of_table th:nth-child(10)').hide();
+             $('#id_of_table td:nth-child(11),#id_of_table th:nth-child(11)').hide();
+             $('#transfertable td:nth-child(7),#transfertable th:nth-child(7)').hide();
+             document.getElementById("ag4h").style.display = "none";
+             document.getElementById("ag4").style.display = "none";
+             document.getElementById("ag44h").style.display = "none";
+             document.getElementById("tot4").style.display = "none";
+             document.getElementById("net4").style.display = "none";
+           }
+           //document.getElementById("agothh").style.display = "block";
+ 
            function setId(chkBox){
               var inputs = document.getElementsByTagName("input");
               for (i = 0; i<inputs.length; i++ ) {
@@ -216,12 +557,24 @@ input::-webkit-inner-spin-button {
                       if (inputs[i].id != chkBox.id) {
                           inputs[i].checked = false;
                       }
-                          else { inputs[i].checked = true;}
+                          //else { inputs[i].checked = true;}
                       }
                    }
               passvar = chkBox.id;
            }
 
+           function setId2(chkBox){
+              var inputs = document.getElementsByTagName("input");
+              for (i = 0; i<inputs.length; i++ ) {
+                  if (inputs[i].type == 'checkbox'){
+                      if (inputs[i].id != chkBox.id) {
+                          inputs[i].checked = false;
+                      }
+                          //else { inputs[i].checked = true;}
+                      }
+                   }
+              passvar2 = chkBox.id;
+           }
 
            function PasstoDel () {
               if (passvar == 000){
@@ -229,6 +582,15 @@ input::-webkit-inner-spin-button {
               else {
                  if (confirm('Are you sure you want to delete this ingredient?')) {
                     document.location.href = "/project/programs/costs/" + passvar + "/del_ingredient.html";
+               }}
+            }
+
+           function PasstoDel2 () {
+              if (passvar2 == 000){
+                 alert('Select Transfer/Subsidy/Fee to delete');}
+              else {
+                 if (confirm('Are you sure you want to delete this transfer/subsidy/fee?')) {
+                    document.location.href = "/project/programs/transfer/" + passvar2 + "/del_transfer.html";
                }}
             }
 
@@ -253,35 +615,69 @@ input::-webkit-inner-spin-button {
               document.location.href = "/project/programs/costs/full_table.html";
            }
 
+           function exptoexcel() {
+              document.location.href = "/project/programs/costs/export_cost_table.html";
+           }
+
+           function exptoexcel2() {
+              document.location.href = "/project/programs/export_progdesc.html";
+           }
+
+           function exptoexcel3() {
+              document.location.href = "/project/programs/dist/export_dist.html";
+           }
+
+           function nameagency() {
+              document.location.href = "/project/programs/dist/add_agency.html";
+           }
+
+           function addtrans() {
+              document.location.href = "/project/programs/transfer/add_transfer.html";
+           }
+
            function search() {
-              document.location.href = "/project/programs/costs/search_costs.html";
+              if (noofpart == 0 && ingRecordExists == 'False'){
+                 if (confirm('You have not entered the number of unique program participants in the Program Description tab.  Either press Cancel, go back and enter a number or press OK and CostOut will assume the number is 1.')) {
+                    document.location.href = "/project/programs/costs/search_costs.html";
+                 }
+              } else {
+                document.location.href = "/project/programs/costs/search_costs.html";
+              } 
            }
 
            function ShowQueryString(addr) {
-            activeform = addr.split("?")[1].split("=")[1];
+            var activeform = addr.split("?")[1].split("=")[1];
             document.getElementById("activeTab").value = activeform;
            }
 
            $("form").ready(function() {
-              wref = window.location.href;
-              windex = wref.indexOf('costform');
-              efindex = wref.indexOf('effform');
-              if ((windex != -1) || (efindex != -1)){
+              
+              var wref = window.location.href;
+              var windex = wref.indexOf('costform');
+              var efindex = wref.indexOf('effform');
+              var dsindex = wref.indexOf('distform');
+              var trindex = wref.indexOf('transform');
+              if ( (trindex != -1) || (dsindex != -1) || (windex != -1) || (efindex != -1)){
                  ShowQueryString(wref);
               }
-              anal  = document.getElementById("myField").value;
+              var anal  = document.getElementById("myField").value;
               if ( '{{active}}' != '') {
-                 activeform = '{{active}}';
+                 var activeform = '{{active}}';
               }
               else {
-                 activeform = document.getElementById("activeTab").value;
+                 var activeform = document.getElementById("activeTab").value;
               }
-
               if (activeform == 'costform') {
                  $('#myTab a[href="#form3"]').tab('show');
               }
               else if (activeform == 'effform') {
                  $('#myTab a[href="#form2"]').tab('show');
+              }
+              else if (activeform == 'distform') {
+                 $('#myTab a[href="#form4"]').tab('show');
+              }
+              else if (activeform == 'transform') {
+                 $('#myTab a[href="#form5"]').tab('show');
               }
               else {
                  $('#myTab a[href="#form1"]').tab('show');
@@ -300,6 +696,15 @@ input::-webkit-inner-spin-button {
                  $("#id_numberofyears").hide();
                  $("#extra-content").hide();
                }
+             
+              z = '{{recordExists}}'; 
+              if (z == 'True') {
+                $("#showscreen").show();
+                $("#showmessage").hide();
+              } else {
+                $("#showscreen").hide();
+                $("#showmessage").show();
+              }  
            });
 
            $('#id_lengthofprogram').change(function(){
@@ -315,7 +720,7 @@ input::-webkit-inner-spin-button {
            });
 
            $('#id_numberofyears').change(function(){
-              yrs = document.getElementById('id_numberofyears').value;
+              var yrs = document.getElementById('id_numberofyears').value;
               if (yrs > 1) {
                     $("#extra-content").show();
                  }
@@ -325,8 +730,8 @@ input::-webkit-inner-spin-button {
 
            });
            $("#form1").submit(function(){
-             part = document.getElementById('id_numberofparticipants').value;
-             x = document.getElementById('id_lengthofprogram').value;
+             var part = document.getElementById('id_numberofparticipants').value;
+             var x = document.getElementById('id_lengthofprogram').value;
              if ((anal == 'Cost-Effectiveness Analysis') && (part == '') && (x == 'One year or less')) {
                 alert('Average number of participants is a required field for Cost Effectiveness Analysis');
                 event.preventDefault();

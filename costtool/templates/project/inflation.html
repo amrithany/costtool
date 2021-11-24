@@ -2,9 +2,17 @@
 {% load static %}
 {% block body_block %}
 
+ <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+      ga('send', 'pageview');
+ </script>
 <div class="hero-unit">
     <div class="table-responsive">
-        <h2 class="form-signin-heading">Edit inflation indices</h2>
+        <h2 class="form-signin-heading">Edit inflation indices for {{projname}}</h2>
         <h4> Source of default inflation indices:<br><br> U.S. Department of Labor, Bureau of Labor Statistics. 
         <br><br>CPI-U (All urban consumers). The CPI-U represents about 88 percent of the total U.S. population and is based on the expenditures of all families living in urban areas.
         <br><br>Base period: 1967=100 </h4>
@@ -13,8 +21,8 @@
         <form method="post" id="infform" enctype="multipart/form-data"> 
         <input class="btn btn-primary" type="button" name="goto" value="Restore default inflation indices" onclick="PasstoView()">
         <input class="btn btn-primary" type="submit" name="submit" value="Save">
-        <a href="/project/indices.html"><input class="btn btn-success" type="button" name="button" value="Back to Indices"></a> 
-        
+        <input class="btn btn-success" type="button" name="button" value="Back to Indices" onclick="cancelout()">
+        <input class="btn btn-warning" type="button" name="exp" value="Export to Excel" onclick="exptoexcel()">        
         <br><table>
         <thead>
            <tr>
@@ -44,10 +52,18 @@
    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
       <script type="text/javascript">
        function PasstoView () {
-           if (confirm('Are you sure you want to restore the Inflation Indices? If you restore the default indices, your cost analyses will be recalculated to express costs in the latest year for which CBCSE Cost Tool Kit has an inflation index available. After restoring, you can change this year in Project Settings.')) {
+           if (confirm('Are you sure you want to restore the Inflation Indices? If you restore the default indices, your cost analyses will be recalculated to express costs in the latest year for which CostOut has an inflation index available. After restoring, you can change this year in Project Settings.')) {
              document.location.href = "/project/restore_inf.html";
           }
        }
+
+      function exptoexcel(){
+         document.location.href = "/project/export_to_inf.html";
+      }
+
+      function cancelout() {
+            document.location.href = "/project/indices.html";
+         }
       </script>
 
 </div>

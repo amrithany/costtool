@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+ <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+      ga('send', 'pageview');
+ </script>
+<div class="hero-unit">                                                                                                                  
+    <h5><li> <a href="CostOut Manual 2015.docx" onClick="ga('send', 'event', 'CostOut Manual 2015.docx', 'Download', 'CostOut Manual 2015.docx', 10);"><i>CostOut</i> User Manual</a></h5> 
+    <h5><li> <a href="CostOut Screenshots.docx" onClick="ga('send', 'event', 'CostOut Screenshots.docx', 'Download', 'CostOut Screenshots.docx', 10);"><i>CostOut</i> Screenshots to accompany manual</a></h5>
+</div>
+{% endblock %}

@@ -1,29 +1,52 @@
 {% load humanize %}
+ <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+      ga('send', 'pageview');
+</script>
 <head>
-<h4>CBCSE Cost Tool Kit © (Under Construction)</h4>
-<h3 class="form-signin-heading" align="center">Comparative cost analysis for the project: <i>{{ProjectName}}</i></h3>
+<h4><i>CostOut</i>&reg; 2015</h4>
+<!--<h3 class="form-signin-heading" align="center">Comparative cost analysis for the project: <i>{{ProjectName}}</i></h3>-->
 </head>
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script src="http://code.highcharts.com/highcharts.js"></script>
-<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
 <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div> 
 <div id="container2" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
+<div id="container3" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
+<div id="container4" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
+<div id="container5" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
+<div id="container6" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
 <script type="text/javascript">
-var mySeries = [];
-var partSeries = [];
 var avgSeries = [];
 var progName = [];
+var progFixtot = [];
+var progLtot = [];
+var progVartot = [];
+var progPertot = [];
+var progMattot = [];
+var progFactot = [];
+var progInptot = [];
 </script>
 {% for prog in ProgList %}
 <script type="text/javascript">
-mySeries.push([{{prog.total_cost|floatformat:"2"}}]);
-partSeries.push([{{prog.total_partcost|floatformat:"2"}}]);
 avgSeries.push([{{prog.avg_cost|floatformat:"2"}}]);
 progName.push(['{{prog.short_name}}']);
+progVartot.push([{{prog.vartot|floatformat:"-2"}}]);
+progFixtot.push([{{prog.fixtot|floatformat:"2"}}]);
+progLtot.push([{{prog.ltot|floatformat:"2"}}]);
+progPertot.push([{{prog.pertot|floatformat:"2"}}]);
+progMattot.push([{{prog.mattot|floatformat:"2"}}]);
+progFactot.push([{{prog.factot|floatformat:"2"}}]);
+progInptot.push([{{prog.inptot|floatformat:"2"}}]);
+//mySeries.push({name: '{{prog.short_name}}', data: [[{{prog.average_effect}},{{prog.average_cost}}]],marker: {radius: 6}});
 $(function () {
-    $('#container').highcharts({
-        chart: {
+$('#container').highcharts({
+       chart: {
             type: 'bar',
             renderTo: 'container',
             borderWidth:1,
@@ -34,75 +57,66 @@ $(function () {
             plotBackgroundColor:'#fff',
         },
         title: {
-            text: 'Total cost of program'
+            text: 'Comparative cost analysis for the project: <i>{{ProjectName}}</i> <br> Total cost of program'
         },
         subtitle: {
                 text: 'Source: www.cbcsecosttoolkit.org'
             },
-            xAxis: [{
-                categories: progName,
-                reversed: false,
-                labels: {
-                    step: 1
-                }
-            }, { // mirror axis on right side
-                opposite: true,
-                reversed: false,
-                categories: progName,
-                linkedTo: 0,
-                labels: {
-                    step: 1
-                }
-            }],
-        //xAxis: {
-            //categories: progName,
-            //title: {
-                //text: null
-            //}
-        //},
-        yAxis: {
-           // min: -500,
-            min: -100000,
-            max: 100000,
-            title: {
-                text: 'Total Cost',
-                align: 'high'
-            },
+        xAxis: {
+            categories: progName,
             labels: {
-                overflow: 'justify'
-            }
+                      step: 1
+                  }
+
         },
-        tooltip: {
-            valueSuffix: ' $'
-        },
-        plotOptions: {
-            bar: {
-                dataLabels: {
-                    enabled: true
-                }
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total Cost'
             }
         },
         legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'top',
-            x: -40,
-            y: 100,
-            floating: true,
-            borderWidth: 1,
-            backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
-            shadow: true
+            reversed: true
         },
-        credits: {
-            enabled: false
-        },
-        series: [{
-            name: 'Program',
-            data: mySeries
-        }]
-    });
-});
+        plotOptions: {
+            series: {
+                stacking: 'normal'
+            },
+            bar: {
+                  dataLabels: {
+                      enabled: true,
+                      style: {
+                        textShadow: false
+                }
+                  },
+            valuePrefix: '$'
 
+        }},
+        tooltip: {
+              valuePrefix: '$'
+          },
+
+        series: [{
+            name: 'Variable',
+            data: progVartot,
+            valuePrefix: '$'
+        }, {
+            name: 'Fixed',
+            data: progFixtot
+        }, {
+            name: 'Lumpy',
+            data: progLtot
+        }]
+     },
+        function(chart) { // on complete
+         if ({{prog.Min}} != 'n/a') {
+           chart.yAxis[0].setExtremes({{prog.Min}},{{prog.Max}});
+         } else {
+           chart.yAxis[0].setExtremes(-{{prog.Max}},{{prog.Max}});
+         }
+    });
+
+});
 
 $(function () {
   $('#container2').highcharts({
@@ -117,26 +131,18 @@ $(function () {
               plotBackgroundColor:'#fff',
           },
           title: {
-              text: 'Average cost per participant by program'
+              text: 'Comparative cost analysis for the project: <i>{{ProjectName}}</i> <br> Average cost per participant by program'
           },
           subtitle: {
-              text: 'Source: www.cbcsecosttoolkit.org'                                                                             
-              }, 
-          //xAxis: {
-             //categories: progName,
-              //title: {
-                // text: null
-             // }
-          //},
+              text: 'Source: www.cbcsecosttoolkit.org'
+              },
           xAxis: [{
                   categories: progName,
-                  reversed: false,
                   labels: {
                       step: 1
                   }
               }, { // mirror axis on right side
                   opposite: true,
-                  reversed: false,
                   categories: progName,
                   linkedTo: 0,
                   labels: {
@@ -144,27 +150,299 @@ $(function () {
                   }
              }],
           yAxis: {
-              min: -10000,
-              max: 10000,
             title: {
-                 text: 'Average cost per participant',
-                  align: 'high'
+                 text: 'Average cost per participant'
               },
-             labels: {                                                                                                                
+             labels: {
                  overflow: 'justify'
               }
           },
         tooltip: {
-              valueSuffix: ' $'
+              valuePrefix: '$'
           },
           plotOptions: {
               bar: {
                   dataLabels: {
-                      enabled: true
+                      enabled: true,
+                      style: {
+                    textShadow: false 
+                }
+                 },
+              colorByPoint: true
+             }
+          },
+         series: [{
+              showInLegend: false,
+              name: 'Program',
+              //color: 'rgba(223, 83, 83, .5)',
+              data: avgSeries,
+              valueSuffix: ' $'
+          }]
+        },
+         function(chart) { // on complete
+         if ({{prog.Minavg}} != 'n/a') {
+           chart.yAxis[0].setExtremes({{prog.Minavg}},{{prog.Maxavg}});
+         } else {
+           chart.yAxis[0].setExtremes(-{{prog.Maxavg}},{{prog.Maxavg}});
+         }
+      });
+
+});
+
+$(function () {
+  $('#container3').highcharts({
+         chart: {
+              type: 'bar',
+              renderTo: 'container',
+              borderWidth:1,
+              borderColor:'#ccc',
+              marginLeft:90,
+              marginRight:90,
+              backgroundColor:'#eee',
+              plotBackgroundColor:'#fff',
+          },
+          title: {
+              text: 'Comparative cost analysis for the project: <i>{{ProjectName}}</i> <br> Total Cost of Personnel'
+          },
+          subtitle: {
+              text: 'Source: www.cbcsecosttoolkit.org'
+              },
+          xAxis: [{
+                  categories: progName,
+                  labels: {
+                      step: 1
                   }
+              }, { // mirror axis on right side
+                  opposite: true,
+                  categories: progName,
+                  linkedTo: 0,
+                  labels: {
+                     step: 1
+                  }
+             }],
+          yAxis: {
+            title: {
+                 text: 'Total Cost of Personnel'
+              },
+             labels: {
+                 overflow: 'justify'
               }
           },
-          legend: {
+        tooltip: {
+              valuePrefix: '$'
+          },
+          plotOptions: {
+              bar: {
+                  dataLabels: {
+                      enabled: true,
+                      style: {
+                    textShadow: false 
+                }
+                 },
+              colorByPoint: true
+             }
+          },
+         series: [{
+              showInLegend: false,
+              name: 'Program',
+              //color: 'rgba(255,0,255,0.3)',
+              data: progPertot,
+              valueSuffix: ' $'
+          }]
+        },
+         function(chart) { // on complete
+           chart.yAxis[0].setExtremes(0,{{prog.MaxPer}});
+          
+      });
+});
+
+$(function () {
+  $('#container4').highcharts({
+         chart: {
+              type: 'bar',
+              renderTo: 'container',
+              borderWidth:1,
+              borderColor:'#ccc',
+              marginLeft:90,
+              marginRight:90,
+              backgroundColor:'#eee',
+              plotBackgroundColor:'#fff',
+          },
+          title: {
+              text: 'Comparative cost analysis for the project: <i>{{ProjectName}}</i> <br> Total Cost of Materials and Equipment'
+          },
+          subtitle: {
+              text: 'Source: www.cbcsecosttoolkit.org'
+              },
+          xAxis: [{
+                  categories: progName,
+                  labels: {
+                      step: 1
+                  }
+              }, { // mirror axis on right side
+                  opposite: true,
+                  categories: progName,
+                  linkedTo: 0,
+                  labels: {
+                     step: 1
+                  }
+             }],
+          yAxis: {
+            title: {
+                 text: 'Total Cost of Materials and Equipment'
+              },
+             labels: {
+                 overflow: 'justify'
+              }
+          },
+        tooltip: {
+              valuePrefix: '$'
+          },
+          plotOptions: {
+              bar: {
+                  dataLabels: {
+                      enabled: true,
+                      style: {
+                    textShadow: false 
+                }
+                 },
+              colorByPoint: true
+             }
+          },
+         series: [{
+              showInLegend: false,
+              name: 'Program',
+              //color: 'rgba(255,255,0,0.3)',
+              data: progMattot,
+              valueSuffix: ' $'
+          }]
+        },
+         function(chart) { // on complete
+           chart.yAxis[0].setExtremes({{prog.MinMat}},{{prog.MaxMat}});
+
+      });
+});
+
+$(function () {
+  $('#container5').highcharts({
+         chart: {
+              type: 'bar',
+              renderTo: 'container',
+              borderWidth:1,
+              borderColor:'#ccc',
+              marginLeft:90,
+              marginRight:90,
+              backgroundColor:'#eee',
+              plotBackgroundColor:'#fff',
+          },
+          title: {
+              text: 'Comparative cost analysis for the project: <i>{{ProjectName}}</i> <br> Total Cost of Facilities'
+          },
+          subtitle: {
+              text: 'Source: www.cbcsecosttoolkit.org'
+              },
+          xAxis: [{
+                  categories: progName,
+                  labels: {
+                      step: 1
+                  }
+              }, { // mirror axis on right side
+                  opposite: true,
+                  categories: progName,
+                  linkedTo: 0,
+                  labels: {
+                     step: 1
+                  }
+             }],
+          yAxis: {
+            title: {
+                 text: 'Total Cost of Facilities'
+              },
+             labels: {
+                 overflow: 'justify'
+              }
+          },
+        tooltip: {
+              valuePrefix: '$'
+          },
+        plotOptions: {
+              bar: {
+                  dataLabels: {
+                      enabled: true,
+                      style: {
+                    textShadow: false 
+                }
+                 },
+              colorByPoint: true
+             }
+          },
+         series: [{
+              showInLegend: false,
+              name: 'Program',
+              //color: 'rgba(0,255,0,0.3)',
+              data: progFactot,
+              valueSuffix: ' $'
+          }]
+        },
+         function(chart) { // on complete
+           chart.yAxis[0].setExtremes({{prog.MinFac}},{{prog.MaxFac}});
+      });
+});
+
+$(function () {
+  $('#container6').highcharts({
+         chart: {
+              type: 'bar',
+              renderTo: 'container',
+              borderWidth:1,
+              borderColor:'#ccc',
+              marginLeft:90,
+              marginRight:90,
+              backgroundColor:'#eee',
+              plotBackgroundColor:'#fff',
+          },
+          title: {
+              text: 'Comparative cost analysis for the project: <i>{{ProjectName}}</i> <br> Total Cost of Other Inputs'
+          },
+          subtitle: {
+              text: 'Source: www.cbcsecosttoolkit.org'
+              },
+          xAxis: [{
+                  categories: progName,
+                  labels: {
+                      step: 1
+                  }
+              }, { // mirror axis on right side
+                  opposite: true,
+                  categories: progName,
+                  linkedTo: 0,
+                  labels: {
+                     step: 1
+                  }
+             }],
+          yAxis: {
+            title: {
+                 text: 'Total Cost of Other Inputs'
+              },
+             labels: {
+                 overflow: 'justify'
+              }
+          },
+        tooltip: {
+              valuePrefix: '$'
+          },
+        plotOptions: {
+              bar: {
+                  dataLabels: {
+                      enabled: true,
+                      style: {
+                    textShadow: false 
+                }
+                 },
+              colorByPoint: true
+             }
+          },
+        /*  legend: {
               layout: 'vertical',
               align: 'right',
               verticalAlign: 'top',
@@ -173,19 +451,24 @@ $(function () {
               floating: true,
               borderWidth: 1,
               backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
-              shadow: true,
-              valueSuffix: ' $'
-          },                                                                                                                           
+              shadow: false,
+              valuePrefix: ' $'
+          },
           credits: {
               enabled: false
-          },  
+          },*/
          series: [{
+              showInLegend: false,
               name: 'Program',
-              color: 'rgba(223, 83, 83, .5)',
-              data: avgSeries,
-              valueSuffix: ' $'
+              //color: 'rgba(0,0,255,0.3)',
+              data: progInptot,
+              valuePrefix: ' $'
           }]
+        },
+         function(chart) { // on complete
+           chart.yAxis[0].setExtremes({{prog.MinInp}},{{prog.MaxInp}});
       });
-  });
+});
+
 </script>
 {% endfor %}

@@ -39,13 +39,15 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'crispy_forms',
+    'crispy_forms', 
     'costtool',
     'easy_timezones',
     'django.contrib.humanize',
+    'bootstrapform',
 )
 
 MIDDLEWARE_CLASSES = (
+    'sslify.middleware.SSLifyMiddleware',    
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,6 +92,13 @@ LOGGING = {
     },
 }
 
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#        'LOCATION': '127.0.0.1:11211',
+#    }
+#}
+#SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
@@ -98,8 +107,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'amritha$costtool',
         'USER': 'amritha',
-        'PASSWORD': 'pass',
-        'HOST' :'mysql.server',
+        'PASSWORD': 'lilies19',
+        'HOST' :'amritha.mysql.pythonanywhere-services.com',
         'PORT':'',
     }
 }
@@ -113,15 +122,28 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
+DATE_FORMAT = "m/d/y H:s"
 
 USE_TZ = True
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_USE_TLS = True
+#EMAIL_HOST = 'smtp.gmail.com'
+#EMAIL_HOST_USER = 'cbcsecosttoolkit@gmail.com'
+#EMAIL_HOST_PASSWORD = 'Mar2015$'
+#EMAIL_PORT = 587
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/home/amritha/costtool/costtool/static/'
+
+MEDIA_ROOT = '/home/amritha/costtool/'
+MEDIA_URL = '/costtool/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3' 
 

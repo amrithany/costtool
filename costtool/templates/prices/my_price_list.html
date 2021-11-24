@@ -3,14 +3,22 @@
 {% load humanize %}
 {% block body_block %}
 
+ <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+      ga('send', 'pageview');
+ </script>
 <div class="hero-unit">
     <h3 class="form-signin-heading">MyPrices Database</h3>
     <input class="btn btn-primary" type="button" name="goto" value="View Price details" onclick="PasstoView();">                                  
     <a href="/prices/add_price.html"> <input class="btn btn-primary" type="button" name="add" id="add" value="Add New Price" /></a>
     <input class="btn btn-primary" type="button" name="button" value="Edit Price" onclick="PasstoEdit();"/>
     <input class="btn btn-primary" type="button" name="button" value="Delete Price" onclick="PasstoDel();" />
-    <!--<input class="btn btn-primary" type="button" name="button" value="Export as Excel" />
-    <input class="btn btn-primary" type="button" name="button" value="Clear Database" onclick="ClearAll();" />-->
+    <input class="btn btn-warning" type="button" name="button" value="Excel report" onclick="exptoexcel()"/>
+    <input class="btn btn-primary" type="button" name="button" value="Clear Database" onclick="ClearAll();" />
     <a href="/prices/prices.html"> <input type="button" class="btn btn-success" name="goto2" value="Back to Prices" /></a><br>
             <table class="table table-condensed">
                 <thead>
@@ -40,7 +48,20 @@
                     {% endfor %}
                    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
                    <script type="text/javascript">
-                       var passvar = 000;
+                      var passvar = 000;
+                      $(function() {$('input[type=checkbox]').attr('checked', false)}); 
+                       window.onhashchange = function() {
+                         if (window.innerDocClick) {
+                           window.innerDocClick = false;
+                         } else {
+                           if (window.location.hash != '#undefined') {
+                              goBack();
+                           } else {
+                             history.pushState("", document.title, window.location.pathname);
+                             location.reload();
+                            }
+                          }                                                                                                              
+                        }
                        function setId(chkBox){
 
                           var inputs = document.getElementsByTagName("input");
@@ -79,10 +100,14 @@
                        }
 
                        function ClearAll () {
-                           alert('removing this code to find out if this causes my prices to disappear');
-                          //if (confirm('Are you sure you want to clear the My Prices Database?')) {
-                             //document.location.href = "/prices/clear_prices.html";
-                          //}
+                           //alert('removing this code to find out if this causes my prices to disappear');
+                          if (confirm('Are you sure you want to clear the My Prices Database?')) {
+                             document.location.href = "/prices/clear_prices.html";
+                          }
+                       }
+                       
+                       function exptoexcel(){
+                           document.location.href = "/prices/export_prices.html";
                        }
 
                 </script>

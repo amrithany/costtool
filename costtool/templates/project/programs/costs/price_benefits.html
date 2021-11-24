@@ -2,6 +2,15 @@
 {% load static %}
 {% block body_block %}
 
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                                                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+        ga('send', 'pageview');
+</script>      
+
 <div class="hero-unit">
     <div class="container" style="color: blue">
        <h4>Project Name:  {{projectname}}</h4>                                                                                       
@@ -18,8 +27,8 @@
              Enter fringe benefit rate as a percentage of salary/wage (input a number from 0 to 100):
              <input type="text" name="benefitRate" id="benefitRate" value="{{benefitRate}}">
              <br /><br />
-             If you do not know the fringe benefit rate you can search in CBCSE DB <br />
-             <input type="button" class="btn btn-warning" name="goto3" value="Choose benefit rate from CBCSE DB" onclick="chooseRate();"/>
+             If you do not know the fringe benefit rate you can search in <i>CostOut</i>'s Database of Benefits <br />
+             <input type="button" class="btn btn-warning" name="goto3" value="Choose benefit rate from CostOut's Database of Benefits " onclick="chooseRate();"/>
               <br />
               <br />
              <input type="button" class="btn btn-success" name="goto2" value="<< Back" onclick="goback();"/>

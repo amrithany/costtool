@@ -2,15 +2,23 @@
 {% load static %}
 {% block body_block %}
 
+ <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+      ga('send', 'pageview');
+ </script>
 <div class="hero-unit">
     <div class="container">
              <br>
              <div id="extra">
-                 CBCSE Cost Tool Kit includes a number of default settings that you have the option to change by clicking on the <input class="btn btn-success" type="button" name="sett" value="Project Settings" onclick="gotosett();"/> button.<br>
+                 <i>CostOut</i> includes a number of default settings that you have the option to change by clicking on the <input class="btn btn-success" type="button" name="sett" value="Project Settings" onclick="gotosett();"/> button.<br>
               <br> <li> Discount rate used to calculate Net Present Value of costs incurred after Year 1 (Default =3.5%)</li>
               <li> Year in which you want to express costs (Default = latest available year for which we have an inflation index)</li>
               <li> Geographical location in which you want to express costs (Default=All States, All Areas)</li>
-              <li> Database of prices to use and filters (Default = all prices in CBCSE Database of Educational Resource Prices and in MyPrices Database) </li>   
+              <li> Database of prices to use and filters (Default = most recent  prices in <i>CostOut</i> Database of Educational Resource Prices and in MyPrices Database) </li>   
               <li> Hours per year used in Wage Converter</li>
 
           </div> 

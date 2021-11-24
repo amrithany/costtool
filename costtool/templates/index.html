@@ -1,40 +1,66 @@
 <!DOCTYPE html>
-
 {% load static %} <!-- New line -->
 
-<html>
-
+<html lang="en">
     <head>
+    <style>
+        * {                                                                                                                                                     
+          font-family: Arial, sans-serif !important;
+         }
+
+         body {                                                                                                                                                      
+         padding-top: 60px;
+         padding-bottom: 40px;
+         }
+         .sidebar-nav {
+         padding: 9px 0;
+         }
+         @media (max-width: 980px) {
+         /* Enable use of floated navbar text */
+         .navbar-text.pull-right {
+         float: none;
+         padding-left: 5px;
+         padding-right: 5px;
+         }   
+         } 
+         
+    </style>        
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- Bootstrap -->
+        <!-- Bootstrap 
         <link href="{% static 'css/font.css' %}" rel="stylesheet">
-        <link href="{% static 'css/bootstrap-fluid-adj.css' %}" rel="stylesheet">
+        <link href="{% static 'css/bootstrap-fluid-adj.css' %}" rel="stylesheet">-->
         <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-        <link href="{% static 'css/bootstrap-responsive.css' %}" rel="stylesheet">
-        <title>CBCSE Cost Tool Kit</title>
+        <!-- Latest compiled and minified CSS 
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">-->
+        <link href="{% static 'css/bootstrap-responsive.min.css' %}" rel="stylesheet">
+        <title>CostOut&reg;</title>
     </head>
 
     <body>
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
-                    <h4 style="color:lightskyblue">CBCSE Cost Tool Kit © (Under Construction)</h4>
-                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <h4 style="color:lightskyblue"><i>CostOut</i>&reg;<br>© 2015-19 Teachers College, Columbia University. All rights reserved.</h4>
+                    <!--<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
                          <span class="icon-bar"></span>
                          <span class="icon-bar"></span>
                          <span class="icon-bar"></span>
-                     </button>
+                     </button>-->
                      <div class="nav-collapse collapse">
                          <ul class="nav pull-left">
-                             <h5><b><font color="lightskyblue">Cost Tool Kit Manual</font></h5>
+                             <li><a href="/Quickstart.docx" onClick="ga('send', 'event', 'Quickstart.docx', 'Download', 'Quickstart.docx', 10);"><b><font color="lightskyblue">Quickstart</font></b></a></li>
+                             <li><a href="/manual.html"><b><font color="lightskyblue">Manual</font></b></a></li>
+                             <li><a href="/license2.html"><b><font color="lightskyblue">License</font></b></a></li>
+                             <li><a href="/tutorials.html"><b><font color="lightskyblue">Tutorials</font></b></a></li>
+                             <li><a href="/additional.html"><b><font color="lightskyblue">Additional resources</font></b></a></li>
                          </ul>
                          <ul class="nav pull-right">
                              <li> <a href="/"><b><font color="lightskyblue">Home</font></b></a> 
                              <!--<li> <a href="/prices/imports.html"><b><font color="lightskyblue"> Imports</font></b></a></li>-->
                              <li> <a href="/project/project_list.html"><b><font color="lightskyblue"> Project List</font></b></a></li>
                              <li> <a href="/prices/prices.html"><b><font color="lightskyblue">Prices</font></b></a></li>
-                             <li> <a href="/about.html"><b><font color="lightskyblue">Log out</font></b></a></li>
-                             <a href="about.html"></a>
+                             <li> <a href="/admin/myaccount.html"><b><font color="lightskyblue">My Account</font></b></a></li>
+                             <li> <a href="/logout.html"><b><font color="lightskyblue">Log out</font></b></a></li>
                          </ul>
                      </div>
            <!--/.nav-collapse -->

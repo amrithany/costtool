@@ -1,13 +1,26 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block body_block %}
+{% load tz %}
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                                                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+        ga('send', 'pageview');
+</script>      
 
 <div class="hero-unit">
+    <div style="color:#0000FF" align="right"><h4>Logged in as {{loggedinuser}}</h4></div>  
     <div class="container">
-       <h4 style="float: left;"> Project: {{project.projectname}}</h4>
-       <a href="/project/project_list.html"><input class="btn btn-success" type="button" name="goto2" value="Project List" style="float: right;"></a>
+       <h4> Project: {{project.projectname}}</h4>
+        {% if project.shared == "Y" %}
+        <h4>Project owner: {{project.user}}</h4><h4>Shared with: {{sharList}} </h4>
+        {% endif %}
        <br> <h4>Type of Analysis: {{project.typeanalysis}}</h4>
-       <h4 style="float: left;">Type of Cost: {{project.typeofcost}}</h4>
+       <h4>Type of Cost: {{project.typeofcost}}</h4>
        <input class="btn btn-success" type="button" name="goto3" value="Project Settings" style="float: right;" onclick="gotosett();">
     </div>
     <br />
@@ -19,17 +32,50 @@
                     <th></th>
                     <th>Name</th>
                     <th>Short Name</th>
-
+                    <th>Created on</th>
+                    <th>Updated on</th><br />
+                    {% localtime on %}
                     {% for prog in program  %}
                             <tr onmouseover="javascript:style.background='#dcfac9'" onmouseout="javascript:style.background='#DCDCDC'" bgcolor="#DCDCDC">
                             <td><input type="checkbox" id="{{prog.id}}" value="unchecked" onclick="setId(this);"  style="margin-left:auto; margin-right:auto;"></td>
                             <td>{{prog.progname}}</td>
                             <td>{{prog.progshortname}}</td>
+                            <td>{{prog.created_at|date:"m/d/y H:s"}}</td>
+                            <td>{{prog.updated_at|date:"m/d/y H:s"}}</td>
                         </tr>
                     {% endfor %}
+                    {% endlocaltime %} 
+                    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
                     <script type="text/javascript">
                        var passvar = 000;
                        var proj = {{project.id}};
+                       //var loggedinuser = '{{loggedinuser}}';
+
+                       //if (loggedinuser == 'Demo admin'){
+                           //$("#extra-content").show();
+                      // }
+                       //else {
+                           //$("#extra-content").hide();
+                       //}
+
+                       //function PasstoOpt () {
+                          //document.location.href = "/admin/options.html";
+                      // }
+
+                      $(function() {$('input[type=checkbox]').attr('checked', false)}); 
+                       window.onhashchange = function() {
+                         if (window.innerDocClick) {
+                           window.innerDocClick = false;
+                         } else {
+                           if (window.location.hash != '#undefined') {
+                              goBack();
+                           } else {
+                             history.pushState("", document.title, window.location.pathname);
+                             location.reload();
+                            }
+                          }                                                                                                              
+                        }
+
                        function setId(chkBox){
                           var inputs = document.getElementsByTagName("input");
                           for (i = 0; i<inputs.length; i++ ) {
@@ -37,10 +83,10 @@
                                 if (inputs[i].id != chkBox.id) {
                                    inputs[i].checked = false;
                                 }
-                                else { inputs[i].checked = true;}
+                                //else { inputs[i].checked = true;}
                              }
                           }
-                          passvar = chkBox.id;
+                                 passvar = chkBox.id;
                        }
 
                        function PasstoView () {
@@ -51,14 +97,33 @@
                        }
 
                        function PasstoDel () {
+                           shared = '{{project.shared}}';
                            if (passvar == 000){
                              alert('Select or Add a Program to delete');
                            }
                            else {
-                               if (confirm('Are you sure you want to delete this program?')) { 
-                                  document.location.href = "/project/programs/" + passvar + "/del_program.html";    
-                               }}
+                               if (shared == 'Y') {
+                                  alert('This program is shared with another user at this time. You cannot delete this program.'); }
+                               else {  
+                                  if (confirm('Are you sure you want to delete this program?')) { 
+                                    document.location.href = "/project/programs/" + passvar + "/del_program.html";    
+                                  }}
+                           }
                        }
+
+                      function PasstoDupl () {
+                           if (passvar == 000){
+                             alert('Select a Program to duplicate');}
+                          else {
+                             document.location.href = "/project/programs/" + passvar + "/dupl_program.html";
+                       }}
+                      
+                      function ChangeName () {
+                           if (passvar == 000){
+                             alert('Select a Program to edit');}
+                          else {
+                             document.location.href = "/project/programs/" + passvar + "/edit_program.html";
+                       }}
 
                       function AddProg () {
                           document.location.href = "/project/programs/add_program.html";
@@ -72,6 +137,8 @@
         </table>
         <input class="btn btn-primary" type="button" name="add" value="Add New Program" onclick="AddProg();">
         <input class="btn btn-primary" type="button" name="del" value="Delete Program" onclick="PasstoDel();">
+        <input class="btn btn-primary" type="button" name="dupl" value="Duplicate Program" onclick="PasstoDupl();">
+        <input class="btn btn-primary" type="button" name="edit" value="Edit Program Name" onclick="ChangeName();">
         <input class="btn btn-success" type="button" name="goto" value="Go to Program" onclick="PasstoView();"> 
 
 </div>

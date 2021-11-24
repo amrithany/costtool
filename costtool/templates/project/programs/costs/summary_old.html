@@ -1,0 +1,155 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                                                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+        ga('send', 'pageview');
+</script>      
+
+<style TYPE="text/css">
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  /* display: none; <- Crashes Chrome on hover */
+  -webkit-appearance: none;
+  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+</style>
+
+<div class="hero-unit">
+    <div class="container" style="color: blue">
+        <h4>Project Name:  {{projectname}}</h4>
+        <h4>Program Name:  {{programname}}</h4>                                                                                        
+    </div>
+    <div class="container">
+             {% csrf_token %}
+             <h2 class="form-signin-heading">Add ingredient</h2>
+              Summary of price information for {{price.category}} ingredient: {{price.ingredient}}
+             <br /><br />
+             <table class="table table-condensed">
+                <tr> Category: {{ price.category }} </tr><br />
+                <tr> Education level to be served: {{ price.edLevel }} </tr><br />
+                <tr> Sector: {{ price.sector }} </tr><br />
+                <tr> Ingredient: {{ price.ingredient}} </tr><br />
+                <tr> Unit of measure: {{new_measure}} </tr><br />
+                <tr> Un-adjusted price: {{new_price}} </tr><br />
+                <tr> Benefit Rate: {{Rate}} </tr><br />
+             </table>
+             {% if pcount > 0 %}
+             <table>
+                 <thead>
+                 <tr>
+                 <th>Program year</th>
+                 <th>Quantity</th>
+                 <th>% of time used (number from 0 to 100, e.g., “5” to indicate 5%)</th>
+                 </tr>
+                 </thead>
+                 <form method="post" id="form"  enctype="multipart/form-data">
+                 <tbody class="product-instances">
+                     {% csrf_token %}
+                     {{ form.management_form }}
+                      <b><font color="red">{{ err }} </font></b>
+                      
+                     {% for form in form %}
+                        {{ form.non_field_errors }}
+                        {{ form.errors }}
+                         {{ form.id }}
+                     <tr>
+                         <td>{{ form.yearQtyUsed}}</td>
+                         <td>{{ form.quantityUsed }}</td>
+                         <td>{{ form.percentageofUsage}}</td>
+                     </tr>
+                     {% endfor %}
+                 </tbody>
+                 </table>
+                 </br>
+                 Does the quantity needed stay fixed even if the number of participants change? <br>
+                 <input type="radio" name="variableFixed" value="Fixed">Yes, this is a Fixed quantity. (i.e., stays the same regardless of the number of program participants)
+                 <br>
+                 <input type="radio" name="variableFixed" value="Variable" checked>No, this is a Variable quantity (i.e., changes in direct proportion to the number of program participants) <br>
+                 <input type="radio" name="variableFixed" value="Lumpy">No, this is a Lumpy quantity (i.e., changes when the number of participants increases or decreases by a certain amount, e.g., goes up after 30 more participants are added, then again at 60 etc.)  <br></br>
+                 <div id="extra-content">If you want to spread the costs of this personnel ingredient over a number of years, enter the number of years below, e.g., if it is used in teacher training time in Year 1 but this training will not need to be repeated for 5 years, you can spread the costs over 5 years. <input type="text" name="lifetimeAsset" id="lifetimeAsset" value="1">
+                 <br>
+                 You can change the default rate used to calculate interest on the undepreciated portion each year. <input type="text" name="interestRate" id="interestRate" value="3.5">
+                 <br><br></div>
+                 Add any notes you want to keep about this ingredient: <textarea style="width:700px; height:180px;" name="notes2" id="notes2"></textarea> <br><br>
+                 <input type="button" class="btn btn-success"  name="goto2" value="<< Back" onclick="goback();"/>
+                 <input type="hidden" id="variableFixed2" name="variableFixed2">
+                 <input class="btn btn-primary" type="submit"  name="goto" value="Save ingredient"/>
+                 <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/>
+                 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+                 <script type="text/javascript">
+                  $("form").submit(function(){
+                  x = $('input[name="variableFixed"]:checked').val();
+                  document.getElementById('variableFixed2').value = x;
+                  });
+                 </script>
+
+                 </form>
+
+             {% else %}
+                 <form method="post" id="form" action="/project/programs/costs/summary.html" >
+                 <style type="text/css"> ul {list-style:none} </style>
+                 {% csrf_token %}
+                 {{ form.non_field_errors }}
+                 {{ form.errors }}
+                  <b><font color="red">{{ err }} </font></b><br> 
+                 Quantity of ingredient needed: {{ form.quantityUsed }}
+                 </br>
+                  Percentage of time used (input a number from 0 to 100, e.g., “5” to indicate 5%):{{form.percentageofUsage}}
+                 </br>
+                 Does the quantity needed stay fixed even if the number of participants change? {{ form.variableFixed }}
+                 </br>
+                 <div id="extra-content2">
+                 If you want to spread the costs of this personnel ingredient over a number of years, enter the number of years below, e.g., if it is used in teacher training time in Year 1 but this training will not need to be repeated for 5 years, you can spread the costs over 5 years. {{form.lifetimeAsset}}
+                 <br>
+                 You can change the default rate used to calculate interest on the undepreciated portion each year. {{form.interestRate}} 
+                 <br><br></div>
+                  Add any notes you want to keep about this ingredient: {{ form.notes }}<br><br>
+                 <input type="button" class="btn btn-success" name="goto2" value="<< Back" onclick="goback();"/>
+                 <input class="btn btn-primary" type="submit"  name="goto" value="Save ingredient"/>
+                 <input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/> 
+                </form>
+             {% endif %}
+           <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>   
+           <script type="text/javascript">
+              var cat = '{{price.category}}';                                                                                     
+              if (cat  == 'Personnel') {  
+                 $("#extra-content").show();
+                 $("#extra-content2").show();
+              }
+              else {
+                 $("#extra-content").hide();
+                 $("#extra-content2").hide();
+              }
+
+              function cancelout() {
+                 document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=costform";
+              }
+
+              function goback() {
+                  var cat = '{{price.category}}';
+                  if (cat  == 'Personnel') {  
+                      document.location.href = "/project/programs/costs/"  + {{price.id}} + "/price_benefits.html";
+                  }
+                  else {  
+                      document.location.href = "/project/programs/costs/"  + {{price.id}} + "/nonper_indices.html"; 
+                  }
+              }
+
+              $('form').submit(function(){
+               $(':submit', this).click(function() {
+                return false;
+               });
+              });
+
+           </script>
+    </div>
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,19 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+      ga('send', 'pageview');
+</script>
+<div class="hero-unit">                                                                                                                  
+    <h4> For the purpose of the license agreement, are you signing as a public institution or a private institution/Individual? </h4> <br>
+    <h5><li> <a href="Online Public Institution Tool Kit License.pdf" onClick="ga('send', 'event', 'Public Institution License', 'Download', 'Online Public Institution Tool Kit License.pdf', 10);">Public Institution</a></h5> 
+    <h5><li> <a href="Online Private Institution Tool Kit License.pdf" onClick="ga('send', 'event', 'Private Institution License', 'Download', 'Online Private Institution Tool Kit License.pdf', 10);">Private Institution</a></h5>
+</div>
+{% endblock %}
+
+

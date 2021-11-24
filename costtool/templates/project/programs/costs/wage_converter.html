@@ -2,6 +2,15 @@
 {% load static %}
 {% block body_block %}
 
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                                                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+        ga('send', 'pageview');
+</script>      
+
 <div class="hero-unit">
     <div class="container">
              <h2 class="form-signin-heading">Wage Converter</h2>
@@ -30,10 +39,13 @@
                  document.location.href = "/project/programs/costs/"+'{{price_id}}'+"/price_indices.html";
               }
 
+              function cancelout2() {
+                 document.location.href = "/project/programs/costs/wage_defaults.html";
+              }
               </script>
-             <a href="/project/programs/costs/wage_defaults.html"><input type="button" class="btn btn-warning" name="goto" value="Change default number of hours per year" /></a><br /><br />
+             <input type="button" class="btn btn-warning" name="goto" value="Change default number of hours per year" onclick="cancelout2();"/><br /><br />
              <input class="btn btn-primary" type="submit" name="use" value="Use converted value"/>
-             <input class="btn btn-success" type="button" name="cancel" value="Back to Add ingredient" onclick="cancelout();"/>
+             <!--<input class="btn btn-success" type="button" name="cancel" value="Back to Add ingredient" onclick="cancelout();"/>-->
              </form>
     </div>
 </div>

@@ -12,8 +12,40 @@ A:visited {COLOR: #0000EE;}
 A:hover {COLOR: #0000EE;}
 
 .div_freezepanes_wrapper{
-    position:relative;width:160%;height:500px;
-    overflow:hidden;background:#fff;border-style: ridge;
+    position:relative;
+    /*width:160%;*/
+    /*height:500px;*/
+    /*overflow:hidden;*/
+    background:#fff;
+    border-style: ridge;
+}
+
+#t1_fixed tr td {
+  height: 121px;
+}
+
+#t1 tr td {
+  height: 121px;
+}
+
+#t1_fixed tr td {
+  max-width: 150px;
+}
+
+#t1 tr:nth-of-type(1) td {
+  min-width: 300px;
+}
+
+.table_container {
+  width: calc(110% - 420px);
+  overflow-x: scroll;
+  position: absolute;
+  top: 0;
+  left: 420px;
+}
+
+#form1 {
+  width:90%;
 }
 
 .div_verticalscroll{
@@ -30,7 +62,7 @@ A:hover {COLOR: #0000EE;}
 }
 
 .div_horizontalscroll{
-    position: absolute;bottom:0px;width:100%;height:18px;
+    position: absolute;bottom:-22px;width:110%;height:22px;
     background:#EAEAEA;border:1px solid #C0C0C0;
 }
 
@@ -39,7 +71,7 @@ A:hover {COLOR: #0000EE;}
 }
 
 .buttonLeft{
-    width:20px;position: absolute;right:22px;padding-top:2px;
+    width:20px;position: absolute;right:0px;padding-top:2px;
 }
 
 }
@@ -69,6 +101,10 @@ function cancelout() {
         document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=costform";                
 }
 
+function exptoexcel() {
+        document.location.href = "/project/programs/costs/export_full_table.html";            
+}
+
 function gotosett() {
     document.location.href = "/project/" +{{ project_id }} + "/add_settings.html";                                                     
 }
@@ -76,25 +112,39 @@ function gotosett() {
 <form class="form-signin span8" id="form1" method="post"  enctype="multipart/form-data">
 {% csrf_token %}
 <br><input class="btn btn-primary" type="submit" name="submit" id="submit" value="Save changes"/>
-<input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/><br>
+<input class="btn btn-success" type="button" name="cancel" value="Back to Cost Information Table" onclick="cancelout();"/>
+<input class="btn btn-warning" type="button" name="exp" value="Excel report" onclick="exptoexcel();"/>
+<font color="blue"> To scroll right and left click in one of the cells (except the first 3 columns) and use the arrow keys on your keyboard.</font><img src="{% static "rightarrow.png" %}"><br>
+
 <div class="div_freezepanes_wrapper">
 
-    <div class="div_verticalscroll" onmouseover="this.style.cursor='pointer'">
+    <!-- div class="div_verticalscroll" onmouseover="this.style.cursor='pointer'">
     <div style="height:50%;" onmousedown="upp();" onmouseup="upp(1);"><img class="buttonUp" src="{% static "uparrow.png" %}"></div>
     <div style="height:50%;" onmousedown="down();" onmouseup="down(1);"><img class="buttonDn" src="{% static "downarrow.png" %}"></div>
-    </div>
+    </div>-->
 
-    <div class="div_horizontalscroll" onmouseover="this.style.cursor='pointer'">
-    <div style="float:left;width:50%;height:100%;" onmousedown="right();" onmouseup="right(1);"><img class="buttonRight" src="{% static "leftarrow.png" %}"></div>
-    <div style="float:right;width:50%;height:100%;" onmousedown="left();" onmouseup="left(1);"><img class="buttonLeft" src="{% static "rightarrow.png" %}"></div>
-    </div>
 
-    <table title="Ingredients" id="t1" style="font-size:16px;">
+    <table title="Ingredients" id="t1_fixed" style="font-size:16px;">
              <tr> 
                  <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Cost Per Ingredient</b></td>
                  <td bgcolor="lightblue" style="border: 1px solid grey;"><b>% of Total Cost</b></td> 
                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Cost Per Participant</b></td> 
+             </tr>
+            <tbody style="flex-grow: 1;">
+            {% for i in ingredients  %}
+            <tr>
+            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.costPerIngredient|floatformat:"2"|intcomma }}</td>
+            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{i.percentageCost|floatformat:"2"|intcomma}}</td>    
+            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{i.costPerParticipant|floatformat:"2"|intcomma}}</td>     
+            </tr>
+            {% endfor %}
+            </tbody>
+    </table>
+    <div class="table_container"> 
+    <table title="Ingredients" id="t1" style="font-size:16px;">
+             <tr> 
                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Ingredient Name</b></td>
+                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Description</b></td>
                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Category</b></td>
                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Original Price</b></td>
                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Original Unit of Measure</b></td>
@@ -125,13 +175,11 @@ function gotosett() {
                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Source of Benefit Rate</b></td>
                 <td bgcolor="lightblue" style="border: 1px solid grey;"><b>Year Benefit</b></td>
             </tr>
-            <tbody style="overflow:auto;">
+            <tbody>
             {% for i in ingredients  %}
             <tr>
-            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{ i.costPerIngredient|floatformat:"2"|intcomma }}</td>
-            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{i.percentageCost|floatformat:"2"|intcomma}}</td>    
-            <td bgcolor="lightgrey" style="border: 1px solid grey;">{{i.costPerParticipant|floatformat:"2"|intcomma}}</td>     
-	        <td bgcolor="white" style="white-space: nowrap; border: 1px solid grey;"><div id="ingredient{{i.id}}" contenteditable>{{ i.ingredient }}</div></td>
+	        <td bgcolor="white" style="border: 1px solid grey;"><div style="overflow-x:auto; width:300px;height:100px;" id="ingredient{{i.id}}" contenteditable>{{ i.ingredient }}</div></td>
+            <td bgcolor="white" style="border: 1px solid grey;"><div style="overflow-x:auto; width:300px;height:100px;" id="notes{{i.id}}" contenteditable>{{ i.notes }}</div></td>
             <td bgcolor="white" style="border: 1px solid grey;" contenteditable><select style="max-width: 160px;" id="category{{i.id}}"> 
                     <option value="Personnel">Personnel</option>
                     <option value="Facilities">Facilities</option>
@@ -173,9 +221,10 @@ function gotosett() {
                 <td style="display:none;"> {{i.id}} </td>
             </tr>
             </tbody>
-        </div>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <!--</div>-->
 
+ <!-- script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script> -->
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 <script type="text/javascript">
 var myRow=1;
 var myCol=4;
@@ -185,7 +234,7 @@ var myCells,ID;
       
 $(document).ready(function () {
   setUp();
-  var element = document.getElementById('variableFixed{{i.id}}');
+  var varfix = document.getElementById('variableFixed{{i.id}}');
   var cat = document.getElementById('category{{i.id}}');
   var adj = '{{i.adjPricePerIngredient}}';
   var inf = '{{i.indexCPI}}';
@@ -193,6 +242,54 @@ $(document).ready(function () {
   var infPrice = '{{i.priceAdjInflation}}';
   var geoPrice = '{{i.priceAdjGeographicalArea}}';
 
+  if (document.getElementById("notes{{i.id}}").innerHTML == "None") {
+     document.getElementById("notes{{i.id}}").innerHTML = "";
+  }
+  
+  /*showAlert = true;
+  $("#submit").on('click', function(e) {
+        window.location.reload();
+        if (showAlert==true)
+        {
+           alert ("Cost Information has been updated");
+           showAlert = false;
+        }
+  });*/
+
+  var element = $("#notes{{i.id}}");
+  element.html(element.text());
+
+  $('#yearQtyUsed{{i.id}}').keypress(function(event){
+    if (event.keyCode === 10 || event.keyCode === 13) 
+      event.preventDefault();
+
+  });
+
+  $('#quantityUsed{{i.id}}').keypress(function(event){                                                                                                                                                            
+    if (event.keyCode === 10 || event.keyCode === 13) 
+      event.preventDefault();
+  });
+
+  $('#lifetimeAsset{{i.id}}').keypress(function(event){                                                                                                                                                            
+    if (event.keyCode === 10 || event.keyCode === 13) 
+      event.preventDefault();
+  });
+
+  $('#interestRate{{i.id}}').keypress(function(event){                                                                                                                                                            
+    if (event.keyCode === 10 || event.keyCode === 13) 
+      event.preventDefault();
+  });
+
+  $('#benefitRate{{i.id}}').keypress(function(event){                                                                                                                                                            
+    if (event.keyCode === 10 || event.keyCode === 13) 
+      event.preventDefault();
+  });
+
+  $('#percentageofUsage{{i.id}}').keypress(function(event){                                                                                                                                                            
+    if (event.keyCode === 10 || event.keyCode === 13) 
+      event.preventDefault();
+  });
+ 
   if (adj != 'No geographical index available'){
      adj  = '{{i.adjPricePerIngredient|floatformat:"2"|intcomma}}';
      $('#adjPricePerIngredient{{i.id}}').html(adj);
@@ -218,7 +315,11 @@ $(document).ready(function () {
       $('#priceAdjGeographicalArea{{i.id}}').html(geoPrice);
    }  
   cat.value = '{{i.category}}';
-  element.value = '{{i.variableFixed}}';
+  varfix.value = '{{i.variableFixed}}';
+});
+
+$("#notes{{i.id}}").blur(function(e) {
+   $(this).html($(this).text());
 });
 
 $("#Up").on('click', function (e) {                                                                                               
@@ -249,62 +350,10 @@ function setUp(){
 } 
 }
 
-function right(up){
-    if(up){window.clearTimeout(ID);return;}
-    if(!myTable){setUp();}
+//$('#submit').off('click');
 
-        if(myCol<(myCells)){
-          for( var x = 0; x < noRows; x++ ) {
-                myTable.rows[x].cells[myCol].style.display="";
-          }
-          if(myCol >1){myCol--;}
-
-          ID = window.setTimeout('right()',100);
-        }
-}
-  
-function left(up){
-    if(up){window.clearTimeout(ID);return;}
-    if(!myTable){setUp();}
-
-    if(myCol<(myCells-1)){
-        for( var x = 0; x < noRows; x++ ) {
-            myTable.rows[x].cells[myCol].style.display="none";
-        }
-        myCol++
-        ID = window.setTimeout('left()',100);
-                                            
-    }
-}
-  
-function down(up){
-    if(up){window.clearTimeout(ID);
-    return;}
-    if(!myTable){setUp();}
-
-    if(myRow<(noRows-1)){
-        myTable.rows[myRow].style.display="none";
-        myRow++    ;
-                                                    
-        ID = window.setTimeout('down()',100);
-    }    
-}
- 
-function upp(up){
-    if(up){window.clearTimeout(ID);
-    return;}
-    if(!myTable){setUp();}
-
-    if(myRow<=noRows){
-        myTable.rows[myRow].style.display="";
-        if(myRow >1){myRow--;}
-        ID = window.setTimeout('upp()',100);
-    }    
-}
-
-$('#submit').off('click');
-
-$("#submit").on('click', function (e) {
+$("input[type='submit']").click(function(e){
+//$("#submit").on('click', function (e) {
         if ($('#yearQtyUsed{{i.id}}').html() <= 0) {
           alert('Year Quantity Used should not be 0');
           e.preventDefault();
@@ -329,7 +378,8 @@ $("#submit").on('click', function (e) {
                  data: {
                         csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
                         'id':{{i.id}},
-                        'ingredient':$('#ingredient{{i.id}}').html(),
+                        'ingredient':$('#ingredient{{i.id}}').text(),
+                        'notes':$('#notes{{i.id}}').text(),
                         'category':$('#category{{i.id}}').val(),
                         'yearQtyUsed':$('#yearQtyUsed{{i.id}}').html(),
                         'variableFixed':$('#variableFixed{{i.id}}').val(),
@@ -340,7 +390,9 @@ $("#submit").on('click', function (e) {
                         'percentageofUsage':$('#percentageofUsage{{i.id}}').html()
                         },
                   success: function(){
-                  window.location.reload(true);
+                  //    $(document).load('/project/programs/costs/full_table.html');
+                  //alert('success');
+                  window.location.reload();
                   },
                   error: function(){
                   //alert('failure');
@@ -354,8 +406,36 @@ $("#submit").on('click', function (e) {
 
 {% endfor %}
 </table>
+</div>
+<div class="div_horizontalscroll" onmouseover="this.style.cursor='pointer'">
+<div id="go_left" style="float:left;width:50%;height:100%;"><img class="buttonRight" src="{% static "leftarrow.png" %}"></div>
+<div id="go_right" style="float:right;width:50%;height:100%;"><img class="buttonLeft" src="{% static "rightarrow.png" %}"></div>
+</div>
 </form>
 </div>
 </div>
 </div>
+<script>
+$(function() {
+  var index = 0;
+  var columnCount = $('#t1 tr:eq(0) td').size()
+  var calculateOffset = function(index) {
+    var previousIndex = (index-1)
+    if (previousIndex < 0) {previousIndex = 0}
+    return $('#t1 tr:eq(0) td:eq(' + index + ')').offset().left - $('#t1 tr:eq(0) td:eq(' + previousIndex  + ')').offset().left;
+  }
+  $('#go_right').click(function(e) {
+    index++;
+    if (index >= columnCount) {index = columnCount - 1}
+    var scrollPosition = $('.table_container').scrollLeft();
+    $('.table_container').scrollLeft(scrollPosition + calculateOffset(index));
+  })
+  $('#go_left').click(function(e) {
+    var scrollPosition = $('.table_container').scrollLeft();
+    $('.table_container').scrollLeft(scrollPosition - calculateOffset(index));
+    index--;
+    if (index < 0) {index = 0}
+  })
+});
+</script>
 {% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+
+<div class="hero-unit">
+    <div class="container">
+        <form class="form-signin span8" id="adminform" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h2 class="form-signin-heading">Change email and/or password</h2>
+             <b><font color="red">{{ err }} </font></b><br>
+              {{ adminform.as_p }}
+             <br />
+             <!-- Provide a button to click to submit the form. -->
+             <input class="btn btn-primary" type="submit" name="submit" value="Save" />
+             <input class="btn btn-success" type="button" name="goto" value="Go to Project List" onclick="PasstoProj();">
+        </form>
+        <script type="text/javascript">
+         function PasstoProj () {
+                          document.location.href = "/project/project_list.html";
+                       }
+        </script>
+     </div>
+</div>
+{% endblock %}
+

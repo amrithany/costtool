@@ -7,19 +7,27 @@ listTime=['Minutes','Hours','Days','Weeks','Years']
 {% extends 'index.html' %}
 {% load static %}
 {% block body_block %}
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                                                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+        ga('send', 'pageview');
+</script>      
 <div class="hero-unit">
     <div class="container">
              <h2 class="form-signin-heading">Unit Measure Converter</h2>
              {% if measureType == 'mylist' %}
-             Convert Area to other units: Sq. Inch, Sq. Foot, Sq. Yard, Acre, Sq. Mile, Sq. Meter, Sq. Kilometer and Hectare.
+             Convert price to other units of area: Sq. Inch, Sq. Foot, Sq. Yard, Acre, Sq. Mile, Sq. Meter, Sq. Kilometer and Hectare.
              {% elif measureType == 'listVol' %}
-             Convert Volume to other units: Fluid Ounces, Cups, Pints, Quarts, Gallons and  Liters.
+             Convert price to other units of volume: Fluid Ounces, Cups, Pints, Quarts, Gallons and  Liters.
              {% elif measureType == 'listLen' %}
-             Convert Length to other units: Inches, Feet, Yards, Miles, Millimeter, Centimeter and Kilometer.
+             Convert price to other units of length: Inches, Feet, Yards, Miles, Millimeter, Centimeter and Kilometer.
              {% elif measureType == 'listTime' %}
-             Convert Time to other units: Hour, Day, Week, K-12 Academic Year, Calendar Year and Higher Ed Academic Year.
+             Convert price to other units of time: Hour, Day, Week, K-12 Academic Year, Calendar Year and Higher Ed Academic Year.
              {% elif measureType == 'allList' %}
-             Convert to other units: Sq. Inch, Sq. Foot, Sq. Yard, Acre, Sq. Mile, Sq. Meter, Sq. Kilometer,Ounces, Cups, Pints, Quarts, Gallons, Liters,Inches, Feet, Yards, Miles, Millimeter, Centimeter, Kilometer, Minutes, Hours, Days, Weeks and Years.
+             Convert price to other units: Sq. Inch, Sq. Foot, Sq. Yard, Acre, Sq. Mile, Sq. Meter, Sq. Kilometer,Ounces, Cups, Pints, Quarts, Gallons, Liters,Inches, Feet, Yards, Miles, Millimeter, Centimeter, Kilometer, Minutes, Hours, Days, Weeks and Years.
              {% endif %}
              <form class="form-signin span8" id="form" method="post" enctype="multipart/form-data">
                  {% csrf_token %}
@@ -48,7 +56,7 @@ listTime=['Minutes','Hours','Days','Weeks','Years']
 
               </script>
              <input class="btn btn-primary" type="submit" name="use" value="Use converted value"/>
-             <input class="btn btn-success" type="button" name="cancel" value="Back to Add ingredient" onclick="cancelout();"/>
+             <!--<input class="btn btn-success" type="button" name="cancel" value="Back to Add ingredient" onclick="cancelout();"/>-->
              </form>
     </div>
 </div>

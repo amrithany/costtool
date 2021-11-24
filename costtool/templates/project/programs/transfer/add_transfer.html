@@ -1,0 +1,148 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                                                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+        ga('send', 'pageview');
+</script>      
+
+<style TYPE="text/css">
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+        /* display: none; <- Crashes Chrome on hover */
+        -webkit-appearance: none;
+            margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+ul li {
+     list-style: none;
+      }
+
+</style>
+
+<div class="hero-unit">
+    <div class="container" id="transferform">
+             <form class="form-signin span8" id="transferform" method="post" action="/project/programs/transfer/add_transfer.html" enctype="multipart/form-data">
+             {% csrf_token %}
+             <h2 class="form-signin-heading">Add cash transfer or subsidy or fee</h2>
+             {% if transferform.total_error_count %}
+                 {{transferform.errors}}
+             {% endif %}
+             <b><font color="red">{{ err }}</font></b> <br>
+             From: &nbsp; &nbsp; 
+             <select name="From" id="From">
+             </select><br>
+             To: &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+             <select name="To" id="To">
+             </select><br>
+             {% if pcount > 0 %}
+             <table>
+                 <thead>
+                 <tr>
+	 <th>Year</th>
+                 <th>Amount</th>
+                 </tr>
+                 </thead>
+                 <form method="post" id="tranferform"  enctype="multipart/form-data">
+                 <tbody class="product-instances">
+                     {% csrf_token %}
+                     {{ transferform.management_form }}
+                     {% for form in transferform %}
+                         {{ form.id }}
+                     <tr>
+                         <td>{{ form.grantYear}}</td>
+                         <td>{{ form.grantAmount }}</td>
+                     </tr>
+                     {% endfor %}
+                 </tbody>
+                 </table>
+                 </br>
+                 Is this amount given per participant or in total? <br> 
+                 <input type="radio" name="perparticipantOrTotal" value="Participant"> Per participant <br>
+                 <input type="radio" name="perparticipantOrTotal" value="Total" checked> Total <br>
+                 <br>Number of participants you entered in Program Description:<br> {{ptext}}<br><br>
+                 Name of transfer/subsidy/fee:  <input type="text" name="desc" id="desc"> <br /><br>
+             {% else %}
+                 {{transferform.errors}}
+                Amount: {{ transferform.grantAmount }} <br /><br>
+                Is this amount given per participant or in total? {{ transferform.perparticipantOrTotal }} <br />
+                Number of participants you entered in Program Description: {{avgno}}<br>
+                Name of transfer/subsidy/fee:  {{ transferform.grantName }} <br /><br>
+             {% endif %}
+             <input type="hidden" id="grantFrom" name="grantFrom"/>
+             <input type="hidden" id="grantTo" name="grantTo" />
+             <input type="hidden" id="pOrTotal" name="pOrTotal">
+             <input class="btn btn-primary" type="submit" name="submit" value="Save" />
+             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+
+           <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+           <script type="text/javascript">
+              var x = '{{ag1}},{{ag2}},{{ag3}},{{ag4}}, Other';
+              var From = document.getElementById('From');
+              var To  = document.getElementById('To');
+              populateWithChildren(From, 'option', x);
+              populateWithChildren(To, 'option', x);
+              function populateWithChildren(parent, childTag, values) {
+              if (!parent || !values) {
+              // no parent element, or no values, nothing can be done so quit here
+              return false;
+              } else {
+              // this ensures that 'values' is an array:
+              // if values is a string, it splits that string (assuming a comma delimiter),
+              // and split() returns an array, otherwise:
+              // we assume it's already an array and use that.
+              values = typeof values === "string" ? values.split(',') : values;
+              // iterates through all the values in the 'values' array,
+              for (var i = 0, len = values.length; i < len; i++) {
+              // creates a new element (as passed in the 'childTag' variable)
+              var newElem = document.createElement(childTag),
+              text = document.createTextNode(values[i]);
+              // appends the textNode to the created element
+              newElem.appendChild(text);
+              // appends the created-element to the 'parent' node passed to the function
+              parent.appendChild(newElem);
+              }
+              }
+              }
+
+	   function cancelout() {
+                document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=transform";
+              }
+
+               
+              $("#transferform").submit(function(){
+                var From = document.getElementById('From');
+                var grantFrom = document.getElementById('grantFrom');
+                var To = document.getElementById('To');
+                var grantTo = document.getElementById('grantTo');
+                x = $('input[name="perparticipantOrTotal"]:checked').val();
+                document.getElementById('pOrTotal').value = x;
+
+                grantFrom.value = From.value;
+                grantTo.value = To.value;
+              });
+
+              $(function(){
+              {% if alert %}
+              //whatever conditions and js code
+                 alert('{{alert}}');
+              {% endif %}
+              });
+
+            $('form').submit(function(){
+             $(':submit', this).click(function() {
+                return false;
+              });
+            });
+
+           </script>
+      </form>
+     </div>
+</div>
+{% endblock %}
+

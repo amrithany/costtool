@@ -1,0 +1,12 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}                                                                                         
+<script type="text/javascript">
+if (confirm('You have deleted the name of an user with whom you had shared this project. Click OK to continue with the deletion(s) or Cancel to keep these users in your share list.')) {
+      document.location.href = "/project/del_sharproj.html";
+}  else {
+      document.location.href = document.location.href;
+}      
+
+</script>
+{% endblock %}

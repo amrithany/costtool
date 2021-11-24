@@ -1,0 +1,79 @@
+{% load humanize %}
+<head>
+<h4><i>CostOut</i>&reg; 2015</h4>
+</head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<!--<script src="https://rawgithub.com/highslide-software/crossing-specific-value/master/crossing-specific-value.js"></script>-->
+<div id="container" style="width:90%; height:400px;margin:0 auto;"></div>
+<script type="text/javascript">
+var mySeries = [];                                                                       
+</script> 
+
+{% for reg in RegList %}
+<script type="text/javascript">
+mySeries.push([{{reg.startdate}},{{reg.countondate}}]);
+
+$(function () {
+    $('#container').highcharts({
+        chart: {
+            renderTo: 'container',
+            type: 'spline'
+        },
+        title: {
+            text: 'Cumulative Registrations'
+        },
+        subtitle: {
+                text: 'Source: www.cbcsecosttoolkit.org'
+        },
+        xAxis: {
+         type: 'datetime',
+         min: Date.UTC(2015, 5, 1),
+         dateTimeLabelFormats:{
+            day: '%b %e, %Y'
+          },  
+         tickInterval:24 * 3600 * 1000 * 15,
+         tickPositioner: function(min, max){
+         var interval = this.options.tickInterval,
+             ticks = [],
+             count = 0;
+        
+         while(min < max) {
+            ticks.push(min);
+            min += interval; 
+            count ++;
+         }   
+        
+         ticks.info = {
+            unitName: 'day', 
+            count: 15,
+            higherRanks: {},
+            totalRange: interval * count
+         }
+         return ticks;
+         }
+        },
+        yAxis: {
+            title: {
+                text: 'Cumulative Registrations'
+            },
+            min : 0
+        },
+        plotOptions: {
+            spline: {
+                marker: {
+                    enabled: true
+                }
+            }
+        },
+       series:[{
+         name: 'Date',
+         data: mySeries
+     }] 
+    });
+});
+
+</script>
+{% endfor %}

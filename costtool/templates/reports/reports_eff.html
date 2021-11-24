@@ -1,0 +1,18 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+<div class="hero-unit">
+<!--<h3> Reports </h3>
+<h4> Individual Program Reports </h4>
+<h5><br><li><b>Cost Analysis</b></li>
+    <li><b>Cost Analysis by year</b></li>
+    <li><b>Distribution of costs</b></li>-->
+<br><h4> Reports comparing programs </h4>
+<h5><br><li><a href="/reports/ca_table.html"><b>Table comparing costs of programs</b></a></li>
+<li><a href="/reports/compcostanal.html"><b>Bar charts comparing costs of programs</b></a></li>
+<li><a href="/reports/costeff_table.html"><b>Table comparing cost-effectiveness of programs</b></a></li>
+<li><a href="/reports/costeff.html"><b>Chart comparing cost-effectiveness of programs</b></a></li>
+</h5>
+<br><a href="/project/project_list.html"><input class="btn btn-success" type="button" name="goto2" value="Project List"></a> 
+</div>
+{% endblock %}

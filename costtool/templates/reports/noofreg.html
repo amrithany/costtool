@@ -1,0 +1,76 @@
+{% load humanize %}
+<head>
+<h4><i>CostOut</i>&reg; 2015</h4>
+</head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<!--<script src="https://rawgithub.com/highslide-software/crossing-specific-value/master/crossing-specific-value.js"></script> no longer supported -->
+<div id="container" style="width:90%; height:400px;margin:0 auto;"></div>
+<script type="text/javascript">
+var mySeries = [];                                                                       
+</script> 
+
+{% for reg in RegList %}
+<script type="text/javascript">
+mySeries.push([{{reg.startdate}},{{reg.countondate}}]);
+
+$(function () {
+Highcharts.chart('container', {
+
+    title: {
+        text: 'Number of Registrations'
+    },
+
+    subtitle: {
+        text: 'Source: www.cbcsecosttoolkit.org'
+    },
+
+    yAxis: {
+        title: {
+            text: 'Number of Registrations'
+        }
+    },
+
+    /*xAxis: {
+        accessibility: {
+            rangeDescription: 'Range: 2015 till current'
+        }
+    },*/
+        xAxis: {
+            type: 'datetime',
+            min: Date.UTC(2015, 5, 1), 
+            dateTimeLabelFormats: { // don't display the dummy year
+                //month: '%e. %b',
+                month: '%b \'%y',
+                year: '%b'
+            },
+        },
+
+    /*legend: {
+        layout: 'vertical',
+        align: 'right',
+        verticalAlign: 'middle'
+    },
+
+    plotOptions: {
+        series: {
+            label: {
+                connectorAllowed: false
+            },
+            pointStart: 2015
+        }
+    },*/
+
+       series:[{
+         name: 'Registration Date',
+         data: mySeries
+     }], 
+
+
+});
+});
+
+</script>
+{% endfor %}

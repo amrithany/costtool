@@ -1,0 +1,49 @@
+{% extends 'index.html' %}
+{% load static %}
+ {% block body_block %} 
+<script scr="/costtool/costtool/costtool/static/"></script>
+<div class="container-fluid">
+<!--    <div class="row-fluid">
+           <div class="span3">
+                <div class="well sidebar-nav">
+                <br>    
+                <h5 style="color:darkblue;text-align:center">CBCSE Cost Tool Kit Terms & Policies</h5>
+                <a href="license2.html">License Agreement</a>
+                <br />
+                <h5 style="color:darkblue;text-align:center">Learn more</h5>
+                <a href="tutorials.html">Tutorials</a>
+                <h5>Additional resources</h5>
+            </div>
+    </div>
+    <div class="span9">-->
+    <div class="hero-unit" align="center">
+        <h1><i>CostOut</i>&reg; - the CBCSE Cost Tool Kit</h1>
+    <h4 style="text-align:left"><span style="font-weight:normal"> <br>This tool is designed to facilitate the estimation of costs and cost-effectiveness of educational or other social programs. It is primarily designed for researchers, analysts, educational administrators, and policymakers, but it is free for anyone to use provided you sign a license agreement when you register. <br>
+    <br> CostOut is set up with U.S. prices and inflation/geographical indices. To estimate costs for non-U.S. programs you can change the indices in Project Settings and build your own database of local currency prices in MyPrices.<br>
+    <br>To get started, click on <a href="/register/register.html"> <b>Register</b></a> if you are a first time user, or <a href="login/login.html"><b>Login</b></a> if you are a returning user.</span>  </h4>
+    <br><br />
+    <img src="{% static "pencil_graph.jpg" %}" alt="Picture of Cost Tool" /> <!-- New line -->
+     <br /><br>
+     <h4 style="text-align:left"><span style="font-weight:normal">If you are using Chrome you will need to enable pop-ups. For security, remember to log out when you are done.</span>  </h4>
+     <br />
+     <h4 style="text-align:left"><span style="font-weight:normal">Please note that while CostOut will store your data and output for you, and we will maintain security features to safeguard the web site and data as long as we have the funds to do so, neither CBCSE nor Teachers College, Columbia University is ultimately responsible for your data. We recommend that you regularly use the Excel export buttons to store your data offline.</span>  </h4>
+    </div>
+   <!-- </div>-->
+</div>
+</div>
+{% endblock %}
+<footer>
+{% block footer_block %}
+<i>CostOut</i>&reg; - the CBCSE Cost Tool Kit has been developed by the <A HREF="http://www.cbcse.org"> Center for Benefit-Cost Studies of Education</A>, Teachers College, Columbia University, funded by the U.S. Department of Education, Institute of Education Sciences, Award Number R305U130001<br />
+            <br>
+            WEB <A HREF="http://{{web}}">{{web}}</A>  • EMAIL {{email}} <br /><br>
+            Hollands, F.M., Hanisch-Cerda, B., Levin, H. M., Belfield, C.R., Menon, A., Shand, R., Pan, Y., Bakir, I., & Cheng, H.  (2015). CostOut - the CBCSE Cost Tool Kit. Center for Benefit-Cost Studies of Education, Teachers College, Columbia University. Retrieved from: www.cbcsecosttoolkit.org
+            <br><br><a href="https://www.tc.columbia.edu/gdpr/" target="_blank">GDPR Notice</a>   
+            <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+            <script type="text/javascript">
+            $(document).ready(function () {
+             $.getScript("https://www.tc.columbia.edu/media/media-library-2015/scripts/gdpr.js");
+             });
+            </script>
+{% endblock %}
+</footer>

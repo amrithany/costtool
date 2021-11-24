@@ -1,0 +1,35 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+
+ <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<div class="hero-unit"> 
+    <div class="container">
+        <form class="form-signin span8" id="registerform" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h2 class="form-signin-heading">Access Login Information</h2>
+             <b><font color="red">{{ err }} </font></b><br>
+             Enter your Email Address to receive an email with your Login Information:  {{ registerform.email }}
+             <br /><br>    
+             <!-- Provide a button to click to submit the form. -->
+             <input class="btn btn-primary" type="submit" name="submit" value="Send Email" />
+             <input type="button" class="btn btn-success" name="goto2" id="goto2" value="Back to Login" onclick="goBack()"/>
+             <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+            <script type="text/javascript">
+             function goBack(){
+                      document.location.href = "/login/login.html";
+                   }
+
+            </script> 
+        </form>
+     </div>
+</div>
+{% endblock %}
+

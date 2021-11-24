@@ -3,46 +3,110 @@
 {% block body_block %}
 {% load tz %}
 
+ <script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+      ga('send', 'pageview');
+ </script>
 <div class="hero-unit">
+    <div style="color:#0000FF" align="right"><h4>Logged in as {{loggedinuser}}</h4></div>   
+    <div align="right" id="extra-content"><input class="btn btn-danger" type="button" name="button" value="Admin" onclick="PasstoOpt();" /></div>
     <div class="table-responsive">
         <h2 class="form-signin-heading">Project List</h2>
         <h3> Click on "Add new project" to get started or select an existing project </h3>
         <h4> “Projects” are collections of one or more educational programs that you are interested in comparing in a cost or cost-effectiveness analysis.  Name your project to reflect the collection of programs that you expect to include, e.g., “Early Reading” or “Dropout Prevention”. If you will not be comparing programs, you can create a project with only one program in it.
-            <br><br>
+            <br>
+            <br>  If you wish to work collaboratively on a project with other registered users, check the box next to the project and then click on the orange "Share/Un-share Project" button to enter their CostOut user names. An asterisk (*) will appear in front of the name of any project that is shared with other users. If you click on the green "Go to Project" button, you can see with whom the project is shared. User(s) with whom you share the project will need to refresh the page to see the project and any updates made by collaborators. <br>   
+            <br>  If you are not the owner of a project, you cannot delete it, share it, un-share it, or edit the name. However, you can duplicate the project and become the owner of the duplicate. Duplicates are new projects and do not update when the original project is updated.<br> 
+            <br>
             Note that certain settings will apply to all programs in the project to allow for comparability, for example, the year and geographical location in which costs will be expressed.  
-        </h4>    
+        </h4> 
+            <br>
+             <a href="/project/add_project.html"> <input class="btn btn-primary" type="button" name="add" id="add" value="Add New Project" /></a>   
+            <input class="btn btn-primary" type="button" name="button" value="Delete Project" onclick="PasstoDel();" />
+            <input class="btn btn-primary" type="button" name="button2" value="Edit Project Name" onclick="EditName();" />
+            <input class="btn btn-primary" type="button" name="dupl" value="Duplicate Project" onclick="PasstoDupl();">
+            <input class="btn btn-success" type="button" name="goto" value="Go to Project" onclick="PasstoView();">
+            <input class="btn btn-success" type="button" name="goto2" value="Comparative Reports" onclick="PasstoRep();">
+            <br><input class="btn btn-warning" type="button" name="share" value="Share / Un-Share Project" onclick="PasstoShare();" />   
+            <br> 
             <table class="table table-condensed">               
                 <thead>
                     <th></th>
                     <th>Project ID</th>
                     <th>Project Name</th>
                     <th>Type of Analysis</th>
-                    <th>Created on</th><br />
+                    <th>Owner</th>
+                    <th>Created on</th>
+                    <th>Updated on</th><br />
                     {% localtime on %}
                     {% for proj in allprojects %}
                         <tr onmouseover="javascript:style.background='#dcfac9'" onmouseout="javascript:style.background='#DCDCDC'" bgcolor="#DCDCDC">
-                            <td><input type="checkbox" id="{{proj.id}}" value="unchecked" onclick="setId(this);"  style="margin-left:auto; margin-right:auto;"></td>
-                            <td>{{proj.id}}</td>
+                            <td><input type="checkbox" id="{{proj.id}}" value="unchecked" onclick="setId(this,'{{proj.user}}','{{proj.shared}}');"  style="margin-left:auto; margin-right:auto;"></td>
+                            <!-- added project sharing April 2017 -->
+                            {% if proj.shared == "Y" %}
+                               <td> * {{proj.id}} </td>
+                            {% else %}
+                               <td>{{proj.id}}</td>
+                            {% endif %}  
                             <td>{{proj.projectname}}</td>
                             <td>{{proj.typeanalysis}}</td>
-                            <td>{{proj.created_at}}</td>
+                            <td>{{proj.user}}</td>
+                            <td>{{proj.created_at|date:"m/d/y H:s" }}</td>
+                            <td>{{proj.updated_at|date:"m/d/y H:s"}}</td>
                         </tr>
-                    {% endfor %}
-                    {% endlocaltime %}
+                     {% endfor %}
+                     {% endlocaltime %}     
                    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
                    <script type="text/javascript">
                        var passvar = 000;
-                       function setId(chkBox){
+                       var shared = '';
+                       var loggedinuser = '{{loggedinuser}}';
+                       var proj_user = '';
+
+                       $(function() {$('input[type=checkbox]').attr('checked', false)});                      
+                       window.onhashchange = function() {
+                         if (window.innerDocClick) {
+                           window.innerDocClick = false;
+                         } else {
+                           if (window.location.hash != '#undefined') {
+                              goBack();
+                           } else {
+                             history.pushState("", document.title, window.location.pathname);
+                             location.reload();
+                            }
+                          }
+                        }
+
+                       $("#extra-content2").hide(); 
+                       if (loggedinuser == 'Demo admin'){
+                           $("#extra-content").show();
+                       }
+                       else {
+                           $("#extra-content").hide();
+                       }
+
+
+                       function setId(chkBox,user, sharedP){
                           var inputs = document.getElementsByTagName("input");
+                          proj_user = user;
+                          shared = sharedP;
                           for (i = 0; i<inputs.length; i++ ) {
                              if (inputs[i].type == 'checkbox'){
                                 if (inputs[i].id != chkBox.id) {
                                    inputs[i].checked = false;
                                 }
-                                else { inputs[i].checked = true;}
+                                //else { inputs[i].checked = true;}
                              }
                           }
-                          passvar = chkBox.id;
+                                 passvar = chkBox.id;
+                       }
+
+                       function PasstoOpt () {
+                          document.location.href = "/admin/options.html";
                        }
 
                        function PasstoView () {
@@ -59,23 +123,56 @@
                               document.location.href = "/reports/" + passvar +"/reports.html";}
                        }
 
+                       function EditName () {
+                          if (passvar == 000){
+                             alert('Select a Project to edit');}
+                          else {
+                              if (shared == 'Y') {
+                                 if (loggedinuser == proj_user) {    
+                                     alert('You cannot edit the project name while it is shared with other users.  Un-share the project first if you need to edit the name and then share it again if you wish.'); }
+                                 else { alert('You are not the owner of this project. You cannot edit the project name.');}}    
+                              else { 
+                                  document.location.href = "/project/" + passvar +"/edit_project.html";}
+                          }
+                       }
+
+                       function PasstoDupl () {
+                          if (passvar == 000){
+                             alert('Select a Project to duplicate');}
+                          else {
+                              document.location.href = "/project/" + passvar +"/dupl_project.html";}
+                       }
+
                        function PasstoDel () {
                           if (passvar == 000){
                              alert('Select a Project to delete');}
                           else {
-                             if (confirm('Are you sure you want to delete this project? All the programs, settings and other records associated with this project will be deleted too.')) {
-                                document.location.href = "/project/" + passvar +"/del_project.html";
-                             }}
+                              if (shared == 'Y') {
+                                 if (loggedinuser == proj_user) {    
+                                    alert('This project is currently shared with one or more users. You must un-share the project first if you wish to delete it.'); }
+                                 else { alert('You are not the owner of this project. You cannot delete it.');}}
+                              else {  
+                                 if (confirm('Are you sure you want to delete this project? All the programs, settings and other records associated with this project will be deleted too.')) {
+                                    document.location.href = "/project/" + passvar +"/del_project.html";
+                                 }}
+                          }    
                        }
 
+                      function PasstoShare () {
+                        if (passvar == 000){
+                           alert('Select a Project to share');}
+                        else {
+                           if (loggedinuser == proj_user) {    
+                              document.location.href = "/project/" + passvar +"/share_project.html";}
+                           else { alert('You cannot share or un-share this project because you are not the project owner. However, you may view the shared user information below.  You may also duplicate the project on the Project List page and share the duplicated version. Note that duplicate copies are essentially new projects, they do not get updated when changes are made to the original project.');
+                                  document.location.href = "/project/" + passvar +"/share_project.html";
+                           }
+                        }
+                        }
+
 		   </script>
-               </thead>
+            </thead>
             </table>
-            <a href="/project/add_project.html"> <input class="btn btn-primary" type="button" name="add" id="add" value="Add New Project" /></a>
-            <!--<input class="btn btn-primary" type="button" name="button" value="Export as Excel" />-->
-            <input class="btn btn-primary" type="button" name="button" value="Delete Project" onclick="PasstoDel();" />
-            <input class="btn btn-success" type="button" name="goto" value="Go to Project" onclick="PasstoView();">
-            <input class="btn btn-success" type="button" name="goto2" value="Reports" onclick="PasstoRep();">
     </div>
 </div>
 {% endblock %}

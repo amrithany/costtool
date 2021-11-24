@@ -1,0 +1,35 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block body_block %}
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){                                                           
+           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                                                  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70024304-1', 'auto');
+        ga('send', 'pageview');
+</script>      
+
+<div class="hero-unit">
+    <div class="container">
+             <form class="form-signin span8" id="programform" method="post" action="/project/programs/dist/add_agency.html" enctype="multipart/form-data">
+             {% csrf_token %}
+             <h2 class="form-signin-heading">Name funding agencies</h2>
+             Change default funding agencies if needed. <br><br>
+             {{ agencyform.as_p }}
+             <br />
+             <input class="btn btn-primary" type="submit" name="submit" value="Save changes" />
+             <input class="btn btn-primary" type="button" name="cancel" value="Cancel" onclick="cancelout();"/>
+           </form>
+           <script type="text/javascript">
+
+              function cancelout() {
+                document.location.href = "/project/programs/effect/"+ {{project_id}} +"/"+ {{program_id}} +"/tabbedview.html?activeform=distform";
+              }
+           </script>
+
+     </div>
+</div>
+{% endblock %}
+

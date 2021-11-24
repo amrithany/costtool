@@ -12,12 +12,38 @@ ul li {
 <form class="form-signin span8" id="licenseform" method="post" enctype="multipart/form-data">
 {% csrf_token %}
 <h2 class="form-signin-heading">License Agreement</h2>
-Please review the License Agreement and see if you agree to its terms.
-<br>
-{{licenseform}}
-<!-- Provide a button to click to submit the form. -->                                                                  
+<b><font color="red">{{ form_errors }} </font></b><br>
+<h4>{{licenseform}}</h4>
+<!-- Provide a button to click to submit the form. -->                                                                     
+<h5><font color="blue">Once you click on the Register button, it will take a few seconds for the Registration to complete.  </font> </h5>
 <input class="btn btn-success" type="submit" name="submit" value="Register / Log out" />
+<a href="/register/register.html"><input class="btn btn-success"  value="Go Back" type="button" name="cancel"></a>
+<input class="btn btn-success"  value="Download license agreement" type="button" name="download" onclick="goDoc();"/>
+<br><br>
+<div>
+<object data="Online-Cost-Tool-Kit-License_Public_Institutions.pdf" type="application/pdf" width="1000" height="1000">
+<a href="Online-Cost-Tool-Kit-License_Public_Institutions.pdf">Online-Cost-Tool-Kit-License_Public_Institutions.pdf</a>
+</object>
+</div>
 </form>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type="text/javascript">
+
+function goDoc() {
+var doc = '{{publicOrPrivate}}';
+if (doc  == 'Public') {
+    document.location.href = "/Online Public Institution Tool Kit License.pdf";
+}
+else {
+    document.location.href = "/Online Private Institution Tool Kit License.pdf";
+}}
+
+$('form').submit(function(){
+    $(':submit', this).click(function() {
+        return false;
+    });
+});
+</script>
 </div>
 </div>
 {% endblock %}
