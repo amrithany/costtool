@@ -147,8 +147,6 @@ def calculations2(project_id, program_id):
          i.effRatio = None
          eff_ratio = None
       i.save(update_fields=['totalCost','averageCost','percentageCost','effRatio'])
-   print 'costPerParticipant'   
-   print i.costPerParticipant 
    return 1
 
 def calculations(project_id):    

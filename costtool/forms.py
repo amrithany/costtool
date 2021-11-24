@@ -141,9 +141,9 @@ class SettingsForm(forms.ModelForm):
     areaquery = GeographicalIndices.objects.values_list('areaIndex', flat=True).distinct()
     areaquery_choices =  [(id, id) for id in areaquery]
     discountRateEstimates = forms.DecimalField(required=False,max_digits=6,decimal_places=2,min_value=0,max_value=100,initial=3,label="Discount Rate for programs in which costs are incurred over multiple years (input number from 0 to 100):")
-    yearEstimates = forms.ChoiceField(yrquery_choices, required=False, widget=forms.Select(),label="In which year do you want to express costs?")
-    stateEstimates  = forms.ChoiceField(iquery_choices, required=False, widget=forms.Select(), label="In which geographical location do you want to express costs?")
-    areaEstimates = forms.ChoiceField(areaquery_choices, required=False, widget=forms.Select(), label="")
+    yearEstimates = forms.ChoiceField(choices =yrquery_choices, required=False, widget=forms.Select(),label="In which year do you want to express costs?")
+    stateEstimates  = forms.ChoiceField(choices =iquery_choices, required=False, widget=forms.Select(), label="In which geographical location do you want to express costs?")
+    areaEstimates = forms.ChoiceField(choices =areaquery_choices, required=False, widget=forms.Select(), label="")
     selectDatabase = forms.MultipleChoiceField(choices=(('CBCSE','CostOut Database of Educational Resource Prices'),('My','Database MyPrices')),required=False,label="Select which database of prices you will use (can select more than one):", widget=forms.CheckboxSelectMultiple())
     limitEdn = forms.MultipleChoiceField(choices=choicesEdlevel,required=False,label="<strong>EDUCATIONAL LEVEL</strong>", widget=forms.CheckboxSelectMultiple())
     limitSector = forms.MultipleChoiceField(choices=choicesSector,required=False,label="<strong>SECTOR</strong>",widget=forms.CheckboxSelectMultiple())
@@ -482,8 +482,8 @@ class PricesSearchForm(forms.ModelForm):
    secquery = Prices.objects.exclude(sector = ' ').values_list('sector', flat=True).distinct()
    secquery_choices =  [(id, id) for id in secquery]
    category = forms.ChoiceField(choices=catquery_choices, initial="All", required=False, widget=forms.Select(),label="Category:")
-   edLevel = forms.ChoiceField(edquery_choices, required=False, widget=forms.Select(), label="Education level to be served:")
-   sector = forms.ChoiceField(secquery_choices, required=False, widget=forms.Select(),label="Sector:")
+   edLevel = forms.ChoiceField(choices =edquery_choices, required=False, widget=forms.Select(), label="Education level to be served:")
+   sector = forms.ChoiceField(choices =secquery_choices, required=False, widget=forms.Select(),label="Sector:")
    ingredient  = forms.CharField(required=False,label="Ingredient:")
 
    class Meta:
@@ -566,7 +566,7 @@ class Benefits(forms.ModelForm):
 
 class WageConverter(forms.ModelForm):
    choicesPersonnel = (('Hour','Hour'),('Day','Day'),('Week','Week'),('K-12 Academic Year','K-12 Academic Year'), ('Higher Ed Academic Year', 'Higher Ed Academic Year'),('Calendar Year','Calendar Year'))
-   newMeasure = forms.ChoiceField(choicesPersonnel, required=False, widget=forms.Select(),label="Convert to")
+   newMeasure = forms.ChoiceField(choices =choicesPersonnel, required=False, widget=forms.Select(),label="Convert to")
    convertedPrice = forms.DecimalField(required=False, label="Converted value:", widget = forms.TextInput(attrs={'readonly':'readonly'}))
 
    class Meta:
@@ -578,10 +578,10 @@ class UMConverter(forms.ModelForm):
    choicesVolume = (('Fluid Ounces', 'Fluid Ounces'), ('Cups', 'Cups'), ('Pints','Pints'), ('Quarts','Quarts'), ('Gallons','Gallons'),('Liters','Liters'))     
    choicesLength = (('Inches', 'Inches'), ('Feet','Feet'),('Yards','Yards'),('Miles','Miles'),('Millimeter','Millimeter'),('Centimeter','Centimeter'),('Kilometer','Kilometer'))
    choicesTime = (('Hour','Hour'),('Day','Day'),('Week','Week'),('K-12 Academic Year','K-12 Academic Year'),('Higher Ed Academic Year', 'Higher Ed Academic Year'),('Calendar Year','Calendar Year'))
-   newMeasure = forms.ChoiceField(choicesPersonnel, required=False, widget=forms.Select(),label="Convert to")
-   newMeasureVol = forms.ChoiceField(choicesVolume, required=False, widget=forms.Select(),label="Convert to")
-   newMeasureLen = forms.ChoiceField(choicesLength, required=False, widget=forms.Select(),label="Convert to")
-   newMeasureTime = forms.ChoiceField(choicesTime, required=False, widget=forms.Select(),label="Convert to")
+   newMeasure = forms.ChoiceField(choices =choicesPersonnel, required=False, widget=forms.Select(),label="Convert to")
+   newMeasureVol = forms.ChoiceField(choices =choicesVolume, required=False, widget=forms.Select(),label="Convert to")
+   newMeasureLen = forms.ChoiceField(choices =choicesLength, required=False, widget=forms.Select(),label="Convert to")
+   newMeasureTime = forms.ChoiceField(choices =choicesTime, required=False, widget=forms.Select(),label="Convert to")
    convertedPrice = forms.DecimalField(required=False, label="Converted value:", widget = forms.TextInput(attrs={'readonly':'readonly'}))
 
    class Meta:
@@ -639,17 +639,17 @@ class PricesForm(forms.ModelForm):
     secquery = Prices.objects.exclude(sector = ' ').values_list('sector', flat=True).distinct()
     secquery_choices =  [(id, id) for id in secquery]
 
-    category = forms.ChoiceField(catquery_choices, widget=forms.Select(),label="Select the category for this ingredient:")
+    category = forms.ChoiceField(choices =catquery_choices, widget=forms.Select(),label="Select the category for this ingredient:")
     ingredient  = forms.CharField(max_length=2000,label="Name of the ingredient:")
-    edLevel = forms.ChoiceField(edquery_choices, required=False, widget=forms.Select(),initial="All", label="Education level to be served:")
-    sector = forms.ChoiceField(secquery_choices, required=False, widget=forms.Select(),label="Sector:")
+    edLevel = forms.ChoiceField(choices =edquery_choices, required=False, widget=forms.Select(),initial="All", label="Education level to be served:")
+    sector = forms.ChoiceField(choices =secquery_choices, required=False, widget=forms.Select(),label="Sector:")
     #sector =  forms.CharField(widget=forms.Textarea(attrs('selectBoxOptions':';'.join(secquery_choices)))),label="Sector:",required=False)
     descriptionPrice = forms.CharField(required=False,max_length=2000, label="Description:", widget=forms.Textarea())
-    unitMeasurePrice = forms.ChoiceField(choicesPersonnel, widget=forms.Select(),label="Unit of Measure:", initial="Units")
+    unitMeasurePrice = forms.ChoiceField(choices =choicesPersonnel, widget=forms.Select(),label="Unit of Measure:", initial="Units")
     price = forms.CharField(label="Price per unit (enter number with no commas, for e.g., 1200.10 or 456):")
-    yearPrice = forms.ChoiceField(yrquery_choices, widget=forms.Select(),label="Year of the listed price:")
-    statePrice  = forms.ChoiceField(iquery_choices,  widget=forms.Select(), label="To which geographical location does this price correspond to?")
-    areaPrice = forms.ChoiceField(areaquery_choices,  widget=forms.Select(), label="")
+    yearPrice = forms.ChoiceField(choices =yrquery_choices, widget=forms.Select(),label="Year of the listed price:")
+    statePrice  = forms.ChoiceField(choices =iquery_choices,  widget=forms.Select(), label="To which geographical location does this price correspond to?")
+    areaPrice = forms.ChoiceField(choices =areaquery_choices,  widget=forms.Select(), label="")
     sourcePriceData = forms.CharField(required=False,max_length=200,label="Source:")
     urlPrice = forms.URLField(required=False,max_length=200,label="URL (The URL must start with http://www.):")
     lastChecked = forms.CharField(required=False, label="Last Checked:")    

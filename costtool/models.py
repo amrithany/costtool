@@ -142,7 +142,8 @@ class ProgramDesc(m.Model):
     numberofparticipants = m.DecimalField(max_digits=12,decimal_places=2, null=True, blank=True)
     lengthofprogram = m.CharField(max_length=256)
     numberofyears = m.IntegerField(null=True, blank=True)
-    programId = m.OneToOneField(Programs, null=True)
+    #changed
+    programId = m.IntegerField(blank=True, null=True)
 
     def __unicode__(self):
         return self.id
@@ -150,7 +151,7 @@ class ProgramDesc(m.Model):
 class ParticipantsPerYear(m.Model):
     yearnumber = m.IntegerField(null=True, blank=True)
     noofparticipants = m.DecimalField(max_digits=14,decimal_places=2, null=True, blank=True)
-    programdescId = m.ForeignKey(ProgramDesc)
+    programdescId = m.ForeignKey(ProgramDesc,on_delete=m.CASCADE)
 
     def __unicode__(self):
         return self.yearnumber 
@@ -162,7 +163,9 @@ class Effectiveness(m.Model):
     avgeffectperparticipant = m.CharField(max_length=256,null=True, blank=True)
     unitmeasureeffect = m.CharField(max_length=2000,null=True, blank=True)
     sigeffect = m.CharField(max_length=10,null=True, blank=True)
-    programId = m.OneToOneField(Programs)
+    #programId = m.OneToOneField(Programs)
+    #changed
+    programId = m.IntegerField(blank=True, null=True)
 
     def __unicode__(self):
         return self.sourceeffectdata   
@@ -228,7 +231,9 @@ class Transfers(m.Model):
         return self.grantFrom
 
 class UserProfile(m.Model):
-    user = m.OneToOneField(User)
+    #user = m.OneToOneField(User)
+    #changed
+    user = m.CharField(blank=True, null=True)
     organisation = m.CharField(max_length=2000)
     position = m.CharField(max_length=2000)
     licenseSigned = m.CharField(max_length=3)

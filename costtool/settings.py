@@ -13,8 +13,7 @@ import os
 from os.path import join
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-
+#BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
@@ -26,7 +25,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['costout.pythonanywhere.com']
 
 
 # Application definition
@@ -41,7 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'crispy_forms', 
     'costtool',
-    'easy_timezones',
+    #'easy_timezones',
     'django.contrib.humanize',
     'bootstrapform',
 )
@@ -140,13 +139,13 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/amritha/costtool/costtool/static/'
+STATIC_ROOT = '/home/costout/costtool/costtool/static/'
 
-MEDIA_ROOT = '/home/amritha/costtool/'
+MEDIA_ROOT = '/home/costout/costtool/'
 MEDIA_URL = '/costtool/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3' 
 
 TEMPLATE_DIRS = (
     join(BASE_DIR,  'templates'),
-)
+    )
