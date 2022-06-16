@@ -2,7 +2,7 @@ from django import forms
 from django.forms import Textarea
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import *
-from costtool.models import SharedProj, Distribution, About, Videos, FileUpload, About,Transfers,Agencies,Login, Benefits,UserProfile, Projects, Programs, ProgramDesc, ParticipantsPerYear, Effectiveness, Prices, Settings,GeographicalIndices, GeographicalIndices_orig, InflationIndices, InflationIndices_orig, Ingredients
+from .models import SharedProj, Distribution, About, Videos, FileUpload, About,Transfers,Agencies,Login, Benefits,UserProfile, Projects, Programs, ProgramDesc, ParticipantsPerYear, Effectiveness, Prices, Settings,GeographicalIndices, GeographicalIndices_orig, InflationIndices, InflationIndices_orig, Ingredients
 from crispy_forms.bootstrap import *
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -104,7 +104,7 @@ class ForgotForm(forms.ModelForm):
       fields = ('email',)
 
 class License(forms.ModelForm):
-   licenseSigned = forms.ChoiceField(widget=forms.RadioSelect, choices=(('Yes', 'Yes, I agree to the terms of the CBCSE Cost Tool Kit License Agreement'),('No','No, please log me out')), label="")
+   licenseSigned = forms.ChoiceField(widget=forms.RadioSelect, choices=(('Yes', 'Yes, I agree to the terms of the CostOut License Agreement'),('No','No, please log me out')), label="")
 
    class Meta:
        model = Login
@@ -141,16 +141,16 @@ class SettingsForm(forms.ModelForm):
     areaquery = GeographicalIndices.objects.values_list('areaIndex', flat=True).distinct()
     areaquery_choices =  [(id, id) for id in areaquery]
     discountRateEstimates = forms.DecimalField(required=False,max_digits=6,decimal_places=2,min_value=0,max_value=100,initial=3,label="Discount Rate for programs in which costs are incurred over multiple years (input number from 0 to 100):")
-    yearEstimates = forms.ChoiceField(yrquery_choices, required=False, widget=forms.Select(),label="In which year do you want to express costs?")
-    stateEstimates  = forms.ChoiceField(iquery_choices, required=False, widget=forms.Select(), label="In which geographical location do you want to express costs?")
-    areaEstimates = forms.ChoiceField(areaquery_choices, required=False, widget=forms.Select(), label="")
-    selectDatabase = forms.MultipleChoiceField(choices=(('CBCSE','CBCSE Database of Educational Resource Prices'),('My','Database MyPrices')),required=False,label="Select which database of prices you will use (can select more than one):", widget=forms.CheckboxSelectMultiple())
+    yearEstimates = forms.ChoiceField(choices =yrquery_choices, required=False, widget=forms.Select(),label="In which year do you want to express costs?")
+    stateEstimates  = forms.ChoiceField(choices =iquery_choices, required=False, widget=forms.Select(), label="In which geographical location do you want to express costs?")
+    areaEstimates = forms.ChoiceField(choices =areaquery_choices, required=False, widget=forms.Select(), label="")
+    selectDatabase = forms.MultipleChoiceField(choices=(('CBCSE','CostOut Database of Educational Resource Prices'),('My','Database MyPrices')),required=False,label="Select which database of prices you will use (can select more than one):", widget=forms.CheckboxSelectMultiple())
     limitEdn = forms.MultipleChoiceField(choices=choicesEdlevel,required=False,label="<strong>EDUCATIONAL LEVEL</strong>", widget=forms.CheckboxSelectMultiple())
     limitSector = forms.MultipleChoiceField(choices=choicesSector,required=False,label="<strong>SECTOR</strong>",widget=forms.CheckboxSelectMultiple())
     limitYear = forms.MultipleChoiceField(choices=choicesYear,required=False,label="<strong>YEAR</strong>",widget=forms.CheckboxSelectMultiple())
     hrsCalendarYr = forms.IntegerField(required=False,initial=2080,min_value=0,label="Number of hours in the calendar year: The calendar year consists of 2,080 working hours (52 weeks, 5 days a week, 8 hrs a day) according to the U.S. Bureau of Labor Statistics. This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the calendar year in the following cell:")
-    hrsAcademicYr = forms.IntegerField(required=False,initial=1440,min_value=0,label="Number of hours in the K-12 academic year: The academic year consists of 1,440 working hours (36 weeks, 5 days a week, 8 hrs a day) according to CBCSE. This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the K-12 academic year in the following cell:")
-    hrsHigherEdn = forms.IntegerField(required=False,initial=1560,min_value=0,label="Number of hours in the higher education academic year: The academic year consists of 1,560 working hours (39 weeks, 5 days a week, 8 hrs a day) according to CBCSE. This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the higher education academic year in the following cell:")
+    hrsAcademicYr = forms.IntegerField(required=False,initial=1440,min_value=0,label="Number of hours in the K-12 academic year: The academic year consists of 1,440 working hours (36 weeks, 5 days a week, 8 hrs a day). This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the K-12 academic year in the following cell:")
+    hrsHigherEdn = forms.IntegerField(required=False,initial=1560,min_value=0,label="Number of hours in the higher education academic year: The academic year consists of 1,560 working hours (39 weeks, 5 days a week, 8 hrs a day). This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the higher education academic year in the following cell:")
 
     class Meta:
         model = Settings
@@ -275,7 +275,7 @@ class ProgramDescForm(forms.ModelForm):
     progobjective = forms.CharField(required=False, widget=forms.Textarea(), label="Objective of the program:")
     progsubjects = forms.CharField(required=False, widget=forms.Textarea(), label="Subjects / Participants:")
     progdescription = forms.CharField(required=False, widget=forms.Textarea(), label="Brief description:")
-    numberofparticipants = forms.DecimalField(required=False, widget=forms.TextInput(attrs={'class':'col-lg-8'}),max_digits=14,decimal_places=2,label="Average number of participants:")
+    numberofparticipants = forms.DecimalField(required=False,max_digits=14,decimal_places=2,label="Average number of participants:")
     lengthofprogram = forms.ChoiceField(required=False,choices=(('One year or less', 'One year or less'), ('More than one year', 'More than one year')),initial = 'One year or less',label="Length of the program (once you save this page, you cannot change this selection):")
 
     class Meta:
@@ -305,7 +305,7 @@ class ProgramDescForm(forms.ModelForm):
 
 class ParticipantsForm(forms.ModelForm):
     yearnumber = forms.CharField(required=False,widget = forms.TextInput(attrs={'readonly':'readonly'}), label="Year:")
-    noofparticipants = forms.DecimalField(required=False,max_digits=14,decimal_places=2, min_value=0.01, widget=forms.TextInput(attrs={'class':'col-lg-8'}),label="Number of participants per year:")
+    noofparticipants = forms.DecimalField(required=False,max_digits=14,decimal_places=2, min_value=0.01, label="Number of participants per year:")
 
     class Meta:
         model = ParticipantsPerYear
@@ -390,7 +390,7 @@ class IngredientsFullForm(forms.ModelForm):
     SourceBenefitData = forms.CharField(required=False)
     YearBenefit = forms.CharField(required=False)
     priceAdjBenefits = forms.DecimalField(required=False,label="PriceAdjBenefits")
-    percentageofUsage  = forms.IntegerField(required=False,label="Percentage of Usage")
+    percentageofUsage  = forms.DecimalField(required=False,label="Percentage of Usage")
     geoIndex = forms.CharField(required=False,label="Geographical Index of State Price & Area Price")
     indexCPI = forms.CharField(required=False,label="IndexCPI of Year Price")
     priceAdjInflation = forms.CharField(required=False, label="PriceAdjInflation")
@@ -482,8 +482,8 @@ class PricesSearchForm(forms.ModelForm):
    secquery = Prices.objects.exclude(sector = ' ').values_list('sector', flat=True).distinct()
    secquery_choices =  [(id, id) for id in secquery]
    category = forms.ChoiceField(choices=catquery_choices, initial="All", required=False, widget=forms.Select(),label="Category:")
-   edLevel = forms.ChoiceField(edquery_choices, required=False, widget=forms.Select(), label="Education level to be served:")
-   sector = forms.ChoiceField(secquery_choices, required=False, widget=forms.Select(),label="Sector:")
+   edLevel = forms.ChoiceField(choices =edquery_choices, required=False, widget=forms.Select(), label="Education level to be served:")
+   sector = forms.ChoiceField(choices =secquery_choices, required=False, widget=forms.Select(),label="Sector:")
    ingredient  = forms.CharField(required=False,label="Ingredient:")
 
    class Meta:
@@ -508,7 +508,7 @@ class NonPerIndicesForm(forms.ModelForm):
    lifetimeAsset = forms.IntegerField(required=False,initial=1, min_value = 1,label="Lifetime of the asset:" )
    interestRate = forms.DecimalField(required=False, initial=3.5, min_value = 0.0, max_digits=7,decimal_places=3, label="Interest rate:")
    yearPrice = forms.CharField(required=False, widget = forms.TextInput(attrs={'readonly':'readonly'}),label="Year of the listed price:")
-   statePrice  = forms.CharField(required=False, widget = forms.TextInput(attrs={'readonly':'readonly'}), label="To which geographical location does this price correspond to?")
+   statePrice  = forms.CharField(required=False, widget = forms.TextInput(attrs={'readonly':'readonly'}), label="To which geographical location does this price correspond?")
    areaPrice = forms.CharField(required=False, widget = forms.TextInput(attrs={'readonly':'readonly'}), label="")
    sourcePriceData = forms.CharField(required=False,widget = forms.TextInput(attrs={'readonly':'readonly'}),label="Source:")
 
@@ -518,8 +518,8 @@ class NonPerIndicesForm(forms.ModelForm):
 
 class WageDefaults(forms.ModelForm):
     hrsCalendarYr = forms.IntegerField(required=False,initial=2080,min_value=0,label="Number of hours in the calendar year: The calendar year consists of 2,080 working hours (52 weeks, 5 days a week, 8 hrs a day) according to the U.S. Bureau of Labor Statistics. This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the calendar year in the following cell:")
-    hrsAcademicYr = forms.IntegerField(required=False,initial=1440, min_value=0,label="Number of hours in the K-12 academic year: The academic year consists of 1,440 working hours (36 weeks, 5 days a week, 8 hrs a day) according to CBCSE. This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the K-12 academic year in the following cell:")
-    hrsHigherEdn = forms.IntegerField(required=False,initial=1560, min_value=0,label="Number of hours in the higher education academic year: The academic year consists of 1,560 working hours (39 weeks, 5 days a week, 8 hrs a day) according to CBCSE. This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the higher education academic year in the following cell:")
+    hrsAcademicYr = forms.IntegerField(required=False,initial=1440, min_value=0,label="Number of hours in the K-12 academic year: The academic year consists of 1,440 working hours (36 weeks, 5 days a week, 8 hrs a day). This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the K-12 academic year in the following cell:")
+    hrsHigherEdn = forms.IntegerField(required=False,initial=1560, min_value=0,label="Number of hours in the higher education academic year: The academic year consists of 1,560 working hours (39 weeks, 5 days a week, 8 hrs a day). This is used as the default number for the wage converter. However, if this number does not fit your requirements, you can enter a different number of hours for the higher education academic year in the following cell:")
    
     class Meta:
        model = Ingredients
@@ -566,7 +566,7 @@ class Benefits(forms.ModelForm):
 
 class WageConverter(forms.ModelForm):
    choicesPersonnel = (('Hour','Hour'),('Day','Day'),('Week','Week'),('K-12 Academic Year','K-12 Academic Year'), ('Higher Ed Academic Year', 'Higher Ed Academic Year'),('Calendar Year','Calendar Year'))
-   newMeasure = forms.ChoiceField(choicesPersonnel, required=False, widget=forms.Select(),label="Convert to")
+   newMeasure = forms.ChoiceField(choices =choicesPersonnel, required=False, widget=forms.Select(),label="Convert to")
    convertedPrice = forms.DecimalField(required=False, label="Converted value:", widget = forms.TextInput(attrs={'readonly':'readonly'}))
 
    class Meta:
@@ -578,10 +578,10 @@ class UMConverter(forms.ModelForm):
    choicesVolume = (('Fluid Ounces', 'Fluid Ounces'), ('Cups', 'Cups'), ('Pints','Pints'), ('Quarts','Quarts'), ('Gallons','Gallons'),('Liters','Liters'))     
    choicesLength = (('Inches', 'Inches'), ('Feet','Feet'),('Yards','Yards'),('Miles','Miles'),('Millimeter','Millimeter'),('Centimeter','Centimeter'),('Kilometer','Kilometer'))
    choicesTime = (('Hour','Hour'),('Day','Day'),('Week','Week'),('K-12 Academic Year','K-12 Academic Year'),('Higher Ed Academic Year', 'Higher Ed Academic Year'),('Calendar Year','Calendar Year'))
-   newMeasure = forms.ChoiceField(choicesPersonnel, required=False, widget=forms.Select(),label="Convert to")
-   newMeasureVol = forms.ChoiceField(choicesVolume, required=False, widget=forms.Select(),label="Convert to")
-   newMeasureLen = forms.ChoiceField(choicesLength, required=False, widget=forms.Select(),label="Convert to")
-   newMeasureTime = forms.ChoiceField(choicesTime, required=False, widget=forms.Select(),label="Convert to")
+   newMeasure = forms.ChoiceField(choices =choicesPersonnel, required=False, widget=forms.Select(),label="Convert to")
+   newMeasureVol = forms.ChoiceField(choices =choicesVolume, required=False, widget=forms.Select(),label="Convert to")
+   newMeasureLen = forms.ChoiceField(choices =choicesLength, required=False, widget=forms.Select(),label="Convert to")
+   newMeasureTime = forms.ChoiceField(choices =choicesTime, required=False, widget=forms.Select(),label="Convert to")
    convertedPrice = forms.DecimalField(required=False, label="Converted value:", widget = forms.TextInput(attrs={'readonly':'readonly'}))
 
    class Meta:
@@ -592,7 +592,7 @@ class PriceSummary(forms.ModelForm):
    yearQtyUsed = forms.IntegerField(required=False, min_value=0,label="Year:",widget = forms.TextInput(attrs={'readonly':'readonly'}))
    quantityUsed  = forms.DecimalField(label="Quantity of ingredient needed:",required=False)
    variableFixed = forms.ChoiceField(choices=(('Fixed','Yes, this is a Fixed quantity. (i.e., stays the same regardless of the number of program participants)'),('Variable','No, this is a Variable quantity (i.e., changes in direct proportion to the number of program participants)'),('Lumpy','No, this is a Lumpy quantity (i.e., changes when the number of participants increases or decreases by a certain amount, e.g., goes up after 30 more participants are added, then again at 60 etc.)')),required=False,widget=forms.RadioSelect(),label="Does this number stay fixed even if number of participants change?")
-   percentageofUsage  = forms.DecimalField(label="Percentage of Usage", initial=100,min_value = 0.00, max_value = 100.00, max_digits=6,decimal_places=2,required=False, )
+   percentageofUsage  = forms.DecimalField(label="Percentage of Usage", initial=100, required=False )
    lifetimeAsset = forms.IntegerField(required=False,initial=1, min_value = 1,label="Lifetime of the asset:" )                        
    interestRate = forms.DecimalField(required=False, initial=3.5, min_value = 0.0, max_digits=7,decimal_places=3, label="Interest rate:")
    notes = forms.CharField(required=False, label="Add any notes you want to keep about this ingredient:", widget=forms.Textarea())
@@ -610,7 +610,7 @@ class MultipleSummary(forms.ModelForm):
    yearQtyUsed = forms.IntegerField(required=False, min_value=0,label="Year:",widget = forms.TextInput(attrs={'readonly':'readonly'}))
    quantityUsed  = forms.DecimalField(label="Quantity of ingredient needed:")
    variableFixed = forms.ChoiceField(choices=(('Fixed','Yes. This is a Fixed quantity.'),('Variable','No. This is a Variable quantity.'),('Lumpy','No. This is a Lumpy quantity.')),required=False,widget=forms.RadioSelect())
-   percentageofUsage  = forms.DecimalField(label="Percentage of Usage",min_value = 0.00, max_value = 100.00, max_digits=6,decimal_places=2)
+   percentageofUsage  = forms.DecimalField(label="Percentage of Usage")
    lifetimeAsset = forms.IntegerField(required=False,initial=1, min_value = 1,label="Lifetime of the asset:" )                        
    interestRate = forms.DecimalField(required=False, initial=3.5, min_value = 0.0, max_digits=7,decimal_places=3, label="Interest rate:")
    notes = forms.CharField(required=False, label="Add any notes you want to keep about this ingredient:", widget=forms.Textarea())
@@ -639,17 +639,17 @@ class PricesForm(forms.ModelForm):
     secquery = Prices.objects.exclude(sector = ' ').values_list('sector', flat=True).distinct()
     secquery_choices =  [(id, id) for id in secquery]
 
-    category = forms.ChoiceField(catquery_choices, widget=forms.Select(),label="Select the category for this ingredient:")
+    category = forms.ChoiceField(choices =catquery_choices, widget=forms.Select(),label="Select the category for this ingredient:")
     ingredient  = forms.CharField(max_length=2000,label="Name of the ingredient:")
-    edLevel = forms.ChoiceField(edquery_choices, required=False, widget=forms.Select(),initial="All", label="Education level to be served:")
-    sector = forms.ChoiceField(secquery_choices, required=False, widget=forms.Select(),label="Sector:")
+    edLevel = forms.ChoiceField(choices =edquery_choices, required=False, widget=forms.Select(),initial="All", label="Education level to be served:")
+    sector = forms.ChoiceField(choices =secquery_choices, required=False, widget=forms.Select(),label="Sector:")
     #sector =  forms.CharField(widget=forms.Textarea(attrs('selectBoxOptions':';'.join(secquery_choices)))),label="Sector:",required=False)
     descriptionPrice = forms.CharField(required=False,max_length=2000, label="Description:", widget=forms.Textarea())
-    unitMeasurePrice = forms.ChoiceField(choicesPersonnel, widget=forms.Select(),label="Unit of Measure:", initial="Units")
+    unitMeasurePrice = forms.ChoiceField(choices =choicesPersonnel, widget=forms.Select(),label="Unit of Measure:", initial="Units")
     price = forms.CharField(label="Price per unit (enter number with no commas, for e.g., 1200.10 or 456):")
-    yearPrice = forms.ChoiceField(yrquery_choices, widget=forms.Select(),label="Year of the listed price:")
-    statePrice  = forms.ChoiceField(iquery_choices,  widget=forms.Select(), label="To which geographical location does this price correspond to?")
-    areaPrice = forms.ChoiceField(areaquery_choices,  widget=forms.Select(), label="")
+    yearPrice = forms.ChoiceField(choices =yrquery_choices, widget=forms.Select(),label="Year of the listed price:")
+    statePrice  = forms.ChoiceField(choices =iquery_choices,  widget=forms.Select(), label="To which geographical location does this price correspond to?")
+    areaPrice = forms.ChoiceField(choices =areaquery_choices,  widget=forms.Select(), label="")
     sourcePriceData = forms.CharField(required=False,max_length=200,label="Source:")
     urlPrice = forms.URLField(required=False,max_length=200,label="URL (The URL must start with http://www.):")
     lastChecked = forms.CharField(required=False, label="Last Checked:")    

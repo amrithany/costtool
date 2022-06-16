@@ -108,7 +108,7 @@ table.costtable {
     <div style="color:#0000FF" align="right"><h4>Logged in as {{loggedinuser}}</h4></div>
     <div class="container">
        <!--<div align="right" class="display:inline-block;" id="extra-btn"><input class="btn btn-danger" type="button" name="button" value="Admin" onmouseup="PasstoOpt();" /></div>-->
-       <h4>Project:  {{project}}</h4>
+       <h4>Project:  {{project.projectname}}</h4>
        <h4>Type of Analysis: {{project.typeanalysis}}</h4>
        <h4>Type of Cost: {{project.typeofcost}}</h4>
        <input class="btn btn-success" type="button" name="sett" value="Project Settings" style="float: right;" onmouseup="gotosett();"/>
@@ -118,7 +118,7 @@ table.costtable {
     <br />
 
    <div class="container">
-       <h4 style="float: left;">Name of the Program:  {{program}}</h4>
+       <h4 style="float: left;">Name of the Program:  {{program.progname}}</h4>
        <input class="btn btn-success" type="button" name="program" value="Program List" style="float: right;" onmouseup="cancelout();"/>
        <br><h4>Short Name: {{program.progshortname}}</h4>
     </div>
@@ -238,13 +238,13 @@ table.costtable {
              {{ ingform.errors }}
              {{ form.id }}
              <tr> 
-                <td><input type="checkbox" id="{{form.initial.id}}" value="unchecked" onmouseup="setId(this);"></td>
+                <td><input type="checkbox" id="{{form.instance.pk}}" value="unchecked" onmouseup="setId(this);"></td>
                 <td>{{ form.ingredient }} </td>
                 <td> {{form.notes}}</td>
                 <td>{{form.yearQtyUsed}}</td> 
                 <td>{{ form.quantityUsed }}</td>
                 <td>{{ form.newMeasure }}</td>
-                <td><select id="variableFixed{{form.initial.id}}">
+                <td><select id="variableFixed{{form.instance.pk}}">
                 <option value="Fixed">Fixed</option>
                 <option value="Variable">Variable</option>
                 <option value="Lumpy">Lumpy</option>
@@ -256,7 +256,7 @@ table.costtable {
                 <td style="visibility:hidden;">{{ form.variableFixed }}</td>
              </tr>
              <script type="text/javascript">{
-                        var element = document.getElementById('variableFixed{{form.initial.id}}');
+                        var element = document.getElementById('variableFixed{{form.instance.pk}}');
                         var orig = document.getElementById('id_{{form.prefix}}-variableFixed').value;
                         var format0 = document.getElementById('id_{{form.prefix}}-quantityUsed');
                         var format1 = document.getElementById('id_{{form.prefix}}-adjPricePerIngredient');
@@ -264,7 +264,8 @@ table.costtable {
                         var format3 = document.getElementById('id_{{form.prefix}}-percentageCost');
                         var format4 = document.getElementById('id_{{form.prefix}}-costPerParticipant');
                         //var loggedinuser = '{{loggedinuser}}';
-
+                 //alert('{{form.instance.pk}}'); 
+                        //alert('{{id.auto_id}}');
                         if (orig != '') {
                             element.value = orig;
                         }                    
@@ -280,8 +281,8 @@ table.costtable {
                           //document.location.href = "/admin/options.html";
                        //}
 
-                        $("#variableFixed{{form.initial.id}}").on('change', function (e) {                                                                                               
-                           var element = document.getElementById('variableFixed{{form.initial.id}}');
+                        $("#variableFixed{{form.instance.pk}}").on('change', function (e) {                                                                                               
+                           var element = document.getElementById('variableFixed{{form.instance.pk}}');
                            var orig = document.getElementById('id_{{form.prefix}}-variableFixed');
                            orig.value = element.value;     
                          });        
@@ -484,7 +485,7 @@ $(document).ready(function() {
              {% for form in frm5 %}
              {{ form.id }}
              <tr>
-                <td><input type="checkbox" id="{{form.initial.id}}" value="unchecked" onmouseup="setId2(this);"></td>
+                <td><input type="checkbox" id="{{form.instance.pk}}" value="unchecked" onmouseup="setId2(this);"></td>
                 <td>{{ form.grantName }} </td>
                 <td>{{form.grantYear}}</td>
                 <td>{{form.cost_agency1}}</td>

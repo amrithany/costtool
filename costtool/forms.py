@@ -2,9 +2,9 @@ from django import forms
 from django.forms import Textarea
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import *
-from costtool.models import SharedProj, Distribution, About, Videos, FileUpload, About,Transfers,Agencies,Login, Benefits,UserProfile, Projects, Programs, ProgramDesc, ParticipantsPerYear, Effectiveness, Prices, Settings,GeographicalIndices, GeographicalIndices_orig, InflationIndices, InflationIndices_orig, Ingredients
+from costtool.models import SharedProj, Distribution, About, Videos, FileUpload, About,Transfers,Agencies,Login, Benefits, Projects, Programs, ProgramDesc, ParticipantsPerYear, Effectiveness, Prices, Settings,GeographicalIndices, GeographicalIndices_orig, InflationIndices, InflationIndices_orig, Ingredients
 from crispy_forms.bootstrap import *
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import 
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 class FileUploadForm(forms.Form):
@@ -29,7 +29,7 @@ class VideoForm(forms.ModelForm):
       model = Videos
       fields = ('videoName','link',)
 
-class UserForm(forms.ModelForm):
+'''class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput())
 
     class Meta:
@@ -40,7 +40,7 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ('organisation','position','licenseSigned','signed_at')
-
+'''
 class LoginForm(forms.ModelForm):
     #user = forms.CharField(label="User Name",help_text="this better work!")
     user = forms.CharField(label="User Name")

@@ -1,8 +1,11 @@
-from django.db import models as m
-from django.contrib.auth.models import User
-import datetime 
-from django.core.files.storage import FileSystemStorage
+#commenting out everything
 
+from django.db import models as m
+#from django.contrib.auth.models import User
+import time
+import datetime
+
+from django.core.files.storage import FileSystemStorage
 class Videos(m.Model):
    videoName = m.CharField(max_length=256, null=True, blank=True)
    link = m.CharField(max_length=256, null=True, blank=True)
@@ -39,7 +42,7 @@ class Projects(m.Model):
     typeanalysis = m.CharField(max_length=256)
     typeofcost = m.CharField(max_length=256) 
     created_at = m.DateTimeField(default=datetime.datetime.now)
-    updated_at = m.DateTimeField()
+    updated_at = m.DateTimeField(null=True, blank=True)
     user = m.CharField(max_length=200,null=True, blank=True)
     shared =  m.CharField(max_length=1,null=True, blank=True)
     def __unicode__(self):
@@ -96,8 +99,8 @@ class InflationIndices(m.Model):
     indexCPI = m.CharField(max_length=10,null=True,blank=True)
     projectId = m.IntegerField(null=True,blank=True)
 
-    class Meta:
-       unique_together = ("yearCPI","projectId")
+    #class Meta:
+       #unique_together = ("yearCPI","projectId")
 
     def __unicode__(self):
         return unicode(self.yearCPI)
@@ -130,7 +133,7 @@ class Programs(m.Model):
     progshortname = m.CharField(max_length=256)
     projectId = m.IntegerField(null=True,blank=True)
     created_at = m.DateTimeField(default=datetime.datetime.now)
-    updated_at = m.DateTimeField()
+    updated_at = m.DateTimeField(null=True, blank=True)
 
     def __unicode__(self):
         return self.progname
@@ -230,7 +233,7 @@ class Transfers(m.Model):
     def __unicode__(self):
         return self.grantFrom
 
-class UserProfile(m.Model):
+'''class UserProfile(m.Model):
     #user = m.OneToOneField(User)
     #changed
     user = m.CharField(blank=True, null=True)
@@ -241,7 +244,7 @@ class UserProfile(m.Model):
 
     def __unicode__(self):
         return self.user.username
-
+'''
 class Login(m.Model):
     user = m.CharField(max_length=200)
     oldemail = m.CharField(max_length=200, null=True, blank=True)
@@ -346,4 +349,3 @@ class Ingredients(m.Model):
 
     def __unicode__(self):
         return unicode(self.id)
-

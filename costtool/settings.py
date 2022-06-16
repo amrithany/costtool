@@ -11,9 +11,10 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 from os.path import join
+#from pathlib import Path
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-#BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
@@ -21,12 +22,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = 'szq=&=!&qemr8jhm55eguau=utl5ds0gn(sg=ke_v!b5o2nmm4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_DEBUG = True
 
-ALLOWED_HOSTS = ['costout.pythonanywhere.com']
-
+ALLOWED_HOSTS = ['*']
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Application definition
 
@@ -42,22 +43,38 @@ INSTALLED_APPS = (
     'costtool',
     #'easy_timezones',
     'django.contrib.humanize',
-    'bootstrapform',
+    #'bootstrapform',
 )
 
+MIDDLEWARE = [ 
+        'django.middleware.security.SecurityMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ]  
+'''
 MIDDLEWARE_CLASSES = (
     'sslify.middleware.SSLifyMiddleware',    
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'easy_timezones.middleware.EasyTimezoneMiddleware',
 )
+'''
+#TEMPLATES = (
+   #'django.template.backends.django.DjangoTemplates',
+#)
 
-GEOIP_DATABASE = '/home/amritha/costtool/documents/GeoLiteCity.dat'
+
+'''GEOIP_DATABASE = '/home/amritha/costtool/documents/GeoLiteCity.dat'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -68,9 +85,25 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
-)
+)'''
 
 ROOT_URLCONF = 'costtool.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 WSGI_APPLICATION = 'costtool.wsgi.application'
 
@@ -104,10 +137,13 @@ LOGGING = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'amritha$costtool',
-        'USER': 'amritha',
-        'PASSWORD': 'lilies19',
-        'HOST' :'amritha.mysql.pythonanywhere-services.com',
+        'OPTIONS': {
+            'sql_mode': 'traditional',
+        }, 
+        'NAME': 'costout$default',
+        'USER': 'costout',
+        'PASSWORD': 'Apr2104$',
+        'HOST' :'costout.mysql.pythonanywhere-services.com',
         'PORT':'',
     }
 }
@@ -115,6 +151,7 @@ DATABASES = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -126,7 +163,20 @@ DATE_FORMAT = "m/d/y H:s"
 
 USE_TZ = True
 
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
 #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #EMAIL_USE_TLS = True
@@ -144,8 +194,15 @@ STATIC_ROOT = '/home/costout/costtool/costtool/static/'
 MEDIA_ROOT = '/home/costout/costtool/'
 MEDIA_URL = '/costtool/'
 
-CRISPY_TEMPLATE_PACK = 'bootstrap3' 
+context_processors = [
+                'django.template.context_processors.media', # set this explicitly
+                ]
+
+#CRISPY_TEMPLATE_PACK = 'bootstrap3' 
 
 TEMPLATE_DIRS = (
     join(BASE_DIR,  'templates'),
     )
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+

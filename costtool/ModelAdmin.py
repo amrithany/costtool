@@ -1,4 +1,4 @@
-from django.contrib import admin
+'''from django.contrib import admin
 from costtool import models as m
 from costtool.models import Prices
 from import_export import resources
@@ -10,4 +10,5 @@ class PriceResource(resources.ModelResource):
 
 class PriceAdmin(ImportMixin):
     resource_class = PriceResource
-    pass
+    pass'''
+#no need

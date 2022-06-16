@@ -28,7 +28,7 @@ def calculations2(project_id, program_id):
       programdescid = 0
 
    try:
-      eff = m.Effectiveness.objects.get(programId_id = p.id)
+      eff = m.Effectiveness.objects.get(programId = p.id)
       avgeff = eff.avgeffectperparticipant
    except ObjectDoesNotExist:
       avgeff = None
@@ -108,7 +108,7 @@ def calculations2(project_id, program_id):
       programdescid = 0
 
    try:
-      eff = m.Effectiveness.objects.get(programId_id = p.id)
+      eff = m.Effectiveness.objects.get(programId = p.id)
       avgeff = eff.avgeffectperparticipant
    except ObjectDoesNotExist:
       avgeff = None
@@ -173,7 +173,7 @@ def calculations(project_id):
          programdescid = 0
 
       try:
-         eff = m.Effectiveness.objects.get(programId_id = p.id)
+         eff = m.Effectiveness.objects.get(programId = p.id)
          avgeff = eff.avgeffectperparticipant
       except ObjectDoesNotExist:
          avgeff = None
@@ -248,7 +248,7 @@ def calculations(project_id):
          programdescid = 0
 
       try:
-         eff = m.Effectiveness.objects.get(programId_id = p.id)
+         eff = m.Effectiveness.objects.get(programId = p.id)
          avgeff = eff.avgeffectperparticipant
       except ObjectDoesNotExist:
          avgeff = None

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import redirect,render, render_to_response
+from django.shortcuts import redirect,render
 from django.db import IntegrityError
 from django.template import Context, loader, RequestContext
 #from django.contrib.auth import authenticate, login as auth_login
@@ -11,14 +11,15 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.forms.models import inlineformset_factory, modelformset_factory
 #from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q,Max, Min, Count
-from costtool import models as m
-from costtool.forms import ShareProjForm,DistForm,VideoForm,FileUploadForm,AboutForm, AdminForm,TransfersForm, AgenciesForm,RegisterForm,License,ForgotForm, LoginForm, PricesForm, PricesSearchForm, PriceIndicesForm, NonPerIndicesForm, WageDefaults, WageConverter,UMConverter, PriceBenefits, PriceSummary,MultipleSummary, UserForm, UserProfileForm, ProjectsForm, ProgramsForm, ProgramDescForm, ParticipantsForm, EffectForm,SettingsForm, GeographicalForm, GeographicalForm_orig, InflationForm, InflationForm_orig, IngredientsForm,IngredientsFullForm
-from costtool.functions import calculations2, calculations, updateDate, updateProj
+#from costtool import models as m
+#from .models import SharedProj, Distribution, About, Videos, FileUpload, About,Transfers,Agencies,Login, Benefits,UserProfile,Projects, Programs, ProgramDesc, ParticipantsPerYear, Effectiveness, Prices, Settings,GeographicalIndices, GeographicalIndices_orig, InflationIndices_orig, Ingredients
+#from costtool.forms import ShareProjForm,DistForm,VideoForm,FileUploadForm,AboutForm, AdminForm,TransfersForm, AgenciesForm,RegisterForm,License,ForgotForm, LoginForm, PricesForm, PricesSearchForm, PriceIndicesForm, NonPerIndicesForm, WageDefaults, WageConverter,UMConverter, PriceBenefits, PriceSummary,MultipleSummary, UserForm, UserProfileForm, ProjectsForm, ProgramsForm, ProgramDescForm, ParticipantsForm, EffectForm,SettingsForm, GeographicalForm, GeographicalForm_orig, InflationForm, InflationForm_orig, IngredientsForm,IngredientsFullForm
+#from costtool.functions import calculations2, calculations, updateDate, updateProj
 from dateutil.relativedelta import relativedelta
 from django.contrib.humanize.templatetags.humanize import intcomma
 #from django.core.mail import send_mail
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 #from email.MIMEImage import MIMEImage
 #from django.contrib import messages
 from datetime import *
@@ -34,6 +35,8 @@ import csv
 #import os
 #import warnings
 
+def index(request):
+    return HttpResponse("Hello, world. You're at the CostOut index.")
 def videos(request):
     videoList = []
 
@@ -54,7 +57,7 @@ def videos(request):
              form = VideoForm() # A empty, unbound form
 
           # Load documents for the list page
-          database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+          database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
           cursor = database.cursor ()
           mysql = """SELECT videoName, MAX(CONVERT_TZ(vDate,'GMT','EST')) from costtool_videos group by videoName"""
           try:
@@ -66,13 +69,13 @@ def videos(request):
                 ret['Date'] = row[1]
                 videoList.append(ret)
           except:
-             print "Error: unable to fetch data"
+             print("Error: unable to fetch data")
 
           # disconnect from server
           database.close()
 
           # Render list page with the documents and the form
-          return render_to_response(
+          return render(
           'admin/videos.html',
           {'form': form, 'videoList':videoList},
           context_instance=RequestContext(request)
@@ -132,7 +135,7 @@ def upload(request):
              form = FileUploadForm() # A empty, unbound form
 
           # Load documents for the list page
-          database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+          database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
           cursor = database.cursor ()
           mysql = """SELECT docName, MAX(CONVERT_TZ(docDate,'GMT','EST')) from costtool_fileupload group by docName"""
 
@@ -145,13 +148,13 @@ def upload(request):
                 ret['Date'] = row[1]
                 DocList.append(ret)
           except:
-             print "Error: unable to fetch data"
+             print("Error: unable to fetch data")
 
           # disconnect from server
           database.close()
 
           # Render list page with the documents and the form
-          return render_to_response(
+          return render(
              'admin/upload.html',
               {'form': form, 'DocList':DocList},
               context_instance=RequestContext(request)
@@ -180,7 +183,7 @@ def add_program(request):
             upd = updateDate(project_id, None)
             return HttpResponseRedirect('/project/programs/'+project_id+'/program_list.html')
         else:
-            print programform.errors
+            print(programform.errors)
 
     else:
         programform = ProgramsForm()
@@ -206,6 +209,10 @@ def about2(request):
     about = m.About.objects.get(id = 1)
     context = Context({'web':about.web, 'email':about.email})
     return HttpResponse(template.render(context))
+def about(request):                                                                                                                       
+    #about = m.About.objects.get(id = 1)
+    #return HttpResponse("Hello, world. You're at the costout about page.")
+    return render(request, 'about.html')
 
 def contact(request):
     context = RequestContext(request)
@@ -221,9 +228,9 @@ def contact(request):
              if aboutform.is_valid():
                 a = aboutform.save(commit=False)
                 if a.web == '' and a.email == '' and a.sendemail == '':
-                   return render_to_response('admin/contact.html',{'aboutform':aboutform,'err':'Enter Web, Email and/or Password to Save'}, context)
+                   return render('admin/contact.html',{'aboutform':aboutform,'err':'Enter Web, Email and/or Password to Save'}, context)
                 elif a.web != '' and a.web[:4] != 'www.':
-                   return render_to_response('admin/contact.html',{'aboutform':aboutform,'err':'The first four letters should be www.'}, context)
+                   return render('admin/contact.html',{'aboutform':aboutform,'err':'The first four letters should be www.'}, context)
                 if a.web != '' and a.email != '' and a.sendemail != '':
                    arec.web = a.web
                    arec.email = a.email
@@ -240,11 +247,11 @@ def contact(request):
                    arec.save(update_fields=['sendemail'])
                 return HttpResponseRedirect('/project/project_list.html')
              else:
-                print aboutform.errors
+                print(aboutform.errors)
           else:
              aboutform = AboutForm()
 
-          return render_to_response(
+          return render(
             'admin/contact.html',
             {'aboutform': aboutform}, context)
 
@@ -284,6 +291,7 @@ def reports(request,project_id):
 def noofreg(request):
     RegList = []
     prevDate = ''
+    count = 0
     if 'user' not in request.session: 
        return render(request,'prices/message.html')
     else:
@@ -316,7 +324,7 @@ def cumulreg(request):
           fifteenth = datetime.date(2015, 5, 17) + timedelta(days=15)
           latest = m.Login.objects.latest('startDate')
           count = 0
-          while fifteenth < datetime.datetime.date(latest.startDate) + timedelta(days=15):
+          while fifteenth < latest.startDate + timedelta(days=15):
              ret = {}
              for l in m.Login.objects.filter(startDate__gte=firstDate,startDate__lt=fifteenth):
                 count = count + 1
@@ -367,7 +375,7 @@ def costeff(request):
 
        ret['short_name'] = p.progshortname
 
-       database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+       database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
        cursor = database.cursor ()
        sql = """SELECT MAX(ABS(averageCost)) FROM costtool_ingredients WHERE programId IN (SELECT id FROM costtool_programs WHERE projectid = %(projectId)s)"""
        try:
@@ -375,7 +383,7 @@ def costeff(request):
           row = cursor.fetchone()
           ret['Max'] = row[0]
        except:
-          print "Error: unable to fetch data"
+          print("Error: unable to fetch data")
           ret['Max'] = 'n/a'
 
        cursor3 = database.cursor ()
@@ -385,7 +393,7 @@ def costeff(request):
           row3 = cursor3.fetchone()
           ret['MaxEff'] = row3[0]
        except:
-          print "Error: unable to fetch data"
+          print("Error: unable to fetch data")
           ret['MaxEff'] = 'n/a'
 
        ProgList.append(ret)
@@ -459,7 +467,7 @@ def export_cea(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
@@ -477,10 +485,10 @@ def export_cea(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
 
     font_style3 = xlwt.XFStyle()
@@ -495,7 +503,7 @@ def export_cea(request):
     money_xf.num_format_str = '$#,##0.00'
     pattern3 = xlwt.Pattern()
     pattern3.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern3.pattern_fore_colour = 7
+    pattern3.pattern_fore_colour = xlwt.Style.colour_map['light_turquoise']
     money_xf.pattern = pattern3
     money_xf_22 = xlwt.XFStyle()
     money_xf_22.num_format_str = '$#,##0.00'
@@ -640,7 +648,7 @@ def export_cea(request):
                    ws.write(row_num, col_num, row[col_num], font_style4)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
     # disconnect from server
     database.close()
@@ -691,7 +699,7 @@ def export_ca(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool") 
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default") 
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
@@ -709,10 +717,10 @@ def export_ca(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
 
     font_style3 = xlwt.XFStyle()
@@ -727,7 +735,7 @@ def export_ca(request):
     money_xf.num_format_str = '$#,##0.00'
     pattern3 = xlwt.Pattern()
     pattern3.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern3.pattern_fore_colour = 7
+    pattern3.pattern_fore_colour = xlwt.Style.colour_map['light_turquoise']
     money_xf.pattern = pattern3
     money_xf_22 = xlwt.XFStyle()
     money_xf_22.num_format_str = '$#,##0.00'
@@ -861,7 +869,7 @@ def export_ca(request):
                    ws.write(row_num, col_num, row[col_num], font_style4)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
     # disconnect from server
     database.close()
@@ -952,7 +960,7 @@ def compcostanal(request):
 
          ret['short_name'] = p.progshortname
 
-         database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+         database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
          cursor = database.cursor ()
          sql = """SELECT MAX(totalCost) FROM costtool_ingredients WHERE programId IN (SELECT id FROM costtool_programs WHERE projectid = %(projectId)s)"""
          try:
@@ -960,7 +968,7 @@ def compcostanal(request):
             row = cursor.fetchone()
             ret['Max'] = row[0]
          except:
-            print "Error: unable to fetch data"
+            print("Error: unable to fetch data")
             ret['Max'] = 'n/a'
 
          cursor2 = database.cursor ()
@@ -974,7 +982,7 @@ def compcostanal(request):
                ret['Min'] = row2[0]
 
          except:
-            print "Error: unable to fetch data"
+            print("Error: unable to fetch data")
             ret['Min'] = 'n/a'
 
          cursor3 = database.cursor ()
@@ -984,7 +992,7 @@ def compcostanal(request):
             row3 = cursor3.fetchone()
             ret['Maxavg'] = row3[0]
          except:
-            print "Error: unable to fetch data"
+            print("Error: unable to fetch data")
             ret['Maxavg'] = 'n/a'
 
          cursor4 = database.cursor ()
@@ -997,7 +1005,7 @@ def compcostanal(request):
             else:
                ret['Minavg'] = row4[0]
          except:
-            print "Error: unable to fetch data"
+            print("Error: unable to fetch data")
             ret['Minavg'] = 'n/a'
 
          cursor5 = database.cursor ()
@@ -1007,7 +1015,7 @@ def compcostanal(request):
             row5 = cursor5.fetchone()
             ret['MaxPer'] = row5[0]
          except:
-            print "Error: unable to fetch data"
+            print("Error: unable to fetch data")
             ret['MaxPer'] = ret['Max']
 
          cursor9 = database.cursor ()
@@ -1020,7 +1028,7 @@ def compcostanal(request):
             else:
                ret['MinPer'] = row9[0]
          except:
-            print "Error: unable to fetch data"
+            print("Error: unable to fetch data")
             ret['MinPer'] = ret['Min']
 
          cursor6 = database.cursor ()
@@ -1030,7 +1038,7 @@ def compcostanal(request):
             row6 = cursor6.fetchone()
             ret['MaxMat'] = row6[0]
          except:
-            print "Error: unable to fetch data6"
+            print("Error: unable to fetch data6")
             ret['MaxMat'] = ret['Max']
 
          cursor10 = database.cursor ()
@@ -1044,7 +1052,7 @@ def compcostanal(request):
                ret['MinMat'] = row10[0]
 
          except:
-            print "Error: unable to fetch data10"
+            print("Error: unable to fetch data10")
             ret['MinMat'] = ret['Min']
 
          cursor7 = database.cursor ()
@@ -1054,7 +1062,7 @@ def compcostanal(request):
             row7 = cursor7.fetchone()
             ret['MaxFac'] = row7[0]
          except:
-            print "Error: unable to fetch data7"
+            print("Error: unable to fetch data7")
             ret['MaxFac'] = ret['Max']
 
          cursor8 = database.cursor ()
@@ -1064,7 +1072,7 @@ def compcostanal(request):
             row8 = cursor8.fetchone()
             ret['MaxInp'] = row8[0]
          except:
-            print "Error: unable to fetch data8"
+            print("Error: unable to fetch data8")
             ret['MaxInp'] = ret['Max']
 
          cursor11 = database.cursor ()         
@@ -1077,7 +1085,7 @@ def compcostanal(request):
             else:
                ret['MinFac'] = row11[0]
          except: 
-            print "Error: unable to fetch data11"
+            print("Error: unable to fetch data11")
             ret['MinFac'] = ret['Min']
 
          cursor12 = database.cursor ()
@@ -1091,7 +1099,7 @@ def compcostanal(request):
                ret['MinInp'] = row12[0]
 
          except:
-            print "Error: unable to fetch data8"
+            print("Error: unable to fetch data8")
             ret['MinInp'] = ret['Min']
 
          ProgList.append(ret)
@@ -1179,7 +1187,7 @@ def users_table(request):
              for pp in proj:
                 demoList.append(pp.projectname)
           except ObjectDoesNotExist:
-             print 'Projects do not exist!'
+             print('Projects do not exist!')
 
           try:
              pricesm = m.Prices.objects.exclude(priceProvider = 'cbcse')
@@ -1194,7 +1202,7 @@ def users_table(request):
              #f.write('\n')
                    prcount = prcount + 1
           except ObjectDoesNotExist:
-             print 'Prices do not exist!'
+             print('Prices do not exist!')
        #f.close()
           try:
              users = m.Login.objects.all()
@@ -1250,7 +1258,7 @@ def export_proj(request):
     prog = 0
     demoList = []
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     try:
        project = m.Projects.objects.filter(created_at__gte = datetime.date(2015, 9, 1))
        proj = m.Projects.objects.filter(user = 'Demo admin')
@@ -1277,10 +1285,10 @@ def export_proj(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
     pattern3 = xlwt.Pattern()
     pattern3.pattern_fore_colour = 1
@@ -1360,7 +1368,7 @@ def export_proj(request):
                 ws.write(row_num, col_num, row[col_num],font_style4)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
     # disconnect from server
     database.close()
@@ -1373,7 +1381,7 @@ def export_users(request):
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet("Users")
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
  
     #Heading of tables
     a = xlwt.Alignment()
@@ -1385,10 +1393,10 @@ def export_users(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
     pattern3 = xlwt.Pattern()
     pattern3.pattern_fore_colour = 1
@@ -1430,14 +1438,14 @@ def export_users(request):
           if p.ingredient not in demoList:
              prcount = prcount + 1
     except ObjectDoesNotExist:
-       print 'Prices do not exist!'
+       print('Prices do not exist!')
 
     try:
        for u in m.Login.objects.all():
           if u.timesLoggedin is not None:
              logincount = logincount + int(u.timesLoggedin)
     except ObjectDoesNotExist:
-       print 'Users do not exist!' 
+       print('Users do not exist!') 
 
     uscount = m.Login.objects.all().count()
     
@@ -1528,7 +1536,7 @@ def export_users(request):
                 ws.write(row_num, col_num, row[col_num],font_style4)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
     # disconnect from server
     database.close()
@@ -1538,41 +1546,40 @@ def export_users(request):
 def del_user(request, user_id):
     context = RequestContext(request)
     user = m.Login.objects.get(pk=user_id)
-    print user.user
 
     for pr in m.Projects.objects.filter(user = user.user):
        for p in m.Programs.objects.filter(projectId = pr.id):
           try:
              m.Distribution.objects.filter(programId=p.id).delete()
           except ObjectDoesNotExist:
-             print 'distribution do not exist'
+             print('distribution do not exist')
 
           try:
              m.Agencies.objects.filter(programId=p.id).delete()
           except ObjectDoesNotExist:
-             print 'agencies do not exist'
+             print('agencies do not exist')
 
           try:
              m.Transfers.objects.filter(programId=p.id).delete()
           except ObjectDoesNotExist:
-             print 'transfers do not exist'
+             print('transfers do not exist')
 
           try:
              m.Ingredients.objects.filter(programId=p.id).delete()
           except ObjectDoesNotExist:
-             print 'ingredients do not exist'
+             print('ingredients do not exist')
 
           try:
              m.Effectiveness.objects.get(programId_id = p.id).delete()
           except ObjectDoesNotExist:
-             print 'effectiveness does not exist'
+             print('effectiveness does not exist')
 
           try:
              progdesc = m.ProgramDesc.objects.get(programId_id = p.id)
              m.ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
              m.ProgramDesc.objects.get(programId_id = p.id).delete()
           except ObjectDoesNotExist:
-             print 'program desc does not exist'
+             print('program desc does not exist')
 
           m.Programs.objects.get(pk = p.id).delete()
 
@@ -1602,7 +1609,7 @@ def login(request):
             login2 = m.Login.objects.filter(user=login.user).latest('startDate')
             if login.password == login2.password:
                if login2.user not in ('Additional projects', 'Demo admin', 'cbcse', 'teaching account') and login2.endDate <= date.today():
-                  return render_to_response('login/login.html',{'loginform': loginform, 'err': 'Your license agreement has expired.  Please re-register from the Home page. If you wish to continue using your existing account, re-register with the same User name. You may change your password and any other information that needs updating.'}, context)
+                  return render('login/login.html',{'loginform': loginform, 'err': 'Your license agreement has expired.  Please re-register from the Home page. If you wish to continue using your existing account, re-register with the same User name. You may change your password and any other information that needs updating.'}, context)
                else: 
                   login2.lastLogin = datetime.datetime.now()
                   if login2.timesLoggedin is None:
@@ -1612,17 +1619,17 @@ def login(request):
                   login2.save(update_fields=['lastLogin', 'timesLoggedin']) 
                   return HttpResponseRedirect('/project/project_list.html')
             else:
-               return render_to_response('login/login.html',{'loginform': loginform, 'err': 'Invalid user or password'}, context)
+               return render('login/login.html',{'loginform': loginform, 'err': 'Invalid user or password'}, context)
          except ObjectDoesNotExist:
-            return render_to_response('login/login.html',{'loginform': loginform, 'err': 'Invalid user or password'}, context)
+            return render('login/login.html',{'loginform': loginform, 'err': 'Invalid user or password'}, context)
  
       else:
          form_errors = 'Yes'
-         print form_errors
+         print(form_errors)
    else:
       loginform = LoginForm()
 
-   return render_to_response('login/login.html',{'loginform': loginform}, context)
+   return render('login/login.html',{'loginform': loginform}, context)
 
 def myaccount(request):
     context = RequestContext(request)
@@ -1637,28 +1644,26 @@ def myaccount(request):
           if adminform.is_valid():
              a = adminform.save(commit=False)
              if a.oldemail  == '' and a.email == '' and a.emailagain == '' and a.oldpassword  == '' and a.password == '' and a.passwordagain == '':
-                return render_to_response('admin/myaccount.html',{'adminform':adminform,'err':'Enter either the email or the password to Save'}, context)
+                return render('admin/myaccount.html',{'adminform':adminform,'err':'Enter either the email or the password to Save'}, context)
              else:
                 if a.oldemail != '' or a.email != '' or a.emailagain != '':
                    try:
                       l = m.Login.objects.filter(user=loggedinuser, email=a.oldemail).latest('startDate')
                       if (a.oldemail is not None and (a.email == '' or a.emailagain == '')) or (a.email is not None and (a.oldemail == '' or a.emailagain == '')) or (a.emailagain is not None and (a.email == '' or a.oldemail == '')):
-                         return render_to_response('admin/myaccount.html',{'adminform':adminform,'err':'Enter the old email, new email and new email again to Save'}, context)
+                         return render('admin/myaccount.html',{'adminform':adminform,'err':'Enter the old email, new email and new email again to Save'}, context)
                       elif a.email != a.emailagain:
-                         return render_to_response('admin/myaccount.html',{'adminform':adminform,'err':'The new email does not match the email entered again'}, context)
+                         return render('admin/myaccount.html',{'adminform':adminform,'err':'The new email does not match the email entered again'}, context)
                    except:
-                      return render_to_response('admin/myaccount.html',{'adminform':adminform,'err':'The old email you have entered does not match the email we have in our records. '}, context)
+                      return render('admin/myaccount.html',{'adminform':adminform,'err':'The old email you have entered does not match the email we have in our records. '}, context)
                 else:
                    try:
                       p = m.Login.objects.filter(user=loggedinuser, password=a.oldpassword).latest('startDate')
                       if (a.oldpassword is not None and (a.password == '' or a.passwordagain == '')) or (a.password is not None and (a.oldpassword == '' or a.passwordagain == '')) or (a.passwordagain is not None and (a.password == '' or a.oldpassword == '')):
-                         return render_to_response('admin/myaccount.html',{'adminform':adminform,'err':'Enter the old password, new password and new password again to Save'}, context)
+                         return render('admin/myaccount.html',{'adminform':adminform,'err':'Enter the old password, new password and new password again to Save'}, context)
                       elif a.password != a.passwordagain:
-                         return render_to_response('admin/myaccount.html',{'adminform':adminform,'err':'The new password does not match the password entered again'}, context)
+                         return render('admin/myaccount.html',{'adminform':adminform,'err':'The new password does not match the password entered again'}, context)
                    except:
-                      print loggedinuser
-                      print a.oldpassword
-                      return render_to_response('admin/myaccount.html',{'adminform':adminform,'err':'The old password you have entered does not match the password we have in our records. '}, context)
+                      return render('admin/myaccount.html',{'adminform':adminform,'err':'The old password you have entered does not match the password we have in our records. '}, context)
                 if a.email != '' and a.password != '':
                    l.email = a.email
                    l.password = a.password
@@ -1673,11 +1678,11 @@ def myaccount(request):
                    p.save(update_fields=['password'])
                    return HttpResponseRedirect('/project/project_list.html')
           else:
-             print adminform.errors
+             print(adminform.errors)
        else:
           adminform = AdminForm()
 
-       return render_to_response(
+       return render(
             'admin/myaccount.html',
             {'adminform': adminform}, context)
     except ObjectDoesNotExist:
@@ -1693,11 +1698,13 @@ def forgot(request):
           register = registerform.save(commit=False)
           r2 = m.Login.objects.filter(email = register.email)
           if len(r2) == 0:
-             return render_to_response('login/forgot.html',{'registerform':registerform,'err':'The email address you have entered does not match what we have in our records. Please enter again.'}, context)
-          try:
-             for r in r2:
+             return render('login/forgot.html',{'registerform':registerform,'err':'The email address you have entered does not match what we have in our records. Please enter again.'}, context)
+          for r in r2:
+             today = date.today()
+             if r.endDate > today:
                 # Define these once; use them twice!
                 strFrom = 'cbcsecosttoolkit@gmail.com'
+                #strFrom = 'fmh7@tc.columbia.edu'
                 strTo = r.email
 
                 # Create the root message and fill in the from, to, and subject headers
@@ -1715,7 +1722,7 @@ def forgot(request):
                 msgAlternative.attach(msgText)
 
                 # We reference the image in the IMG SRC attribute by the ID we give it below
-                msgText = MIMEText('The User Name you used to log in to <i> CostOut</i>, the CBCSE Cost Tool Kit, is: <br><b>' + r.user + '</b><br>Your  Password is: <br><b>' + r.password + '</b><br><br>If you need to contact CBCSE, please email cbcse@tc.columbia.edu.', 'html')
+                msgText = MIMEText('The User Name you used to log in to <i> CostOut</i> is: <br><b>' + r.user + '</b><br>Your Password is: <br><b>' + r.password + '</b><br><br>If you need to contact the <i>CostOut</i> team, please email fmh7@tc.columbia.edu.', 'html')
                 msgAlternative.attach(msgText)
 
                 # Send the email (this example assumes SMTP authentication is required)
@@ -1727,20 +1734,23 @@ def forgot(request):
                    smtp.starttls()
                    about = m.About.objects.get(id = 1)
                    smtp.login('cbcsecosttoolkit@gmail.com', about.sendemail)
+                   #smtp.login('fmh7@tc.columbia.edu', about.sendemail)
                    smtp.sendmail(strFrom, strTo, msgRoot.as_string())
                    smtp.quit()
-                except smtplib.SMTPException, error:
-                   return render_to_response('login/forgot.html',{'registerform':registerform,'err':str(error)}, context) 
-          except:
-             print 'does not exist'
+                #changed   
+                except:
+                   return render('login/forgot.html',{'registerform':registerform,'err':str(error)}, context) 
+             #else:
+                 #mesg = 'Your license agreement has expired.  Please re-register from the Home page.'
+                 #return render('login/forgot.html',{'registerform':registerform,'err':mesg}, context)  
           return HttpResponseRedirect('/login/login.html')
        else:
-          print registerform.errors
-          return render_to_response('login/forgot.html',{'registerform':registerform,'err':registerform.errors}, context)
+             print(registerform.errors)
+             return render('login/forgot.html',{'registerform':registerform,'err':registerform.errors}, context)
     else:
        registerform = ForgotForm()
 
-    return render_to_response(
+    return render(
             'login/forgot.html',
             {'registerform': registerform}, context)
 
@@ -1753,13 +1763,13 @@ def register(request):
          try:
             login = m.Login.objects.filter(user=register.user).latest('startDate')
             if login.endDate > date.today():
-               return render_to_response('register/register.html',{'registerform': registerform, 'err': 'The User Name you have entered already exists. Please select another one.'}, context)  
+               return render('register/register.html',{'registerform': registerform, 'err': 'The User Name you have entered already exists. Please select another one.'}, context)  
          except ObjectDoesNotExist:
-            print 'xyz'
+            print ('xyz')   
          if register.password != register.passwordagain:                                                                              
-            return render_to_response('register/register.html',{'registerform': registerform, 'err': 'The password does not match the confirm password.'}, context)         
+            return render('register/register.html',{'registerform': registerform, 'err': 'The password does not match the confirm password.'}, context)         
          if register.email != register.emailagain:
-            return render_to_response('register/register.html',{'registerform': registerform, 'err': 'The email does not match the confirm email.'}, context)
+            return render('register/register.html',{'registerform': registerform, 'err': 'The email does not match the confirm email.'}, context)
          request.session['userR'] = register.user
          request.session['email'] = register.email
          request.session['passwordR'] = register.password
@@ -1780,12 +1790,12 @@ def register(request):
          request.session['publicOrPrivate'] = register.publicOrPrivate 
          return HttpResponseRedirect('/register/license.html') 
       else:
-         print registerform.errors
+         print(registerform.errors)
           
    else:                                                                                                                            
       registerform = RegisterForm()
                                                              
-   return render_to_response('register/register.html',{'registerform': registerform}, context)
+   return render('register/register.html',{'registerform': registerform}, context)
 
 def license(request):
    context = RequestContext(request)
@@ -1809,15 +1819,11 @@ def license(request):
             try:
                existing = m.Login.objects.get(user=request.session['userR'])                                                                                                                                              
                temp_var = 'b'
-               print 'one record'
-               print temp_var
             except MultipleObjectsReturned:
-               print 'there is more than one login with same user name'
-               print temp_var
+               print('there is more than one login with same user name')
             except ObjectDoesNotExist:   
                temp_var = 'b'
-               print 'object does not exist'
-               print temp_var
+               print('object does not exist')
 
             if temp_var == 'b': 
                for p1 in m.Prices.objects.filter(priceProvider = 'Demo admin'):
@@ -1868,7 +1874,7 @@ def license(request):
                            ppy.pk = None
                            ppy.save()
                      except ObjectDoesNotExist:
-                        print 'program desc does not exist'
+                        print('program desc does not exist')
 
                      try:
                         eff = m.Effectiveness.objects.get(programId_id = pr.id)
@@ -1876,7 +1882,7 @@ def license(request):
                         eff.pk = None
                         eff.save()
                      except ObjectDoesNotExist:
-                        print 'effectiveness does not exist'
+                        print('effectiveness does not exist')
 
                      try:
                         for i in  m.Ingredients.objects.filter(programId=pr.id):
@@ -1891,9 +1897,9 @@ def license(request):
                               dis.pk = None
                               dis.save()
                            except ObjectDoesNotExist:
-                              print 'distribution do not exist' 
+                              print('distribution do not exist')
                      except ObjectDoesNotExist:
-                        print 'ingredients do not exist'
+                        print('ingredients do not exist')
 
                      try:
                         ag = m.Agencies.objects.get(programId=pr.id)
@@ -1901,7 +1907,7 @@ def license(request):
                         ag.pk = None
                         ag.save()
                      except ObjectDoesNotExist:
-                        print 'agencies do not exist'
+                        print('agencies do not exist')
 
                      try:
                         for t in m.Transfers.objects.filter(programId=pr.id):
@@ -1910,19 +1916,17 @@ def license(request):
                            trans.pk = None
                            trans.save()
                      except ObjectDoesNotExist:
-                        print 'transfers do not exist'
+                        print('transfers do not exist')
 
             return HttpResponseRedirect('/login/login.html')
          else:        
             return HttpResponseRedirect('/about.html')
       else:
          form_errors = 'Select Yes or No to proceed'
-         print form_errors
-         print licenseform.errors 
-         return render_to_response('register/license.html',{'licenseform': licenseform, 'form_errors':form_errors, 'publicOrPrivate':'publicOrPrivate'}, context)
+         return render('register/license.html',{'licenseform': licenseform, 'form_errors':form_errors, 'publicOrPrivate':'publicOrPrivate'}, context)
    else:                                                                                                                            
       licenseform = License()
-   return render_to_response('register/license.html',{'licenseform': licenseform, 'publicOrPrivate':'publicOrPrivate'}, context)
+   return render('register/license.html',{'licenseform': licenseform, 'publicOrPrivate':'publicOrPrivate'}, context)
 
 def return_pdf(request):
    publicOrPrivate=request.session['publicOrPrivate']
@@ -2028,9 +2032,9 @@ def public_pdf(request):
    pdf.closed
 
 def tech1(request):
-   with open('/home/amritha/costtool/documents/Internal_Updating the CBCSE Database Handbook.docx', 'r') as docx:
+   with open('/home/amritha/costtool/documents/Internal_Updating the CostOut Database Handbook.docx', 'r') as docx:
       response = HttpResponse(docx.read(), content_type='application/docx')
-      response['Content-Disposition'] = 'inline;filename=Internal_Updating the CBCSE Database Handbook.docx'
+      response['Content-Disposition'] = 'inline;filename=Internal_Updating the CostOut Database Handbook.docx'
       return response
    docx.closed
 
@@ -2074,9 +2078,9 @@ def xl3(request):
    xlsx.closed
 
 def doc1(request):
-   with open('/home/amritha/costtool/documents/Internal_Updating the CBCSE Database Handbook.docx', 'r') as docx:
+   with open('/home/amritha/costtool/documents/Internal_Updating the CostOut Database Handbook.docx', 'r') as docx:
       response = HttpResponse(docx.read(), content_type='application/docx')
-      response['Content-Disposition'] = 'inline;filename=Internal_Updating the CBCSE Database Handbook.docx'
+      response['Content-Disposition'] = 'inline;filename=Internal_Updating the CostOut Database Handbook.docx'
       return response
    docx.closed
 
@@ -2118,9 +2122,9 @@ def add3(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/CBCSE Cost Tool Kit Feedback Form.docx', 'r') as docx:
+       with open('/home/amritha/costtool/documents/CostOut Feedback Form.docx', 'r') as docx:
           response = HttpResponse(docx.read(), content_type='application/docx')
-          response['Content-Disposition'] = 'inline;filename=CBCSE Cost Tool Kit Feedback Form.docx'
+          response['Content-Disposition'] = 'inline;filename=CostOut Feedback Form.docx'
           return response
        docx.closed
 
@@ -2148,9 +2152,9 @@ def add6(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Formulas used in CBCSE Cost Tool Kit.pdf', 'r') as pdf:
+       with open('/home/amritha/costtool/documents/Formulas used in CostOut.pdf', 'r') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
-          response['Content-Disposition'] = 'inline;filename=Formulas used in CBCSE Cost Tool Kit.pdf'
+          response['Content-Disposition'] = 'inline;filename=Formulas used in CostOut.pdf'
           return response
        pdf.closed
 
@@ -2261,36 +2265,36 @@ def full_table(request):
        if 'id' in request.POST:
           changed = False
           i = m.Ingredients.objects.get(pk=request.POST.get('id'))
-          if i.ingredient <> request.POST.get('ingredient'):
+          if i.ingredient != request.POST.get('ingredient'):
              i.ingredient = request.POST.get('ingredient')
              changed = True
-          if i.notes <> request.POST.get('notes'):
+          if i.notes != request.POST.get('notes'):
              i.notes = request.POST.get('notes')
              changed = True
-          if i.category <> request.POST.get('category'):
+          if i.category != request.POST.get('category'):
              i.category = request.POST.get('category')
              changed = True
-          if str(i.yearQtyUsed) <> str(request.POST.get('yearQtyUsed')):
+          if str(i.yearQtyUsed) != str(request.POST.get('yearQtyUsed')):
              i.yearQtyUsed = request.POST.get('yearQtyUsed')
              changed = True
-          if i.variableFixed <> request.POST.get('variableFixed'):
+          if i.variableFixed != request.POST.get('variableFixed'):
              i.variableFixed = request.POST.get('variableFixed')
              changed = True
-          if i.quantityUsed <> request.POST.get('quantityUsed'):
+          if i.quantityUsed != request.POST.get('quantityUsed'):
              i.quantityUsed = request.POST.get('quantityUsed')
              changed = True
           if i.quantityUsed is None:
              i.quantityUsed = 1
-          if i.lifetimeAsset <> request.POST.get('lifetimeAsset'):
+          if i.lifetimeAsset != request.POST.get('lifetimeAsset'):
              i.lifetimeAsset = request.POST.get('lifetimeAsset')
              changed = True
-          if i.interestRate <> request.POST.get('interestRate'):
+          if i.interestRate != request.POST.get('interestRate'):
              i.interestRate = request.POST.get('interestRate')
              changed = True
-          if i.benefitRate <> request.POST.get('benefitRate'):
+          if i.benefitRate != request.POST.get('benefitRate'):
              i.benefitRate = request.POST.get('benefitRate')
              changed = True
-          if str(i.percentageofUsage) <> str(request.POST.get('percentageofUsage')):
+          if str(i.percentageofUsage) != str(request.POST.get('percentageofUsage')):
              i.percentageofUsage = request.POST.get('percentageofUsage')
              changed = True
           #if changed == True:   
@@ -2313,8 +2317,8 @@ def full_table(request):
           result = calculations2(project_id, program_id)
           upd = updateDate(project_id, program_id)
        else:
-          print 'no id given'
-    return render_to_response('project/programs/costs/full_table.html',{'ingredients':ingredients,'project_id':project_id, 'program_id':program_id,'total_cost':round(total_cost,3),'avg_cost':avg_cost,'eff_ratio':eff_ratio,'projectname':projectname, 'programname':progname, 'discountRateEstimates':discountRateEstimates, 'infEstimate':infEstimate,'geoEstimate':geoEstimate, 'geoArea':'' },context)
+          print('no id given')
+    return render('project/programs/costs/full_table.html',{'ingredients':ingredients,'project_id':project_id, 'program_id':program_id,'total_cost':round(total_cost,3),'avg_cost':avg_cost,'eff_ratio':eff_ratio,'projectname':projectname, 'programname':progname, 'discountRateEstimates':discountRateEstimates, 'infEstimate':infEstimate,'geoEstimate':geoEstimate, 'geoArea':'' },context)
 
 def tabbedlayout(request,project_id,program_id):
     project = m.Projects.objects.get(pk=project_id)
@@ -2344,7 +2348,6 @@ def tabbedlayout(request,project_id,program_id):
     net_other = 0.0
     agcount = 0
     noofpart = 0
-
     IngFormSet = modelformset_factory(m.Ingredients,extra=20)
     ingform = IngFormSet(queryset = m.Ingredients.objects.filter(programId = program_id),prefix="ingform")
     try:
@@ -2556,7 +2559,7 @@ def tabbedlayout(request,project_id,program_id):
                            transfer1.save(update_fields=['total_amount','cost_agency1','cost_agency2', 'cost_agency3','cost_agency4'])
                            upd = updateDate(project_id, program_id)
                   except ObjectDoesNotExist:
-                     print 'no transfer records'
+                     print('no transfer records')
 
                   request.session['programdescId'] = programdesc.id
                   if project.typeanalysis == 'Cost Analysis':
@@ -2564,11 +2567,11 @@ def tabbedlayout(request,project_id,program_id):
                   else:
                      return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=effform')
                else:
-                  print partform.errors
+                  print(partform.errors)
                   return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart,'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'form1','project':project,'program':program,'frm1':form1,'partform':partform, 'frm3':ingform,'partform.errors':partform.errors,'frm2':effectform,'frm4':distform, 'frm5':transform, 'loggedinuser':loggedinuser})
 
             else:
-               print form1.errors
+               print(form1.errors)
                return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart,'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'form1','project':project,'program':program,'frm1':form1,'partform':partform, 'frm3':ingform,'errtext':form1.errors,'frm2':effectform,'frm4':distform, 'frm5':transform, 'loggedinuser':loggedinuser})
 
     else:
@@ -2609,7 +2612,7 @@ def tabbedlayout(request,project_id,program_id):
                 i.save(update_fields=['effRatio'])
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=costform')
           else:
-             print effectform.errors
+             print(effectform.errors)
              return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart,'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'effform','project':project,'program':program,'frm1':form1,'partform':partform, 'frm2':effectform, 'frm3':ingform,'effectform.errors':effectform.errors,'frm4':distform, 'frm5':transform, 'loggedinuser':loggedinuser})
 
     else:
@@ -2697,7 +2700,7 @@ def tabbedlayout(request,project_id,program_id):
                 upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=costform')
           else:
-             print ingform.errors
+             print(ingform.errors)
              return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart,'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'costform','project':project,'program':program,'frm1':form1,'partform':partform, 'frm3':ingform,'ingform.errors':ingform.errors,'frm2':effectform,'frm4':distform,'frm5':transform})
     else:
        ing = m.Ingredients.objects.filter(programId = program_id)
@@ -2787,7 +2790,7 @@ def tabbedlayout(request,project_id,program_id):
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=distform')
 
           else:
-             print distform.errors
+             print(distform.errors)
              return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart,'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'effform','project':project,'program':program,'frm1':form1,'partform':partform, 'frm2':effectform, 'frm3':ingform,'distform.errors':distform.errors,'frm4':distform,'frm5':transform})       
     else:
        try:
@@ -2797,7 +2800,7 @@ def tabbedlayout(request,project_id,program_id):
           except ObjectDoesNotExist:
              m.Agencies.objects.create(agency1 = 'Program Sponsor', agency2 = 'Government Agencies', agency3 = 'Private Organizations', agency4 = 'Students/Parents', programId = program_id)
              ag = m.Agencies.objects.get(programId = program_id)
-             print 'agencies do not exist'
+             print('agencies do not exist')
           for ing in inglist: 
               try:
                  dist = m.Distribution.objects.get(ingredientId = ing.id)
@@ -2851,7 +2854,7 @@ def tabbedlayout(request,project_id,program_id):
           ag.total_other = total_other
           ag.save(update_fields=['total_agency1','total_agency2','total_agency3','total_agency4','total_other','total_cost'])
        except ObjectDoesNotExist:
-          print 'no point in doing anything if no records in Ingredients'
+          print('no point in doing anything if no records in Ingredients')
    
        distform = DistFormSet(queryset = m.Distribution.objects.filter(programId = program_id),prefix="distform")
        for form in distform:
@@ -2876,7 +2879,7 @@ def tabbedlayout(request,project_id,program_id):
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=transform')
  
           else:
-             print transform.errors
+             print(transform.errors)
              return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart,'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'effform','project':project,'program':program,'frm1':form1,'partform':partform, 'frm2':effectform, 'frm3':ingform,'distform.errors':distform.errors,'frm4':distform,'frm5':transform, 'transform.errors':transform.errors, 'loggedinuser':loggedinuser})
 
     else:
@@ -2910,7 +2913,7 @@ def tabbedlayout(request,project_id,program_id):
           ag.save(update_fields=['net_agency1','net_agency2','net_agency3','net_agency4','net_other'])
           #upd = updateDate(project_id, program_id)
        except ObjectDoesNotExist:
-          print 'agencies do not exist'
+          print('agencies do not exist')
  
        transform = TransFormSet(queryset = trans,prefix="transform")
        for form in transform:
@@ -2937,7 +2940,7 @@ def add_agency(request):
     try:
        agency = m.Agencies.objects.get(programId=program_id)
     except ObjectDoesNotExist:
-       print 'object does not exist'
+       print('object does not exist')
 
     if request.method == 'POST':
         agencyform = AgenciesForm(request.POST,instance=agency)
@@ -2954,7 +2957,7 @@ def add_agency(request):
                   try:
                      m.Transfers.objects.exclude(cost_agency2__isnull=True).delete()
                   except ObjectDoesNotExist:
-                     print '2'
+                     print('no idea what was here') 
                if agency1.agency3 is None or agency1.agency3 == '':
                   dist.cost_agency3 = 0.0
                   dist.cost_agency3_percent = 0.0
@@ -2963,7 +2966,7 @@ def add_agency(request):
                   try:
                      m.Transfers.objects.exclude(cost_agency3__isnull=True).delete()
                   except ObjectDoesNotExist:
-                     print '3'
+                     print('3')
                if agency1.agency4 is None or agency1.agency4 == '':
                   dist.cost_agency4 = 0.0
                   dist.cost_agency4_percent = 0.0
@@ -2972,7 +2975,7 @@ def add_agency(request):
                   try:
                      m.Transfers.objects.exclude(cost_agency4__isnull=True).delete()
                   except ObjectDoesNotExist:
-                     print '4' 
+                     print('4') 
                if  dist.cost_agency1_percent is not None and dist.cost_agency2_percent is not None and dist.cost_agency3_percent is not None and dist.cost_agency4_percent is not None:
                    dist.cost_other_percent = float(100) - (float(dist.cost_agency1_percent) + float(dist.cost_agency2_percent) + float(dist.cost_agency3_percent) + float(dist.cost_agency4_percent))
                if dist.cost is not None and dist.cost_other_percent is not None:
@@ -2980,12 +2983,12 @@ def add_agency(request):
                               
                dist.save(update_fields=['cost_other_percent','cost_other','cost_agency2','cost_agency2_percent','cost_agency3','cost_agency3_percent','cost_agency4','cost_agency4_percent'])
             else:
-               print 'not None'
+               print('not None')
             agency1.save(update_fields=['agency1','agency2','agency3','agency4','total_agency2','net_agency2','total_agency3','net_agency3','total_agency4','net_agency4'])
             upd = updateDate(project_id, program_id)
             return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=distform')
         else:
-            print agencyform.errors
+            print(agencyform.errors)
 
     else:
         agencyform = AgenciesForm(instance=agency)
@@ -3026,7 +3029,7 @@ def add_transfer(request):
        ag3 = agency.agency3
        ag4 = agency.agency4
     except ObjectDoesNotExist:
-       print 'object does not exist'
+       print('object does not exist')
        ag1 = ''
        ag2 = ''
        ag3 = ''
@@ -3047,7 +3050,7 @@ def add_transfer(request):
 
              if tamountNone == True:
                 err = 'Enter an  amount for atleast one year'
-                return render_to_response ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)  
+                return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)  
  
              for transfer1 in transfers:
                 transfer1.programId = program_id
@@ -3057,12 +3060,12 @@ def add_transfer(request):
                 transfer1.perparticipantOrTotal = request.POST.get('pOrTotal')
                 if transfer1.grantName == '' or transfer1.grantName is None:
                    err = 'Enter the name of the transfer/subsidy/fee'
-                   return render_to_response ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)  
+                   return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)  
 
                 if transfer1.grantFrom == transfer1.grantTo:
                    err = 'From and To cannot be the same agency'
                    transfer1.grantName = request.POST.get('desc')
-                   return render_to_response ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
+                   return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
 
                 if transfer1.perparticipantOrTotal == 'Total':
                    transfer1.total_amount = transfer1.grantAmount
@@ -3101,8 +3104,8 @@ def add_transfer(request):
                    upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=transform')
           else:
-             print transferform.errors
-             return render_to_response ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors},context)
+             print(transferform.errors)
+             return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors},context)
 
        else:
           transferform = MFormSet(queryset=m.Transfers.objects.none(),initial=[{'grantYear': "%d" % (i+1)} for i in range(10)])
@@ -3116,15 +3119,15 @@ def add_transfer(request):
              
              if transfer1.grantAmount is None:
                 err = 'Enter an  amount'
-                return render_to_response ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
+                return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
 
              if transfer1.grantName == '' or transfer1.grantName is None:
                    err = 'Enter the name of the transfer/subsidy/fee'
-                   return render_to_response ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
+                   return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
 
              if transfer1.grantFrom == transfer1.grantTo:
                 err = 'From and To cannot be the same agency'
-                return render_to_response ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'err': err},context)
+                return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'err': err},context)
 
              if transfer1.perparticipantOrTotal == 'Total':
                 transfer1.total_amount = transfer1.grantAmount
@@ -3160,8 +3163,8 @@ def add_transfer(request):
              upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=transform')
           else:
-              print transferform.errors
-              return render_to_response ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors},context)
+              print(transferform.errors)
+              return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors},context)
        else:
            transferform = TransfersForm()
 
@@ -3427,11 +3430,11 @@ def search_costs(request):
             priceProvider = costform.save(commit=False)
             return HttpResponseRedirect('/project/programs/costs/price_search_results.html')
         else:
-            print costform.errors
+            print(costform.errors)
             return HttpResponse(costform.errors)
     else:
        costform = PricesSearchForm()
-    return render_to_response('project/programs/costs/search_costs.html',{'costform':costform,'choicesEdn':choicesEdn,'choicesSec':choicesSec,'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname},context)
+    return render('project/programs/costs/search_costs.html',{'costform':costform,'choicesEdn':choicesEdn,'choicesSec':choicesSec,'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname},context)
 
 def price_search2(request):
     context = RequestContext(request)
@@ -3614,7 +3617,7 @@ def decideCat(request,price_id):
           return HttpResponseRedirect('/project/programs/costs/'+ price_id +'/nonper_indices.html')
     except ObjectDoesNotExist:
        request.session['priceExists'] = False 
-       return render_to_response('project/programs/costs/gotoinf.html',{'yearPrice':price.yearPrice},context)
+       return render('project/programs/costs/gotoinf.html',{'yearPrice':price.yearPrice},context)
 
 def gotoinf(request):
    return render(request,'project/programs/costs/gotoinf.html')
@@ -3753,12 +3756,12 @@ def nonper_indices(request,price_id):
             request.session['interestRate'] = lifetimeAsset.interestRate
             return HttpResponseRedirect('/project/programs/costs/summary.html')
         else:
-            print form.errors
-            return render_to_response('project/programs/costs/nonper_indices.html',{'form':form, 'price':price, 'new_price' : new_price, 'new_measure' : new_measure, 'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient,'project_id':project_id, 'program_id':program_id,'form.errors':form.errors,'projectname':projectname, 'programname':progname},context)
+            print(form.errors)
+            return render('project/programs/costs/nonper_indices.html',{'form':form, 'price':price, 'new_price' : new_price, 'new_measure' : new_measure, 'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient,'project_id':project_id, 'program_id':program_id,'form.errors':form.errors,'projectname':projectname, 'programname':progname},context)
     else:
         form = NonPerIndicesForm()
 
-    return render_to_response('project/programs/costs/nonper_indices.html',{'form':form, 'price':price, 'new_price' : new_price, 'new_measure' : new_measure, 'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient,'project_id':project_id, 'program_id':program_id, 'projectname':projectname, 'programname':progname},context)
+    return render('project/programs/costs/nonper_indices.html',{'form':form, 'price':price, 'new_price' : new_price, 'new_measure' : new_measure, 'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient,'project_id':project_id, 'program_id':program_id, 'projectname':projectname, 'programname':progname},context)
 
 def um_converter(request):
     context = RequestContext(request)
@@ -4244,7 +4247,7 @@ def um_converter(request):
                 request.session['new_price'] = newMeasure.convertedPrice
                 return HttpResponseRedirect('/project/programs/costs/umconverter.html')
             else:
-                print form.errors
+                print(form.errors)
 
         if 'use' in request.POST:
             price_id = request.session['price_id']
@@ -4260,7 +4263,7 @@ def um_converter(request):
         elif measureType == 'listTime':
            form = UMConverter(initial={'convertedPrice':new_price,'newMeasureTime':new_measure})
 
-    return render_to_response('project/programs/costs/umconverter.html',{'form':form, 'price':price,'measure':measure,'measureType':measureType, 'new_price' : new_price, 'new_measure' : new_measure, 'price_id':price_id},context)
+    return render('project/programs/costs/umconverter.html',{'form':form, 'price':price,'measure':measure,'measureType':measureType, 'new_price' : new_price, 'new_measure' : new_measure, 'price_id':price_id},context)
 
 def wage_converter(request):
     context = RequestContext(request)
@@ -4417,7 +4420,7 @@ def wage_converter(request):
                 request.session['new_measure'] = newMeasure.newMeasure 
                 return HttpResponseRedirect('/project/programs/costs/wage_converter.html')
             else:
-                print form.errors
+                print(form.errors)
 
         if 'use' in request.POST:
             price_id = request.session['price_id']
@@ -4426,7 +4429,7 @@ def wage_converter(request):
     else:
         form = WageConverter(initial={'convertedPrice':new_price,'newMeasure':new_measure})
 
-    return render_to_response('project/programs/costs/wage_converter.html',{'form':form, 'convertedPrice':new_price,'newMeasure':new_measure,'price':price, 'price_id':price_id,'measure':measure, 'hrsCalendarYr': hrsCalendarYr, 'hrsAcademicYr':hrsAcademicYr, 'hrsHigherEdn':hrsHigherEdn},context)
+    return render('project/programs/costs/wage_converter.html',{'form':form, 'convertedPrice':new_price,'newMeasure':new_measure,'price':price, 'price_id':price_id,'measure':measure, 'hrsCalendarYr': hrsCalendarYr, 'hrsAcademicYr':hrsAcademicYr, 'hrsHigherEdn':hrsHigherEdn},context)
  
 def wage_defaults(request):
     context = RequestContext(request)
@@ -4467,11 +4470,11 @@ def wage_defaults(request):
             request.session['hrsHigherEdn'] = benefitRate.hrsHigherEdn
             return HttpResponseRedirect('/project/programs/costs/wage_converter.html')
         else:
-            print form.errors
+            print(form.errors)
     else:
        form = WageDefaults(initial={'hrsCalendarYr': hrsCalendarYr, 'hrsAcademicYr':hrsAcademicYr, 'hrsHigherEdn':hrsHigherEdn}) 
 
-    return render_to_response('project/programs/costs/wage_defaults.html',{'form':form},context)
+    return render('project/programs/costs/wage_defaults.html',{'form':form},context)
 
 def price_benefits(request,price_id):
     context = RequestContext(request)
@@ -4513,11 +4516,11 @@ def price_benefits(request,price_id):
             request.session['Rate'] = benefitRate.benefitRate
             return HttpResponseRedirect('/project/programs/costs/summary.html')
         else:
-            print form.errors
-            return render_to_response('project/programs/costs/price_benefits.html',{'form':form, 'benefitRate':benefitRate,'price':price, 'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname,'form.errors':form.errors},context)
+            print(form.errors)
+            return render('project/programs/costs/price_benefits.html',{'form':form, 'benefitRate':benefitRate,'price':price, 'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname,'form.errors':form.errors},context)
     else:
         form = PriceBenefits()
-    return render_to_response('project/programs/costs/price_benefits.html',{'form':form, 'benefitRate':benefitRate,'price':price, 'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname},context)
+    return render('project/programs/costs/price_benefits.html',{'form':form, 'benefitRate':benefitRate,'price':price, 'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname},context)
 
 def benefits(request):
     context = RequestContext(request)
@@ -4670,10 +4673,10 @@ def price_summary(request):
 
              if qtyNone == True:
                 err = 'Enter a Quantity for at least one year'
-                return render_to_response('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
+                return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
              if percNone == True:
                 err = 'Enter % of time used for at least one year'
-                return render_to_response('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
+                return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
 
 
              for ingredient in ingredients:
@@ -4720,12 +4723,10 @@ def price_summary(request):
                           ingredient.priceAdjAmortization = round(float(ingredient.convertedPrice),3) / float(ingredient.lifetimeAsset)
                        else:
                           ingredient.priceAdjAmortization = round(float(ingredient.convertedPrice),3) * ((float(ingredient.interestRate)/100)*math.pow((1+(float(ingredient.interestRate)/100)),float(ingredient.lifetimeAsset)))/ (math.pow((1+(float(ingredient.interestRate)/100)),float(ingredient.lifetimeAsset))-1)
-                    print ingredient.priceAdjAmortization
                     if ingredient.category == 'Personnel':
                        ingredient.priceAdjBenefits = round(round(ingredient.priceAdjAmortization,3) * (1 + float(ingredient.benefitRate)/100),3)
                     else:
                        ingredient.priceAdjBenefits = round(ingredient.priceAdjAmortization,3)
-                    print ingredient.priceAdjBenefits
                     if infinf == 'No inflation index available' or infEstimate.indexCPI == 'No inflation index available':
                        ingredient.priceAdjInflation = 'No index'
                     else:
@@ -4762,12 +4763,6 @@ def price_summary(request):
                                 ingredient.costPerParticipant = round(round(float(ingredient.costPerIngredient),3) / float(partperyear.noofparticipants),3)
                              except ObjectDoesNotExist:
                                 ingredient.costPerParticipant = round(round(float(ingredient.costPerIngredient),3) / float(numberofparticipants),3)
-                    print ingredient.priceAdjInflation
-                    print ingredient.priceAdjGeographicalArea
-                    print ingredient.priceNetPresentValue
-                    print ingredient.adjPricePerIngredient
-                    print ingredient.costPerIngredient
-                    print ingredient.costPerParticipant
                     ingredient.save()
 
              total_cost = 0
@@ -4801,8 +4796,8 @@ def price_summary(request):
              return HttpResponseRedirect('/project/programs/effect/'+ project_id + '/' + program_id + '/tabbedview.html?activeform=costform')
              
           else:
-             print form.errors
-             return render_to_response('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors},context)
+             print(form.errors)
+             return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors},context)
        else:
           form = MFormSet(queryset=m.Ingredients.objects.none(),initial=[{'yearQtyUsed': "%d" % (i+1)} for i in range(10)])
     else:
@@ -4812,10 +4807,10 @@ def price_summary(request):
              ingredient = form.save(commit=False)
              if ingredient.quantityUsed is None:
                 err = 'Enter Quantity'
-                return render_to_response('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
+                return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
              if ingredient.percentageofUsage is None:
                 err = 'Enter % of time used'
-                return render_to_response('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
+                return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
              ingredient.category = price.category
              ingredient.ingredient = price.ingredient
              ingredient.edLevel = price.edLevel
@@ -4885,14 +4880,14 @@ def price_summary(request):
                       ingredient.costPerIngredient = round(round(ingredient.adjPricePerIngredient,3) * float(ingredient.quantityUsed) * (float(ingredient.percentageofUsage)/100),3)
                    if numberofparticipants is not None:
                       ingredient.costPerParticipant = round(float(ingredient.costPerIngredient),3) / float(numberofparticipants)
-             #print ingredient.priceAdjAmortization
-             #print ingredient.priceAdjBenefits
-             #print ingredient.priceAdjInflation
-             #print ingredient.priceAdjGeographicalArea
-             #print ingredient.priceNetPresentValue
-             #print ingredient.adjPricePerIngredient
-             #print ingredient.costPerIngredient
-             #print ingredient.costPerParticipant
+             #print(ingredient.priceAdjAmortization
+             #print(ingredient.priceAdjBenefits
+             #print(ingredient.priceAdjInflation
+             #print(ingredient.priceAdjGeographicalArea
+             #print(ingredient.priceNetPresentValue
+             #print(ingredient.adjPricePerIngredient
+             #print(ingredient.costPerIngredient
+             #print(ingredient.costPerParticipant
              ingredient.save()
 
              total_cost = 0
@@ -4921,11 +4916,11 @@ def price_summary(request):
                 upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/' + program_id + '/tabbedview.html?activeform=costform')
           else:
-             print form.errors
+             print(form.errors)
 
        else:
           form = PriceSummary()
-    return render_to_response('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'projectname':projectname, 'programname':progname,'new_measure':new_measure},context)
+    return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'projectname':projectname, 'programname':progname,'new_measure':new_measure},context)
 
 def program_list(request,project_id):
     request.session['project_id'] = project_id
@@ -4948,7 +4943,7 @@ def program_list(request,project_id):
            sharList = sharList[:-2]
     except ObjectDoesNotExist:
         return HttpResponse('A Project and/or Program does not exist! Cannot proceed further.')
-    return render_to_response(
+    return render(
             'project/programs/program_list.html',
             {'project':project,'program':program,'loggedinuser':loggedinuser, 'sharList':sharList})
 
@@ -4963,32 +4958,32 @@ def del_program(request, program_id):
     try:
        m.Distribution.objects.filter(programId=program_id).delete()
     except ObjectDoesNotExist:
-       print 'distribution do not exist'
+       print('distribution do not exist')
 
     try:
        m.Agencies.objects.filter(programId=program_id).delete()
     except ObjectDoesNotExist:
-       print 'agencies do not exist'
+       print('agencies do not exist')
 
     try:
        m.Transfers.objects.filter(programId=program_id).delete()
     except ObjectDoesNotExist:
-       print 'transfers do not exist'
+       print('transfers do not exist')
 
     try:
        m.Ingredients.objects.filter(programId=program_id).delete()
     except ObjectDoesNotExist:
-       print 'ingredients do not exist'
+       print('ingredients do not exist')
     try:   
        m.Effectiveness.objects.get(programId_id = program_id).delete()
     except ObjectDoesNotExist:
-       print 'effectiveness does not exist'
+       print('effectiveness does not exist')
     try:   
        progdesc = m.ProgramDesc.objects.get(programId_id = program_id)
        m.ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
        m.ProgramDesc.objects.get(programId_id = program_id).delete()
     except ObjectDoesNotExist:
-       print 'program desc does not exist'
+       print('program desc does not exist')
     m.Programs.objects.get(pk = program_id).delete()
     upd = updateDate(project_id, None)
     return HttpResponseRedirect('/project/programs/' + project_id + '/program_list.html')
@@ -5018,7 +5013,7 @@ def dupl_program(request, program_id):
           ppy.pk = None
           ppy.save()
     except ObjectDoesNotExist:
-       print 'program desc does not exist'
+       print('program desc does not exist')
 
     try:
        eff = m.Effectiveness.objects.get(programId_id = program_id)
@@ -5026,7 +5021,7 @@ def dupl_program(request, program_id):
        eff.pk = None
        eff.save()
     except ObjectDoesNotExist:
-       print 'effectiveness does not exist'
+       print('effectiveness does not exist')
 
     try:
        for i in  m.Ingredients.objects.filter(programId=program_id):
@@ -5041,9 +5036,9 @@ def dupl_program(request, program_id):
              dis.pk = None
              dis.save()
           except ObjectDoesNotExist:
-             print 'distribution do not exist'
+             print('distribution do not exist')
     except ObjectDoesNotExist:
-       print 'ingredients do not exist'
+       print('ingredients do not exist')
 
     try:
        ag = m.Agencies.objects.get(programId=program_id)
@@ -5051,7 +5046,7 @@ def dupl_program(request, program_id):
        ag.pk = None
        ag.save()
     except ObjectDoesNotExist:
-       print 'agencies do not exist'
+       print('agencies do not exist')
 
     try:
        for t in m.Transfers.objects.filter(programId=program_id):
@@ -5060,7 +5055,7 @@ def dupl_program(request, program_id):
           trans.pk = None
           trans.save()
     except ObjectDoesNotExist:
-       print 'transfers do not exist'
+       print('transfers do not exist')
     upd = updateDate(project_id, None)
     return HttpResponseRedirect('/project/programs/' + project_id + '/program_list.html')
 
@@ -5081,29 +5076,29 @@ def edit_program(request, program_id):
             upd = updateDate(project_id, program_id)
             return HttpResponseRedirect('/project/programs/'+project_id+'/program_list.html')
         else:
-            print programform.errors
+            print(programform.errors)
 
     else:
         programform = ProgramsForm(instance=prog)
 
-    return render_to_response(
+    return render(
             'project/programs/edit_program.html',
             {'programform': programform, 'project_id':project_id}, context)
 
 def index(request):
     two_days_ago = datetime.utcnow() - timedelta(days=2)
     recent_projects = m.Projects.objects.filter(created_at__gt = two_days_ago).all()
-    template = loader.get_template('index.html')
+    #template = loader.get_template('index.html')
  
-    context = Context({
-        'projects_list' : recent_projects
-    })
-    return HttpResponse(template.render(context))
+    #context = Context({
+        #'projects_list' : recent_projects
+    #})
+    #return HttpResponse(template.render(context))
+    return render(request, 'index.html', {'projects_list' : recent_projects})
 
 def about(request):
     context = RequestContext(request)
-    return render_to_response('about.html', {}, context)
-
+    return render('about.html', {}, context)
 def add_project(request):
     context = RequestContext(request)
     if 'user' not in request.session:
@@ -5118,9 +5113,9 @@ def add_project(request):
              try:
                 p = m.Projects.objects.filter(projectname = projectname.projectname, user = projectname.user).count()
                 if p > 0:
-                   return render_to_response('project/add_project.html',{'projectform':projectform,'err':'This project name is already taken. Please enter a unique name.'}, context)
+                   return render('project/add_project.html',{'projectform':projectform,'err':'This project name is already taken. Please enter a unique name.'}, context)
              except ObjectDoesNotExist:
-                print projectname.projectname
+                print(projectname.projectname)
              projectname.save()
              for i in m.InflationIndices_orig.objects.all():
                  inf =  m.InflationIndices.objects.create(yearCPI=i.yearCPI, indexCPI=i.indexCPI, projectId=projectname.id)
@@ -5130,14 +5125,14 @@ def add_project(request):
              s = m.Settings.objects.create(discountRateEstimates=3.5, yearEstimates = latest.yearCPI, stateEstimates='All states', areaEstimates="All areas", selectDatabase="[u'CBCSE',u'My']",limitEdn="[u'Select',u'General',u'Grades PK', u'Grades K-6', u'Grades 6-8', u'Grades 9-12',u'Grades K-12','PostSecondary']",limitSector="[u'Select',u'Any',u'Public',u'Private']",limitYear="[u'All',u'recent']",hrsCalendarYr=2080,hrsAcademicYr=1440,hrsHigherEdn=1560,projectId=projectname.id) 
              request.session['project_id'] = projectname.id
              return HttpResponseRedirect('/project/settings.html')
-             #return render_to_response('project/add_project.html',{'projectform':projectform}, context)
+             #return render('project/add_project.html',{'projectform':projectform}, context)
           else:
-             print projectform.errors
+             print(projectform.errors)
 
        else:
           projectform = ProjectsForm()        
 
-       return render_to_response(
+       return render(
             'project/add_project.html',
             {'projectform': projectform}, context)
 
@@ -5153,19 +5148,19 @@ def edit_project(request, project_id):
             try:
                p = m.Projects.objects.filter(projectname = projectname.projectname).count()
                if p > 1:
-                  return render_to_response('project/edit_project.html',{'projectform':projectform,'err':'This project name is already taken. Please enter a unique name.'}, context)
+                  return render('project/edit_project.html',{'projectform':projectform,'err':'This project name is already taken. Please enter a unique name.'}, context)
             except ObjectDoesNotExist:
-                print projectname.projectname
+                print(projectname.projectname)
             projectname.updated_at = datetime.datetime.now()
             projectname.save(update_fields=['projectname', 'updated_at'])
             return HttpResponseRedirect('/project/project_list.html')
         else:
-            print projectform.errors
+            print(projectform.errors)
 
     else:
         projectform = ProjectsForm(instance=proj)
 
-    return render_to_response(
+    return render(
             'project/edit_project.html',
             {'projectform': projectform}, context)
 
@@ -5194,16 +5189,16 @@ def share_project(request, project_id):
           sid = 0
           for p in proj1:
               if (p.shared_user == loggedinuser):
-                  return render_to_response('project/share_project.html',{'shareform':shareform,'sameuser': sameuser, 'delrec':delrec, 'loggedinuser' : loggedinuser, 'projectname': projectname,'shareduser': p.shared_user, 'err1':'The user name you have entered is ', 'err2':'. You cannot enter your own name. Please enter a valid user name.'}, context) 
+                  return render('project/share_project.html',{'shareform':shareform,'sameuser': sameuser, 'delrec':delrec, 'loggedinuser' : loggedinuser, 'projectname': projectname,'shareduser': p.shared_user, 'err1':'The user name you have entered is ', 'err2':'. You cannot enter your own name. Please enter a valid user name.'}, context) 
               #try:
                  #existing = m.SharedProj.objects.filter(projectid=project_id).filter(shared_user=p.shared_user)
-                 #return render_to_response('project/share_project.html',{'shareform':shareform,'shareduser': p.shared_user,'err1':'The user name you have entered is ', 'err2':'. He is already a shared project user. Please enter another user.'}, context)                   
+                 #return render('project/share_project.html',{'shareform':shareform,'shareduser': p.shared_user,'err1':'The user name you have entered is ', 'err2':'. He is already a shared project user. Please enter another user.'}, context)                   
               #except:
               try:
                  login = m.Login.objects.filter(user=p.shared_user).latest('startDate')
               except:
-                  if p.shared_user <> '': 
-                      return render_to_response('project/share_project.html',{'shareform':shareform,'sameuser': sameuser,'delrec':delrec,'loggedinuser' : loggedinuser, 'projectname': projectname,'shareduser': p.shared_user,'err1':'The user name you have entered is ', 'err2':'. It does not exist. Please enter a valid user name.'}, context)    
+                  if p.shared_user != '': 
+                      return render('project/share_project.html',{'shareform':shareform,'sameuser': sameuser,'delrec':delrec,'loggedinuser' : loggedinuser, 'projectname': projectname,'shareduser': p.shared_user,'err1':'The user name you have entered is ', 'err2':'. It does not exist. Please enter a valid user name.'}, context)    
               p.shared_date = datetime.datetime.now()
               p.projectid = project_id
               if p.shared_user != '':
@@ -5228,8 +5223,8 @@ def share_project(request, project_id):
           else:
              return HttpResponseRedirect('/project/%s/share_project.html' % project_id) 
        else:
-          print shareform.errors
-          return render_to_response( 'project/share_project.html',{'shareform':shareform, 'sameuser': sameuser,'delrec':delrec,'loggedinuser' : loggedinuser,'projectname': projectname, 'err':shareform.errors},context)
+          print(shareform.errors)
+          return render( 'project/share_project.html',{'shareform':shareform, 'sameuser': sameuser,'delrec':delrec,'loggedinuser' : loggedinuser,'projectname': projectname, 'err':shareform.errors},context)
     else:
        qset = m.SharedProj.objects.filter(projectid=project_id)
        #for q in qset:
@@ -5240,7 +5235,7 @@ def share_project(request, project_id):
        for form in shareform:
            if sameuser != 'Y':
               form.fields['shared_user'].widget.attrs['readonly'] = True 
-    return render_to_response(
+    return render(
             'project/share_project.html',{'shareform':shareform, 'sameuser': sameuser,'delrec':delrec, 'loggedinuser' : loggedinuser, 'projectname': projectname},
              context)
 
@@ -5255,7 +5250,7 @@ def del_sharproj(request):
               sharproj.delete()
               upd = updateProj(project_id)
            except ObjectDoesNotExist:
-              print 'shared project user does not exist'
+              print('shared project user does not exist')
     #if 'button' not in request.session:
         #button = request.session['button']
     #else:
@@ -5284,7 +5279,7 @@ def dupl_project(request, project_id):
           inf.pk = None
           inf.save()
     except ObjectDoesNotExist:
-          print 'inf does not exist'
+          print('inf does not exist')
 
     try:
        for g in m.GeographicalIndices.objects.filter(projectId=project_id):
@@ -5293,7 +5288,7 @@ def dupl_project(request, project_id):
           geo.pk = None
           geo.save()
     except ObjectDoesNotExist:
-          print 'geo does not exist'
+          print('geo does not exist')
 
     try:
        sett = m.Settings.objects.get(projectId=project_id)
@@ -5301,7 +5296,7 @@ def dupl_project(request, project_id):
        sett.pk = None
        sett.save()
     except ObjectDoesNotExist:
-       print 'sett does not exist'
+       print('sett does not exist')
 
     for prog in m.Programs.objects.filter(projectId = project_id):
        prog2 = m.Programs.objects.get(pk = prog.id)
@@ -5321,7 +5316,7 @@ def dupl_project(request, project_id):
              ppy.pk = None
              ppy.save()
        except ObjectDoesNotExist:
-          print 'program desc does not exist'
+          print('program desc does not exist')
 
        try:
           eff = m.Effectiveness.objects.get(programId_id = prog.id)
@@ -5329,7 +5324,7 @@ def dupl_project(request, project_id):
           eff.pk = None
           eff.save()
        except ObjectDoesNotExist:
-          print 'effectiveness does not exist'
+          print('effectiveness does not exist')
 
        try:
           for i in  m.Ingredients.objects.filter(programId=prog.id):
@@ -5344,9 +5339,9 @@ def dupl_project(request, project_id):
                 dis.pk = None
                 dis.save()
              except ObjectDoesNotExist:
-                print 'distribution do not exist'
+                print('distribution do not exist')
        except ObjectDoesNotExist:
-          print 'ingredients do not exist'
+          print('ingredients do not exist')
 
        try:
           ag = m.Agencies.objects.get(programId=prog.id)
@@ -5354,7 +5349,7 @@ def dupl_project(request, project_id):
           ag.pk = None
           ag.save()
        except ObjectDoesNotExist:
-          print 'agencies do not exist'
+          print('agencies do not exist')
 
        try:
           for t in m.Transfers.objects.filter(programId=prog.id):
@@ -5363,7 +5358,7 @@ def dupl_project(request, project_id):
              trans.pk = None
              trans.save()
        except ObjectDoesNotExist:
-          print 'transfers do not exist'
+          print('transfers do not exist')
 
     return HttpResponseRedirect('/project/project_list.html')
 
@@ -5408,34 +5403,34 @@ def del_project(request, project_id):
        try:
           m.Distribution.objects.filter(programId=p.id).delete()
        except ObjectDoesNotExist:
-          print 'distribution do not exist'
+          print('distribution do not exist')
 
        try:
           m.Agencies.objects.filter(programId=p.id).delete()
        except ObjectDoesNotExist:
-          print 'agencies do not exist'
+          print('agencies do not exist')
 
        try:
           m.Transfers.objects.filter(programId=p.id).delete()
        except ObjectDoesNotExist:
-          print 'transfers do not exist'
+          print('transfers do not exist')
 
        try:
           m.Ingredients.objects.filter(programId=p.id).delete()
        except ObjectDoesNotExist:
-          print 'ingredients do not exist'
+          print('ingredients do not exist')
             
        try:
           m.Effectiveness.objects.get(programId_id = p.id).delete()
        except ObjectDoesNotExist:
-          print 'effectiveness does not exist'
+          print('effectiveness does not exist')
             
        try:
           progdesc = m.ProgramDesc.objects.get(programId_id = p.id)
           m.ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
           m.ProgramDesc.objects.get(programId_id = p.id).delete()
        except ObjectDoesNotExist:
-          print 'program desc does not exist'
+          print('program desc does not exist')
             
        m.Programs.objects.get(pk = p.id).delete()
     
@@ -5457,14 +5452,14 @@ def add_price(request):
             priceProvider.save()
             return HttpResponseRedirect('/prices/my_price_list.html')
         else:
-            print pricesform.errors
+            print(pricesform.errors)
             form_errors = pricesform.errors
-            return render_to_response('prices/add_price.html',{'form_errors': form_errors, 'pricesform': pricesform}, context)
+            return render('prices/add_price.html',{'form_errors': form_errors, 'pricesform': pricesform}, context)
 
     else:
         pricesform = PricesForm(user = myUser)
 
-    return render_to_response(
+    return render(
             'prices/add_price.html',
             {'pricesform': pricesform}, context)
 
@@ -5514,11 +5509,11 @@ def edit_price(request, price_id):
             priceProvider.save()
             return HttpResponseRedirect('/prices/my_price_list.html')
         else:
-            print pricesform.errors
+            print(pricesform.errors)
     else:
         pricesform = PricesForm(instance=price,user = myUser)
 
-    return render_to_response(
+    return render(
             'prices/edit_price.html',
             {'pricesform': pricesform}, context)
 
@@ -5555,7 +5550,7 @@ def export_full_table(request):
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet("Expanded Cost Information")
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     programId = request.session['program_id']
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
@@ -5587,10 +5582,10 @@ def export_full_table(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
 
     font_style3 = xlwt.XFStyle()
@@ -5604,7 +5599,7 @@ def export_full_table(request):
     money_xf.num_format_str = '$#,##0.00'
     pattern3 = xlwt.Pattern()
     pattern3.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern3.pattern_fore_colour = 7
+    pattern3.pattern_fore_colour = xlwt.Style.colour_map['light_turquoise']
     money_xf.pattern = pattern3
     money_xf_22 = xlwt.XFStyle()
     money_xf_22.num_format_str = '$#,##0.00'
@@ -5843,7 +5838,7 @@ def export_full_table(request):
                  else:
                     ws.write(row_num, col_num, row[col_num], money_xf)
         except:
-           print "Error: unable to fetch data"
+           print("Error: unable to fetch data")
 
         row_num = 23
 
@@ -5951,7 +5946,7 @@ def export_full_table(request):
                    ws.write(row_num, col_num, row[col_num], money_xf)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
     # disconnect from server
     database.close()
@@ -5964,7 +5959,7 @@ def export_cost_table(request):
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet("Cost Information")
     
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     programId = request.session['program_id']
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
@@ -5996,10 +5991,10 @@ def export_cost_table(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
 
     font_style3 = xlwt.XFStyle()
@@ -6013,7 +6008,7 @@ def export_cost_table(request):
     money_xf.num_format_str = '$#,##0.00'
     pattern3 = xlwt.Pattern()
     pattern3.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern3.pattern_fore_colour = 7
+    pattern3.pattern_fore_colour = xlwt.Style.colour_map['light_turquoise']
     money_xf.pattern = pattern3
     money_xf_22 = xlwt.XFStyle()
     money_xf_22.num_format_str = '$#,##0.00'
@@ -6252,7 +6247,7 @@ def export_cost_table(request):
                  else:
                     ws.write(row_num, col_num, row[col_num], money_xf)
         except:
-           print "Error: unable to fetch data"
+           print("Error: unable to fetch data")
  
         row_num = 23
  
@@ -6315,7 +6310,7 @@ def export_cost_table(request):
                    ws.write(row_num, col_num, row[col_num], money_xf)
  
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
     # disconnect from server
     database.close()
     wb.save(response)
@@ -6327,7 +6322,7 @@ def export_dist(request):
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet("Distribution of Costs")
   
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     if 'project_id' in request.session:
        projectId = request.session['project_id']
     else:
@@ -6362,10 +6357,10 @@ def export_dist(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
 
     font_style3 = xlwt.XFStyle()
@@ -6381,7 +6376,7 @@ def export_dist(request):
     money_xf.num_format_str = '$#,##0.00'
     pattern3 = xlwt.Pattern()
     pattern3.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern3.pattern_fore_colour = 7
+    pattern3.pattern_fore_colour = xlwt.Style.colour_map['light_turquoise']
     money_xf.pattern = pattern3
     money_xf_22 = xlwt.XFStyle()
     money_xf_22.num_format_str = '$#,##0.00'
@@ -6598,7 +6593,7 @@ def export_dist(request):
        cursor1.execute(sqlcount,{'programId' : programId})
        res = cursor1.fetchone()
     except:
-       print "Error: unable to fetch data cursor1"
+       print("Error: unable to fetch data cursor1")
 
     #row_num = mnum + int(''.join(map(str,res))) + 1
     try:
@@ -6626,7 +6621,7 @@ def export_dist(request):
                 ws.write(row_num, col_num, row[col_num], money_xf)
 
     except:
-       print "Error: unable to fetch data cursorg"
+       print("Error: unable to fetch data cursorg")
        mnum = row_num
 
     try:
@@ -6654,7 +6649,7 @@ def export_dist(request):
                 ws.write(row_num, col_num, row[col_num], money_xf_22)
 
     except:
-       print "Error: unable to fetch data cursor3"
+       print("Error: unable to fetch data cursor3")
        mnum = row_num
 
     try:
@@ -6705,7 +6700,7 @@ def export_dist(request):
           noth = noth + row[9]
 
     except:
-       print "Error: unable to fetch data cursord"
+       print("Error: unable to fetch data cursord")
 
     ws.write(mnum, 0, 'Net Costs', money_xf)
     ws.write(mnum, 1, initialyear, font_cent)
@@ -6762,7 +6757,7 @@ def export_dist(request):
                    ws.write(row_num, col_num, row[col_num], money_xf_22R)
 
     except:
-       print "Error: unable to fetch data cursortot"
+       print("Error: unable to fetch data cursortot")
  
     if maxnum > row_num:
        row_num = maxnum + 3
@@ -6815,7 +6810,7 @@ def export_dist(request):
 
     except:
        maxnum = row_num 
-       print "Error: unable to fetch data cursor2"
+       print("Error: unable to fetch data cursor2")
 
     if maxnum > row_num:
        row_num = maxnum + 3
@@ -6870,7 +6865,7 @@ def export_dist(request):
                 elif col_num == 0 or col_num == 1 or col_num == 3  or col_num == 5 or col_num == 7  or col_num == 9 or col_num ==11 or col_num == 13:
                    ws.write(row_num, col_num, row[col_num], money_xf)
     except:
-       print "Error: unable to fetch data cursor"
+       print("Error: unable to fetch data cursor")
 
     # disconnect from server
     database.close()
@@ -6886,7 +6881,7 @@ def export_to_inf(request):
    
     row_num = 0
    
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
@@ -6894,7 +6889,7 @@ def export_to_inf(request):
     cursor = database.cursor ()
 
     # Create the INSERT INTO sql query
-    sql = """SELECT yearCPI, indexCPI FROM costtool_inflationindices WHERE projectId = %(projectId)s"""
+    sql = """SELECT yearCPI, indexCPI FROM costout_inflationindices WHERE projectId = %(projectId)s"""
 
     columns = [
         (u"Year", 3000),
@@ -6929,7 +6924,7 @@ def export_to_inf(request):
              ws.write(row_num, col_num, row[col_num], money_xf)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
     # disconnect from server
     database.close()
@@ -6944,7 +6939,7 @@ def export_to_geo(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
@@ -6989,7 +6984,7 @@ def export_to_geo(request):
              ws.write(row_num, col_num, row[col_num], money_xf)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
     # disconnect from server
     database.close()
@@ -6998,13 +6993,13 @@ def export_to_geo(request):
 
 def export_cbcse_prices(request):
     response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=cbcse_prices.xls'
+    response['Content-Disposition'] = 'attachment; filename=costout_prices.xls'
     wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet("CBCSE Prices")
+    ws = wb.add_sheet("CostOut Prices")
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     cursor = database.cursor ()
 
     #Heading of tables
@@ -7017,10 +7012,10 @@ def export_cbcse_prices(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
 
     ab = xlwt.Alignment()
@@ -7029,7 +7024,7 @@ def export_cbcse_prices(request):
     money_xf.num_format_str = '$#,##0.00'
     pattern3 = xlwt.Pattern()
     pattern3.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern3.pattern_fore_colour = 7
+    pattern3.pattern_fore_colour = xlwt.Style.colour_map['light_turquoise']
     money_xf.pattern = pattern3
     money_xf_22 = xlwt.XFStyle()
     money_xf_22.num_format_str = '$#,##0.00'
@@ -7105,19 +7100,21 @@ def export_cbcse_prices(request):
                 else:
                    ws.write(row_num, col_num, row[col_num], money_xf)
 
-    except (MySQLdb.Error, MySQLdb.Warning), e:
-       print("Error reading data from MySQL table", e)
+    #changed
+    #except (MySQLdb.Error, MySQLdb.Warning), e:
+    except:
+       print("Error reading data from MySQL table")
 
     # disconnect from server
     database.close()
     wb.save(response)
     return response
 
-'''def export_cbcse_prices(request):
+def export_cbcse_prices(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="cbcse_prices.csv"'
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     cursor = database.cursor ()
 
     # Create the INSERT INTO sql query
@@ -7136,15 +7133,15 @@ def export_cbcse_prices(request):
        # Fetch all the rows in a list of lists.
        results = cursor.fetchall()
        for row in results:
-           print row[0]
-           #print row[1]
+           print(row[0]
+           #print(row[1]
            #writer.writerow([row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13]])
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data"
     # disconnect from server
     database.close()
 
-    return response'''
+    return response
 
 
 def export_prices(request):
@@ -7155,7 +7152,7 @@ def export_prices(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     priceProvider = request.session['user']
     cursor = database.cursor ()
 
@@ -7169,10 +7166,10 @@ def export_prices(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
 
     ab = xlwt.Alignment()
@@ -7181,7 +7178,7 @@ def export_prices(request):
     money_xf.num_format_str = '$#,##0.00'
     pattern3 = xlwt.Pattern()
     pattern3.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern3.pattern_fore_colour = 7
+    pattern3.pattern_fore_colour = xlwt.Style.colour_map['light_turquoise']
     money_xf.pattern = pattern3
     money_xf_22 = xlwt.XFStyle()
     money_xf_22.num_format_str = '$#,##0.00'
@@ -7258,7 +7255,7 @@ def export_prices(request):
                    ws.write(row_num, col_num, row[col_num], money_xf)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
     # disconnect from server
     database.close()
@@ -7273,7 +7270,7 @@ def export_progdesc(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     programId = request.session['program_id']
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
@@ -7287,7 +7284,7 @@ def export_progdesc(request):
        programdesc = m.ProgramDesc.objects.get(programId_id = programId)
        noofpart = programdesc.numberofparticipants
     except ObjectDoesNotExist:
-       print 'does not exist'
+       print('does not exist')
        noofpart = ''
 
     cursor = database.cursor ()
@@ -7312,10 +7309,10 @@ def export_progdesc(request):
     font_style.alignment = a
     pattern = xlwt.Pattern()
     pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern.pattern_fore_colour = 22
+    pattern.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     pattern2 = xlwt.Pattern()
     pattern2.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern2.pattern_fore_colour = 22
+    pattern2.pattern_fore_colour = xlwt.Style.colour_map['silver_ega']
     font_style.pattern = pattern2
 
     at = xlwt.Alignment()
@@ -7332,7 +7329,7 @@ def export_progdesc(request):
     money_xf.num_format_str = '$#,##0.00'
     pattern3 = xlwt.Pattern()
     pattern3.pattern = xlwt.Pattern.SOLID_PATTERN
-    pattern3.pattern_fore_colour = 7
+    pattern3.pattern_fore_colour = xlwt.Style.colour_map['light_turquoise']  
     money_xf.pattern = pattern3
     money_xf_22 = xlwt.XFStyle()
     money_xf_22.num_format_str = '$#,##0.00'
@@ -7461,7 +7458,7 @@ def export_progdesc(request):
           ws.write(16, 3, str(row[5]), font_style4)
 
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
    
     row_num = 19
@@ -7532,7 +7529,7 @@ def export_progdesc(request):
                    ws.write(row_num, col_num, row[col_num], money_str)
              #ws.write(row_num, col_num, row[col_num], font_style3)
     except:
-       print "Error: unable to fetch data"
+       print("Error: unable to fetch data")
 
 
     # disconnect from server
@@ -7547,7 +7544,7 @@ def import_excel(request):
     m.Prices.objects.filter(priceProvider='CBCSE').delete()
 
     # Establish a MySQL connection
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     #database = MySQLdb.connect (host="localhost", user = "root", passwd = "", db = "costtool")
 
     # Get the cursor, which is used to traverse the database, line by line
@@ -7600,7 +7597,7 @@ def import_geo(request):
     m.GeographicalIndices_orig.objects.all().delete()
 
     # Establish a MySQL connection
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
 
     # Get the cursor, which is used to traverse the database, line by line
     cursor = database.cursor()
@@ -7640,13 +7637,13 @@ def import_inf(request):
     m.InflationIndices_orig.objects.all().delete()
 
     # Establish a MySQL connection
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
 
     # Get the cursor, which is used to traverse the database, line by line
     cursor = database.cursor()
 
     # Create the INSERT INTO sql query
-    query = """INSERT INTO costtool_inflationindices_orig (yearCPI, indexCPI) VALUES (%s, %s)"""
+    query = """INSERT INTO costout_inflationindices_orig (yearCPI, indexCPI) VALUES (%s, %s)"""
 
     # Create a For loop to iterate through each row in the XLS file, starting at row 2 to skip the headers
     for r in range(1, sheet.nrows):
@@ -7679,7 +7676,7 @@ def import_benefits(request):
     m.Benefits.objects.all().delete()
 
     # Establish a MySQL connection
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
 
     # Get the cursor, which is used to traverse the database, line by line
     cursor = database.cursor()
@@ -7750,7 +7747,7 @@ def add_settings(request,project_id):
                   result = calculations(project_id)
             #return HttpResponseRedirect('/project/project_list.html')
         else:
-            print setform.errors
+            print(setform.errors)
 
     else:
         if objectexists:
@@ -7758,9 +7755,10 @@ def add_settings(request,project_id):
         else:
            setform = SettingsForm()
 
-    return render_to_response(
+    return render(
             'project/add_settings.html',
             {'frm1': setform, 'projname':proj.projectname}, context)
+
 
 def addedit_inf(request):
     InfFormSet = modelformset_factory(m.InflationIndices,form=InflationForm,extra=20)
@@ -7793,25 +7791,25 @@ def addedit_inf(request):
              if count != 1: 
                 i.projectId = project_id
                 if (i.indexCPI is None or i.indexCPI == '') and (i.yearCPI is not None and i.yearCPI != ''):
-                   return render_to_response('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Please enter the CPI for the year you entered.'}, context)
+                   return render('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Please enter the CPI for the year you entered.'}, context)
                 elif i.yearCPI == '' and i.indexCPI == '':
                    m.InflationIndices.objects.filter(id=i.id).delete()
                    return HttpResponseRedirect('/project/indices.html')
                 elif (i.yearCPI == '' or int(i.yearCPI) > 9999 or int(i.yearCPI) < 1000) and (i.indexCPI is not None and i.indexCPI != ''):
-                   return render_to_response('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Years must be entered as four-digit positive numbers.'}, context)
+                   return render('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Years must be entered as four-digit positive numbers.'}, context)
                 try:
                    float(i.indexCPI)
                    i.save()
                    upd = updateDate(project_id, None)
                 except IntegrityError as e:
-                   return render_to_response('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Year must be an unique number.'}, context)
+                   return render('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Year must be an unique number.'}, context)
                 except ValueError:
-                   return render_to_response('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'CPI must be a number.'}, context)
+                   return render('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'CPI must be a number.'}, context)
                 if i.id == oldRecId: 
-                   print i.id
+                   print(i.id)
                    result = calculations(project_id)
              else:
-                return render_to_response ('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'You cannot delete the inflation index for the year you selected in Project Settings.'},context) 
+                return render ('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'You cannot delete the inflation index for the year you selected in Project Settings.'},context) 
           if 'priceExists' in request.session:
              if request.session['priceExists'] == False:
                 return HttpResponseRedirect('/project/programs/costs/'+request.session['price_id']+'/decideCat.html')
@@ -7819,11 +7817,11 @@ def addedit_inf(request):
              #return HttpResponseRedirect('/project/indices.html')
        else:
           form_errors = infform.errors
-          return render_to_response ('project/inflation.html',{'infform':infform,'form.errors': form_errors,'projname':proj.projectname},context)
+          return render ('project/inflation.html',{'infform':infform,'form.errors': form_errors,'projname':proj.projectname},context)
     else:
         qset = m.InflationIndices.objects.filter(projectId=project_id)
         infform = InfFormSet(queryset=qset,prefix="infform")
-    return render_to_response ('project/inflation.html',{'infform':infform,'projname':proj.projectname},context)
+    return render ('project/inflation.html',{'infform':infform,'projname':proj.projectname},context)
 
 def restore_inf(request):
     context = RequestContext(request)
@@ -7878,9 +7876,9 @@ def addedit_geo(request):
              if count != 1: 
                 i.projectId = project_id  
                 if (i.stateIndex is None or i.stateIndex == '' or i.areaIndex is None or i.areaIndex == '') and (i.geoIndex is not None and i.geoIndex != ''):
-                   return render_to_response('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Please enter the State and Area for the Index you entered.'}, context)
+                   return render('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Please enter the State and Area for the Index you entered.'}, context)
                 elif ((i.stateIndex is not None and i.stateIndex != '') or (i.areaIndex is not None and i.areaIndex != '')) and (i.geoIndex is None or i.geoIndex == ''):
-                   return render_to_response('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Please enter the Index for the State and Area you entered.'}, context)
+                   return render('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Please enter the Index for the State and Area you entered.'}, context)
                 elif i.stateIndex == '' and i.areaIndex == '' and i.geoIndex == '':
                    m.GeographicalIndices.objects.filter(id=i.id).delete()
                    return HttpResponseRedirect('/project/indices.html')
@@ -7890,23 +7888,23 @@ def addedit_geo(request):
                    i.save()
                    upd = updateDate(project_id, None)
                 except IntegrityError as e:
-                   return render_to_response('project/geo.html',{'geoform':geoform,'projname':proj.projectname,'errtext': 'The state / area combination must be unique in Geographical Indices.'})
+                   return render('project/geo.html',{'geoform':geoform,'projname':proj.projectname,'errtext': 'The state / area combination must be unique in Geographical Indices.'})
                 except ValueError:
-                   return render_to_response('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Index must be a number.'}, context)
+                   return render('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Index must be a number.'}, context)
 
                 if i.id == oldRecId: 
                    result = calculations(project_id)
              else:
-                return render_to_response ('project/geo.html',{'geoform':geoform,'projname':proj.projectname,'errtext': 'You cannot delete the geographical index for the state and area  you selected in Project Settings.'},context)    
+                return render ('project/geo.html',{'geoform':geoform,'projname':proj.projectname,'errtext': 'You cannot delete the geographical index for the state and area  you selected in Project Settings.'},context)    
           #return HttpResponseRedirect('/project/indices.html')
        else:
           form_errors = geoform.errors
-          return render_to_response ('project/geo.html',{'geoform':geoform,'form.errors': form_errors,'projname':proj.projectname},context)
+          return render ('project/geo.html',{'geoform':geoform,'form.errors': form_errors,'projname':proj.projectname},context)
     else:
        qset = m.GeographicalIndices.objects.filter(projectId=project_id)                                                               
        geoform = GeoFormSet(queryset=qset,prefix="geoform")
 
-    return render_to_response ('project/geo.html',{'geoform':geoform,'projname':proj.projectname},context) 
+    return render ('project/geo.html',{'geoform':geoform,'projname':proj.projectname},context) 
 
 def restore_geo(request):
     context = RequestContext(request)

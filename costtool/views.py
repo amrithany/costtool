@@ -11,9 +11,10 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.forms.models import inlineformset_factory, modelformset_factory
 #from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q,Max, Min, Count
-from costtool import models as m
-from costtool.forms import ShareProjForm,DistForm,VideoForm,FileUploadForm,AboutForm, AdminForm,TransfersForm, AgenciesForm,RegisterForm,License,ForgotForm, LoginForm, PricesForm, PricesSearchForm, PriceIndicesForm, NonPerIndicesForm, WageDefaults, WageConverter,UMConverter, PriceBenefits, PriceSummary,MultipleSummary, UserForm, UserProfileForm, ProjectsForm, ProgramsForm, ProgramDescForm, ParticipantsForm, EffectForm,SettingsForm, GeographicalForm, GeographicalForm_orig, InflationForm, InflationForm_orig, IngredientsForm,IngredientsFullForm
-from costtool.functions import calculations2, calculations, updateDate, updateProj
+#from costtool import models as m
+from costtool.models import SharedProj, Distribution, About, Videos, FileUpload, About,Transfers,Agencies,Login, Benefits,Projects, Programs, ProgramDesc, ParticipantsPerYear, Effectiveness, Prices, Settings,GeographicalIndices, GeographicalIndices_orig, InflationIndices, InflationIndices_orig, Ingredients
+from costtool.forms import ShareProjForm,DistForm,VideoForm,FileUploadForm,AboutForm, AdminForm, TransfersForm, AgenciesForm,RegisterForm,License,ForgotForm, LoginForm, PricesForm, PricesSearchForm, PriceIndicesForm, NonPerIndicesForm, WageDefaults, WageConverter,UMConverter, PriceBenefits, PriceSummary,MultipleSummary, ProjectsForm, ProgramsForm, ProgramDescForm, ParticipantsForm, EffectForm,SettingsForm, GeographicalForm, GeographicalForm_orig, InflationForm, InflationForm_orig, IngredientsForm,IngredientsFullForm
+from costtool.functions import calculations, calculations2, updateDate, updateProj
 from dateutil.relativedelta import relativedelta
 from django.contrib.humanize.templatetags.humanize import intcomma
 #from django.core.mail import send_mail
@@ -23,6 +24,7 @@ from email.mime.text import MIMEText
 #from django.contrib import messages
 from datetime import *
 from django.views.decorators.cache import cache_page
+from functools import reduce
 
 import datetime, time
 import xlrd
@@ -34,6 +36,8 @@ import csv
 #import os
 #import warnings
 
+def index(request):
+    return HttpResponse("Hello, world. You're at the CostOut index.")
 def videos(request):
     videoList = []
 
@@ -54,7 +58,7 @@ def videos(request):
              form = VideoForm() # A empty, unbound form
 
           # Load documents for the list page
-          database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+          database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
           cursor = database.cursor ()
           mysql = """SELECT videoName, MAX(CONVERT_TZ(vDate,'GMT','EST')) from costtool_videos group by videoName"""
           try:
@@ -72,39 +76,39 @@ def videos(request):
           database.close()
 
           # Render list page with the documents and the form
-          return render(
+          #04142022
+          return render(request,
           'admin/videos.html',
-          {'form': form, 'videoList':videoList},
-          context_instance=RequestContext(request)
+          {'form': form, 'videoList':videoList}
           )
 
 def tour(request):
-   video = m.Videos.objects.filter(videoName = 'Full Tour').order_by('-id')[0]
+   video = Videos.objects.filter(videoName = 'Full Tour').order_by('-id')[0]
    #return HttpResponseRedirect('https://www.youtube.com/watch?v=8jIlU9Ebb8o')
    return HttpResponseRedirect(video.link)
 
 def tutorial1(request):
-   video = m.Videos.objects.filter(videoName = 'Tutorial 1').order_by('-id')[0]
+   video = Videos.objects.filter(videoName = 'Tutorial 1').order_by('-id')[0]
    #return HttpResponseRedirect('http://www.screencast.com/t/YnjycwrBj')
    return HttpResponseRedirect(video.link)
 
 def tutorial2(request):
-   video = m.Videos.objects.filter(videoName = 'Tutorial 2').order_by('-id')[0]
+   video = Videos.objects.filter(videoName = 'Tutorial 2').order_by('-id')[0]
    #return HttpResponseRedirect('http://www.screencast.com/t/DTllm2cb')
    return HttpResponseRedirect(video.link)
 
 def tutorial3(request):
-   video = m.Videos.objects.filter(videoName = 'Tutorial 3').order_by('-id')[0]
+   video = Videos.objects.filter(videoName = 'Tutorial 3').order_by('-id')[0]
    #return HttpResponseRedirect('http://www.screencast.com/t/Z1E2fyjWUB9')
    return HttpResponseRedirect(video.link)
 
 def tutorial4(request):
-   video = m.Videos.objects.filter(videoName = 'Tutorial 4').order_by('-id')[0]
+   video = Videos.objects.filter(videoName = 'Tutorial 4').order_by('-id')[0]
    #return HttpResponseRedirect('https://drive.google.com/open?id=0Bwor6cRBC4CrZHRZaEFZWXBLbkE&authuser=0')
    return HttpResponseRedirect(video.link)
 
 def tutorial5(request):
-   video = m.Videos.objects.filter(videoName = 'Tutorial 5').order_by('-id')[0]
+   video = Videos.objects.filter(videoName = 'Tutorial 5').order_by('-id')[0]
    #return HttpResponseRedirect('https://drive.google.com/open?id=0Bwor6cRBC4CrNl9WaWNFcFlCejg&authuser=0')
    return HttpResponseRedirect(video.link)
 
@@ -120,9 +124,9 @@ def upload(request):
           if request.method == 'POST':
              form = FileUploadForm(request.POST, request.FILES)
              if form.is_valid():
-                newdoc = m.FileUpload(docfile = request.FILES['docfile'])
+                newdoc = FileUpload(docfile = request.FILES['docfile'])
                 newdoc.docName = request.FILES['docfile']  
-                newdoc.docfile = '/home/amritha/costtool/documents/' + request.FILES['docfile'].name
+                newdoc.docfile = '/home/costout/costtool/documents/' + request.FILES['docfile'].name
                 handle_uploaded_file(request.FILES['docfile'], request.FILES['docfile'].name)
                 newdoc.save()
 
@@ -132,7 +136,7 @@ def upload(request):
              form = FileUploadForm() # A empty, unbound form
 
           # Load documents for the list page
-          database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+          database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
           cursor = database.cursor ()
           mysql = """SELECT docName, MAX(CONVERT_TZ(docDate,'GMT','EST')) from costtool_fileupload group by docName"""
 
@@ -151,14 +155,15 @@ def upload(request):
           database.close()
 
           # Render list page with the documents and the form
+          #  #04142022
           return render(
+              request,     
              'admin/upload.html',
-              {'form': form, 'DocList':DocList},
-              context_instance=RequestContext(request)
+              {'form': form, 'DocList':DocList}
               )
 
 def handle_uploaded_file(f, fname):
-    loc = '/home/amritha/costtool/documents/' + fname
+    loc = '/home/costout/costtool/documents/' + fname
     with open(loc, 'wb+') as destination:
         for chunk in f.chunks():
            destination.write(chunk)
@@ -177,7 +182,7 @@ def add_program(request):
             progname = programform.save(commit=False)
             progname.projectId = project_id
             progname.save()
-            upd = updateDate(project_id, None)
+            #reimaging upd = updateDate(project_id, None)
             return HttpResponseRedirect('/project/programs/'+project_id+'/program_list.html')
         else:
             print(programform.errors)
@@ -197,20 +202,21 @@ def indices(request):
        project_id = 0
     return render(request,'project/indices.html',{'project_id':project_id})
 
-'''def about2(request):
+def about2(request):
     #if 'user' in request.session:
         #del request.session['user']
     #if 'password' in request.session:
        #del request.session['password']
-    template = loader.get_template('about.html')
-    about = m.About.objects.get(id = 1)
+    about = About.objects.get(id = 1)
+    '''template = loader.get_template('about.html')
     context = Context({'web':about.web, 'email':about.email})
-    return HttpResponse(template.render(context))
-'''
+    return HttpResponse(template.render(context))'''
+    return render(request,'about.html',{'web':about.web, 'email':about.email})
+
 def about(request):                                                                                                                       
-    about = m.About.objects.get(id = 1)
+    #about = About.objects.get(id = 1)
     #return HttpResponse("Hello, world. You're at the costout about page.")
-    return render(request, 'about.html', {'web':about.web, 'email':about.email})
+    return render(request, 'about.html')
 
 def contact(request):
     context = RequestContext(request)
@@ -220,15 +226,16 @@ def contact(request):
        if request.session['user'] != 'Demo admin':
           return render(request,'prices/message.html')                                                                                   
        else: 
-          arec = m.About.objects.get(id = 1)
+          arec = About.objects.get(id = 1)
           if request.method == 'POST':
              aboutform = AboutForm(request.POST)
              if aboutform.is_valid():
                 a = aboutform.save(commit=False)
                 if a.web == '' and a.email == '' and a.sendemail == '':
-                   return render('admin/contact.html',{'aboutform':aboutform,'err':'Enter Web, Email and/or Password to Save'}, context)
+                    #04142022 
+                   return render(request, 'admin/contact.html',{'aboutform':aboutform,'err':'Enter Web, Email and/or Password to Save'})
                 elif a.web != '' and a.web[:4] != 'www.':
-                   return render('admin/contact.html',{'aboutform':aboutform,'err':'The first four letters should be www.'}, context)
+                   return render(request, 'admin/contact.html',{'aboutform':aboutform,'err':'The first four letters should be www.'})
                 if a.web != '' and a.email != '' and a.sendemail != '':
                    arec.web = a.web
                    arec.email = a.email
@@ -248,10 +255,10 @@ def contact(request):
                 print(aboutform.errors)
           else:
              aboutform = AboutForm()
-
-          return render(
+           #04142022 
+          return render(request,
             'admin/contact.html',
-            {'aboutform': aboutform}, context)
+            {'aboutform': aboutform})
 
 def logout(request):
     if 'user' in request.session:
@@ -273,13 +280,13 @@ def prices(request):
     else:
        loggedinuser = 'ccc'
     try:
-       login = m.Login.objects.filter(user=loggedinuser).latest('startDate')
+       login = Login.objects.filter(user=loggedinuser).latest('startDate')
        return render(request,'prices/prices.html')
     except ObjectDoesNotExist:
        return render(request,'prices/message.html')
 
 def reports(request,project_id):                                                                                                                 
-    project = m.Projects.objects.get(pk=project_id)
+    project = Projects.objects.get(pk=project_id)
     request.session['project_id'] = project_id
     if project.typeanalysis == 'Cost-Effectiveness Analysis':
        return render(request,'reports/reports_eff.html', {'project_id':project_id})
@@ -296,11 +303,11 @@ def noofreg(request):
        if request.session['user'] != 'Demo admin':
           return render(request,'prices/message.html')                                                                                   
        else:
-           #f = open( '/home/amritha/costtool/documents/filename.txt', 'w+' )
-           for l in  m.Login.objects.all():
+           #f = open( '/home/costout/costtool/documents/filename.txt', 'w+' )
+           for l in  Login.objects.all():
               ret = {}
               count = 0
-              for l2 in m.Login.objects.filter(startDate = l.startDate):
+              for l2 in Login.objects.filter(startDate = l.startDate):
                  count = count + 1
               if prevDate != l.startDate:
                  ret['startdate'] = time.mktime(l.startDate.timetuple()) * 1000
@@ -316,15 +323,15 @@ def cumulreg(request):
        if request.session['user'] != 'Demo admin':
           return render(request,'prices/message.html')                                                                                   
        else:
-          #f = open( '/home/amritha/costtool/documents/filename.txt', 'w+' ) 
+          #f = open( '/home/costout/costtool/documents/filename.txt', 'w+' ) 
           RegList = []
           firstDate = datetime.date(2015, 5, 17)
           fifteenth = datetime.date(2015, 5, 17) + timedelta(days=15)
-          latest = m.Login.objects.latest('startDate')
+          latest = Login.objects.latest('startDate')
           count = 0
           while fifteenth < latest.startDate + timedelta(days=15):
              ret = {}
-             for l in m.Login.objects.filter(startDate__gte=firstDate,startDate__lt=fifteenth):
+             for l in Login.objects.filter(startDate__gte=firstDate,startDate__lt=fifteenth):
                 count = count + 1
              ret['startdate'] = time.mktime(fifteenth.timetuple()) * 1000
              ret['countondate'] = count
@@ -338,13 +345,13 @@ def costeff(request):
        project_id = request.session['project_id']                                                                                                                                                                
     else:
        project_id = 0
-    project = m.Projects.objects.get(pk=project_id)
+    project = Projects.objects.get(pk=project_id)
     ProgList = []
-    program = m.Programs.objects.filter(projectId=project_id)
+    program = Programs.objects.filter(projectId=project_id)
     for p in program:
        ret = {}
        try:
-          programdesc = m.ProgramDesc.objects.get(programId_id=p.id)
+          programdesc = ProgramDesc.objects.get(programId=p.id)
           ret['lengthofprogram'] = programdesc.numberofyears
           ret['num_participants'] = programdesc.numberofparticipants
        except:
@@ -352,7 +359,7 @@ def costeff(request):
           ret['num_participants'] = 'n/a'
 
        try:
-          eff = m.Effectiveness.objects.get(programId_id = p.id)
+          eff = Effectiveness.objects.get(programId = p.id)
           ret['average_effect'] = eff.avgeffectperparticipant
           ret['unitmeasureeffect'] = eff.unitmeasureeffect
           ret['sigeffect'] = eff.sigeffect
@@ -362,7 +369,7 @@ def costeff(request):
           ret['sigeffect'] = 'n/a'
 
        try:
-          ingredients = m.Ingredients.objects.filter(programId = p.id)
+          ingredients = Ingredients.objects.filter(programId = p.id)
           ret['average_cost'] = ingredients[0].averageCost
           ret['total_cost'] = ingredients[0].totalCost
           ret['effRatio'] =  ingredients[0].effRatio
@@ -373,7 +380,7 @@ def costeff(request):
 
        ret['short_name'] = p.progshortname
 
-       database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+       database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
        cursor = database.cursor ()
        sql = """SELECT MAX(ABS(averageCost)) FROM costtool_ingredients WHERE programId IN (SELECT id FROM costtool_programs WHERE projectid = %(projectId)s)"""
        try:
@@ -385,7 +392,7 @@ def costeff(request):
           ret['Max'] = 'n/a'
 
        cursor3 = database.cursor ()
-       sql3 = """SELECT MAX(ABS(avgeffectperparticipant)) FROM costtool_effectiveness WHERE programId_id IN (SELECT id FROM costtool_programs WHERE projectid = %(projectId)s)"""
+       sql3 = """SELECT MAX(ABS(avgeffectperparticipant)) FROM costtool_effectiveness WHERE programId IN (SELECT id FROM costtool_programs WHERE projectid = %(projectId)s)"""
        try:
           cursor3.execute(sql3,{'projectId' : project_id})
           row3 = cursor3.fetchone()
@@ -402,13 +409,13 @@ def costeff_table(request):
        project_id = request.session['project_id']                                                                                                                                                                
     else:
        project_id = 0
-    project = m.Projects.objects.get(pk=project_id)
+    project = Projects.objects.get(pk=project_id)
     ProgList = []
-    program = m.Programs.objects.filter(projectId=project_id)
+    program = Programs.objects.filter(projectId=project_id)
     for p in program:
        ret = {}
        try:
-          programdesc = m.ProgramDesc.objects.get(programId_id=p.id)
+          programdesc = ProgramDesc.objects.get(programId=p.id)
           if programdesc.lengthofprogram == 'One year or less':
              ret['lengthofprogram'] = programdesc.lengthofprogram
           else:
@@ -419,7 +426,7 @@ def costeff_table(request):
           ret['num_participants'] = 'n/a'
 
        try:
-          eff = m.Effectiveness.objects.get(programId_id = p.id)
+          eff = Effectiveness.objects.get(programId = p.id)
           if eff.avgeffectperparticipant is None or eff.avgeffectperparticipant == '':
              ret['average_effect'] = 'n/a'
           else:   
@@ -434,7 +441,7 @@ def costeff_table(request):
           ret['unitmeasureeffect'] = 'n/a'
           ret['sigeffect'] = 'n/a'
        try:
-          ingredients = m.Ingredients.objects.filter(programId = p.id)
+          ingredients = Ingredients.objects.filter(programId = p.id)
           avgcost = str(intcomma(round(float(ingredients[0].averageCost),2)))
           if ingredients[0].effRatio == 'NULL' or ingredients[0].effRatio is None:
              ret['effRatio'] = 'None'
@@ -443,9 +450,12 @@ def costeff_table(request):
           ret['average_cost'] = avgcost
           ret['total_cost'] = ingredients[0].totalCost
           if ingredients[0].averageCost >= 0:
+             #uncommented in Apr 2022   
+             #ret['greater'] = 0 
              ret['greater'] = ''.join(('Compared to BAU, you will be spending $', avgcost, ' per participant in order to obtain this effect: ', ret['average_effect'], '.'))
           else:
-              ret['greater'] = ''.join(('Compared to BAU, you will be saving $', avgcost, ' per participant in order to obtain this effect: ', ret['average_effect'], '.'))
+             #ret['greater'] = 0    
+             ret['greater'] = ''.join(('Compared to BAU, you will be saving $', avgcost, ' per participant in order to obtain this effect: ', ret['average_effect'], '.'))
        except:
           ret['average_cost'] = 0
           ret['total_cost'] = 0
@@ -465,14 +475,14 @@ def export_cea(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
        projectId = 0 
 
-    project = m.Projects.objects.get(pk = projectId)
-    sett = m.Settings.objects.get(projectId = projectId)
+    project = Projects.objects.get(pk = projectId)
+    sett = Settings.objects.get(projectId = projectId)
     #Heading of tables
     a = xlwt.Alignment()
     a.wrap = True
@@ -591,7 +601,7 @@ def export_cea(request):
     ws.write(5, 4, "", font_style4)
 
     cursor = database.cursor ()
-    sql = """SELECT DISTINCT p.progname, if(pp.lengthofprogram = 'One year or less',pp.lengthofprogram, pp.numberofyears), e.avgeffectperparticipant, e.unitmeasureeffect, e.sigeffect, i.totalCost, pp.numberofparticipants, i.averagecost, i.effRatio, case when i.averagecost >= 0 then concat('Compared to BAU, you will be spending $',FORMAT(CONVERT(i.averagecost, DECIMAL(10,2)),2),' per participant in order to obtain this effect: ', e.avgeffectperparticipant, '.') else concat('Compared to BAU, you will be saving $', FORMAT(CONVERT(i.averagecost, DECIMAL(10,2)),2), ' per participant in order to obtain this effect: ', e.avgeffectperparticipant, '.') end as interpret from costtool_programs p Left join costtool_programdesc pp On p.id = pp.programId_id Left join costtool_effectiveness e On p.id = e.programId_id Left join costtool_ingredients i On p.id = i.programId Where p.projectid = %(projectId)s"""
+    sql = """SELECT DISTINCT p.progname, if(pp.lengthofprogram = 'One year or less',pp.lengthofprogram, pp.numberofyears), e.avgeffectperparticipant, e.unitmeasureeffect, e.sigeffect, i.totalCost, pp.numberofparticipants, i.averagecost, i.effRatio, case when i.averagecost >= 0 then concat('Compared to BAU, you will be spending $',FORMAT(CONVERT(i.averagecost, DECIMAL(10,2)),2),' per participant in order to obtain this effect: ', e.avgeffectperparticipant, '.') else concat('Compared to BAU, you will be saving $', FORMAT(CONVERT(i.averagecost, DECIMAL(10,2)),2), ' per participant in order to obtain this effect: ', e.avgeffectperparticipant, '.') end as interpret from costtool_programs p Left join costtool_programdesc pp On p.id = pp.programId Left join costtool_effectiveness e On p.id = e.programId  Left join costtool_ingredients i On p.id = i.programId Where p.projectid = %(projectId)s"""
 
     row_num = 8
 
@@ -612,7 +622,7 @@ def export_cea(request):
        cursor.execute(sql,{'projectId' : projectId})
        results = cursor.fetchall()
        if results != ():
-          for col_num in xrange(len(columns)):
+          for col_num in range(len(columns)):
              ws.write(row_num, col_num, columns[col_num][0], font_style)
              # set column width
              ws.col(col_num).width = columns[col_num][1]
@@ -629,7 +639,7 @@ def export_cea(request):
           averagecost = row[7]
           effRatio = row[8]
           interpret = row[9]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row_num % 2 == 0:
                 if col_num == 5 or  col_num == 7 or  col_num == 8:
                    ws.write(row_num, col_num, row[col_num], money_xf_22)
@@ -659,13 +669,13 @@ def ca_table(request):
     else:
        project_id = 0
 
-    project = m.Projects.objects.get(pk=project_id)
+    project = Projects.objects.get(pk=project_id)
     ProgList = []
-    program = m.Programs.objects.filter(projectId=project_id)
+    program = Programs.objects.filter(projectId=project_id)
     for p in program:
        ret = {}
        try:
-          programdesc = m.ProgramDesc.objects.get(programId_id=p.id)
+          programdesc = ProgramDesc.objects.get(programId=p.id)
           if programdesc.lengthofprogram == 'One year or less':
              ret['lengthofprogram'] = programdesc.lengthofprogram
           else:
@@ -676,7 +686,7 @@ def ca_table(request):
           ret['num_participants'] = 'n/a'
 
        try:
-          ingredients = m.Ingredients.objects.filter(programId = p.id)
+          ingredients = Ingredients.objects.filter(programId = p.id)
           avgcost = str(intcomma(round(float(ingredients[0].averageCost),2)))
           ret['average_cost'] = avgcost
           ret['total_cost'] = ingredients[0].totalCost
@@ -697,14 +707,14 @@ def export_ca(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool") 
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default") 
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
        projectId = 0
 
-    project = m.Projects.objects.get(pk = projectId)
-    sett = m.Settings.objects.get(projectId = projectId)
+    project = Projects.objects.get(pk = projectId)
+    sett = Settings.objects.get(projectId = projectId)
     #Heading of tables
     a = xlwt.Alignment()
     a.wrap = True
@@ -823,7 +833,7 @@ def export_ca(request):
     ws.write(5, 4, "", font_style4)
 
     cursor = database.cursor ()
-    sql = """SELECT DISTINCT p.progname, if(pp.lengthofprogram = 'One year or less',pp.lengthofprogram, pp.numberofyears), i.totalCost, pp.numberofparticipants, i.averagecost from costtool_programs p Left join costtool_programdesc pp On p.id = pp.programId_id Left join costtool_ingredients i On p.id = i.programId Where p.projectid = %(projectId)s """
+    sql = """SELECT DISTINCT p.progname, if(pp.lengthofprogram = 'One year or less',pp.lengthofprogram, pp.numberofyears), i.totalCost, pp.numberofparticipants, i.averagecost from costtool_programs p Left join costtool_programdesc pp On p.id = pp.programId Left join costtool_ingredients i On p.id = i.programId Where p.projectid = %(projectId)s """
     row_num = 8
 
     columns = [
@@ -838,7 +848,7 @@ def export_ca(request):
        cursor.execute(sql,{'projectId' : projectId})
        results = cursor.fetchall()
        if results != ():
-          for col_num in xrange(len(columns)):
+          for col_num in range(len(columns)):
              ws.write(row_num, col_num, columns[col_num][0], font_style)
              # set column width
              ws.col(col_num).width = columns[col_num][1]
@@ -850,7 +860,7 @@ def export_ca(request):
           totalCost = row[2]
           numberofparticipants = row[3]
           averagecost = row[4]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row_num % 2 == 0:
                 if col_num == 2 or  col_num == 4:
                    ws.write(row_num, col_num, row[col_num], money_xf_22)
@@ -885,15 +895,15 @@ def compcostanal(request):
       project_id = request.session['project_id']                                                                                                                                                                
    else:
       project_id = 0
-   project = m.Projects.objects.get(pk=project_id)
+   project = Projects.objects.get(pk=project_id)
    ProgList = []
    MaxTotal = []
    try:
-      program = m.Programs.objects.filter(projectId=project_id)
+      program = Programs.objects.filter(projectId=project_id)
       for p in program:
          ret = {}
          fixtot = 0
-         for i in m.Ingredients.objects.filter(programId = p.id).filter(variableFixed = 'Fixed'):
+         for i in Ingredients.objects.filter(programId = p.id).filter(variableFixed = 'Fixed'):
             if i.costPerIngredient is not None:
                fixtot = fixtot + i.costPerIngredient
             else:
@@ -901,7 +911,7 @@ def compcostanal(request):
          ret['fixtot'] = fixtot
 
          ltot = 0
-         for i in m.Ingredients.objects.filter(programId = p.id).filter(variableFixed = 'Lumpy'):
+         for i in Ingredients.objects.filter(programId = p.id).filter(variableFixed = 'Lumpy'):
             if i.costPerIngredient is not None:
                ltot = ltot + i.costPerIngredient
             else:
@@ -909,7 +919,7 @@ def compcostanal(request):
          ret['ltot'] = ltot
 
          vartot = 0
-         for i in m.Ingredients.objects.filter(programId = p.id).filter(variableFixed = 'Variable'):
+         for i in Ingredients.objects.filter(programId = p.id).filter(variableFixed = 'Variable'):
             if i.costPerIngredient is not None:
                vartot = vartot + i.costPerIngredient
             else:
@@ -917,7 +927,7 @@ def compcostanal(request):
          ret['vartot'] = vartot
 
          pertot = 0
-         for i in m.Ingredients.objects.filter(programId = p.id).filter(category = 'Personnel'):
+         for i in Ingredients.objects.filter(programId = p.id).filter(category = 'Personnel'):
             if i.costPerIngredient is not None:
                pertot = pertot + i.costPerIngredient
             else:
@@ -925,7 +935,7 @@ def compcostanal(request):
          ret['pertot'] = pertot
 
          mattot = 0
-         for i in m.Ingredients.objects.filter(programId = p.id).filter(category = 'Material/Equipment'):
+         for i in Ingredients.objects.filter(programId = p.id).filter(category = 'Material/Equipment'):
             if i.costPerIngredient is not None:
                mattot = mattot + i.costPerIngredient
             else:
@@ -933,7 +943,7 @@ def compcostanal(request):
          ret['mattot'] = mattot
 
          factot = 0
-         for i in m.Ingredients.objects.filter(programId = p.id).filter(category = 'Facilities'):
+         for i in Ingredients.objects.filter(programId = p.id).filter(category = 'Facilities'):
             if i.costPerIngredient is not None:
                factot = factot + i.costPerIngredient
             else:
@@ -941,14 +951,14 @@ def compcostanal(request):
          ret['factot'] = factot
 
          inptot = 0
-         for i in m.Ingredients.objects.filter(programId = p.id).filter(category = 'Other Inputs'):
+         for i in Ingredients.objects.filter(programId = p.id).filter(category = 'Other Inputs'):
             if i.costPerIngredient is not None:
                inptot = inptot + i.costPerIngredient
             else:
                inptot = inptot
          ret['inptot'] = inptot
 
-         ingredients = m.Ingredients.objects.filter(programId = p.id)
+         ingredients = Ingredients.objects.filter(programId = p.id)
          try:
             ret['total_cost'] = ingredients[0].totalCost
             ret['avg_cost'] = ingredients[0].averageCost
@@ -958,7 +968,7 @@ def compcostanal(request):
 
          ret['short_name'] = p.progshortname
 
-         database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+         database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
          cursor = database.cursor ()
          sql = """SELECT MAX(totalCost) FROM costtool_ingredients WHERE programId IN (SELECT id FROM costtool_programs WHERE projectid = %(projectId)s)"""
          try:
@@ -1145,8 +1155,8 @@ def proj_table(request):
           return render(request,'prices/message.html')                                                                                   
        else: 
            try:
-              project = m.Projects.objects.filter(created_at__gte = datetime.date(2015, 9, 1))
-              proj = m.Projects.objects.filter(user = 'Demo admin')
+              project = Projects.objects.filter(created_at__gte = datetime.date(2015, 9, 1))
+              proj = Projects.objects.filter(user = 'Demo admin')
               for pp in proj:
                  demoList.append(pp.projectname)
               for p in project:
@@ -1161,7 +1171,7 @@ def proj_table(request):
                       peff = peff + 1
                    ret['user'] = p.user
                    ret['created_at'] = p.created_at
-                   prog = prog + m.Programs.objects.filter(projectId = p.id).count()
+                   prog = prog + Programs.objects.filter(projectId = p.id).count()
  
                    ProjList.append(ret)
            except ObjectDoesNotExist:
@@ -1173,7 +1183,7 @@ def users_table(request):
     demoList = []
     prcount = 0
     logincount = 0
-    #f = open( '/home/amritha/costtool/documents/filename.txt', 'w+' )
+    #f = open( '/home/costout/costtool/documents/filename.txt', 'w+' )
     if 'user' not in request.session: 
        return render(request,'prices/message.html')
     else:
@@ -1181,15 +1191,15 @@ def users_table(request):
           return render(request,'prices/message.html')
        else: 
           try:
-             proj = m.Projects.objects.filter(user = 'Demo admin')
+             proj = Projects.objects.filter(user = 'Demo admin')
              for pp in proj:
                 demoList.append(pp.projectname)
           except ObjectDoesNotExist:
              print('Projects do not exist!')
 
           try:
-             pricesm = m.Prices.objects.exclude(priceProvider = 'cbcse')
-             prices = m.Prices.objects.filter(priceProvider = 'Demo admin')
+             pricesm = Prices.objects.exclude(priceProvider = 'cbcse')
+             prices = Prices.objects.filter(priceProvider = 'Demo admin')
              for pp in prices:
                 demoList.append(pp.ingredient)
              for p in pricesm:
@@ -1203,8 +1213,8 @@ def users_table(request):
              print('Prices do not exist!')
        #f.close()
           try:
-             users = m.Login.objects.all()
-             uscount = m.Login.objects.all().count() 
+             users = Login.objects.all()
+             uscount = Login.objects.all().count() 
              for u in users:
                 #f.write(str(u.startDate)) 
                 ret = {}
@@ -1234,7 +1244,7 @@ def users_table(request):
                    logincount = logincount + int(u.timesLoggedin)
 
                 projcount = 0
-                for proj in m.Projects.objects.filter(user = u.user).filter(created_at__gte = datetime.date(2015, 9, 1)):
+                for proj in Projects.objects.filter(user = u.user).filter(created_at__gte = datetime.date(2015, 9, 1)):
                    if proj.projectname not in demoList:
                      projcount = projcount + 1
                 ret['projcount'] = projcount
@@ -1256,10 +1266,10 @@ def export_proj(request):
     prog = 0
     demoList = []
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     try:
-       project = m.Projects.objects.filter(created_at__gte = datetime.date(2015, 9, 1))
-       proj = m.Projects.objects.filter(user = 'Demo admin')
+       project = Projects.objects.filter(created_at__gte = datetime.date(2015, 9, 1))
+       proj = Projects.objects.filter(user = 'Demo admin')
        for pp in proj:
           demoList.append(pp.projectname)
        for p in project:
@@ -1269,7 +1279,7 @@ def export_proj(request):
                 panal = panal + 1
              else:
                 peff = peff + 1
-             prog = prog + m.Programs.objects.filter(projectId = p.id).count() 
+             prog = prog + Programs.objects.filter(projectId = p.id).count() 
     except ObjectDoesNotExist:
        return HttpResponse('Projects do not exist! Cannot proceed further.')
 
@@ -1347,7 +1357,7 @@ def export_proj(request):
        cursor.execute(sql)
        results = cursor.fetchall()
        if results != ():
-          for col_num in xrange(len(columns)):
+          for col_num in range(len(columns)):
              ws.write(row_num, col_num, columns[col_num][0], font_style)
              # set column width
              ws.col(col_num).width = columns[col_num][1]
@@ -1359,7 +1369,7 @@ def export_proj(request):
           typeanalysis = row[2]
           user = row[3]
           created_at = row[4]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if col_num == 4:
                 ws.write(row_num, col_num, row[col_num],date_style4)
              else:
@@ -1379,7 +1389,7 @@ def export_users(request):
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet("Users")
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
  
     #Heading of tables
     a = xlwt.Alignment()
@@ -1428,8 +1438,8 @@ def export_users(request):
     logincount = 0
 
     try:
-       pricesm = m.Prices.objects.exclude(priceProvider = 'cbcse')
-       prices = m.Prices.objects.filter(priceProvider = 'Demo admin')
+       pricesm = Prices.objects.exclude(priceProvider = 'cbcse')
+       prices = Prices.objects.filter(priceProvider = 'Demo admin')
        for pp in prices:
           demoList.append(pp.ingredient)
        for p in pricesm:
@@ -1439,13 +1449,13 @@ def export_users(request):
        print('Prices do not exist!')
 
     try:
-       for u in m.Login.objects.all():
+       for u in Login.objects.all():
           if u.timesLoggedin is not None:
              logincount = logincount + int(u.timesLoggedin)
     except ObjectDoesNotExist:
        print('Users do not exist!') 
 
-    uscount = m.Login.objects.all().count()
+    uscount = Login.objects.all().count()
     
     ws.write(0, 0, "Number of Users:", font_style5)
     ws.write(0, 1, "", font_style5)
@@ -1497,7 +1507,7 @@ def export_users(request):
        cursor.execute(sql)
        results = cursor.fetchall()
        if results != ():
-          for col_num in xrange(len(columns)):
+          for col_num in range(len(columns)):
              ws.write(row_num, col_num, columns[col_num][0], font_style)
              # set column width
              ws.col(col_num).width = columns[col_num][1]
@@ -1527,7 +1537,7 @@ def export_users(request):
           lastLogin = row[20]
           timesLoggedin = row[21]
           projcount = row[22]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
               if col_num == 18 or col_num == 19 or col_num == 20:
                 ws.write(row_num, col_num, row[col_num],date_style4)
               else:
@@ -1543,51 +1553,51 @@ def export_users(request):
 
 def del_user(request, user_id):
     context = RequestContext(request)
-    user = m.Login.objects.get(pk=user_id)
+    user = Login.objects.get(pk=user_id)
 
-    for pr in m.Projects.objects.filter(user = user.user):
-       for p in m.Programs.objects.filter(projectId = pr.id):
+    for pr in Projects.objects.filter(user = user.user):
+       for p in Programs.objects.filter(projectId = pr.id):
           try:
-             m.Distribution.objects.filter(programId=p.id).delete()
+             Distribution.objects.filter(programId=p.id).delete()
           except ObjectDoesNotExist:
              print('distribution do not exist')
 
           try:
-             m.Agencies.objects.filter(programId=p.id).delete()
+             Agencies.objects.filter(programId=p.id).delete()
           except ObjectDoesNotExist:
              print('agencies do not exist')
 
           try:
-             m.Transfers.objects.filter(programId=p.id).delete()
+             Transfers.objects.filter(programId=p.id).delete()
           except ObjectDoesNotExist:
              print('transfers do not exist')
 
           try:
-             m.Ingredients.objects.filter(programId=p.id).delete()
+             Ingredients.objects.filter(programId=p.id).delete()
           except ObjectDoesNotExist:
              print('ingredients do not exist')
 
           try:
-             m.Effectiveness.objects.get(programId_id = p.id).delete()
+             Effectiveness.objects.get(programId = p.id).delete()
           except ObjectDoesNotExist:
              print('effectiveness does not exist')
 
           try:
-             progdesc = m.ProgramDesc.objects.get(programId_id = p.id)
-             m.ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
-             m.ProgramDesc.objects.get(programId_id = p.id).delete()
+             progdesc = ProgramDesc.objects.get(programId = p.id)
+             ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
+             ProgramDesc.objects.get(programId = p.id).delete()
           except ObjectDoesNotExist:
              print('program desc does not exist')
 
-          m.Programs.objects.get(pk = p.id).delete()
+          Programs.objects.get(pk = p.id).delete()
 
-       m.InflationIndices.objects.filter(projectId=pr.id).delete()
-       m.GeographicalIndices.objects.filter(projectId=pr.id).delete()
-       m.Settings.objects.get(projectId=pr.id).delete()
-       m.Projects.objects.get(pk=pr.id).delete()
+       InflationIndices.objects.filter(projectId=pr.id).delete()
+       GeographicalIndices.objects.filter(projectId=pr.id).delete()
+       Settings.objects.get(projectId=pr.id).delete()
+       Projects.objects.get(pk=pr.id).delete()
 
-    m.Prices.objects.filter(priceProvider = user.user).delete()   
-    m.Login.objects.get(pk=user_id).delete()
+    Prices.objects.filter(priceProvider = user.user).delete()   
+    Login.objects.get(pk=user_id).delete()
     return HttpResponseRedirect('/reports/users_table.html')
 
 def login(request):
@@ -1604,10 +1614,11 @@ def login(request):
          request.session['user'] = login.user
          request.session['password'] = login.password
          try:
-            login2 = m.Login.objects.filter(user=login.user).latest('startDate')
+            login2 = Login.objects.filter(user=login.user).latest('startDate')
             if login.password == login2.password:
                if login2.user not in ('Additional projects', 'Demo admin', 'cbcse', 'teaching account') and login2.endDate <= date.today():
-                  return render('login/login.html',{'loginform': loginform, 'err': 'Your license agreement has expired.  Please re-register from the Home page. If you wish to continue using your existing account, re-register with the same User name. You may change your password and any other information that needs updating.'}, context)
+                   #04142022 
+                  return render(request,'login/login.html',{'loginform': loginform, 'err': 'Your license agreement has expired.  Please re-register from the Home page. If you wish to continue using your existing account, re-register with the same User name. You may change your password and any other information that needs updating.'})
                else: 
                   login2.lastLogin = datetime.datetime.now()
                   if login2.timesLoggedin is None:
@@ -1617,9 +1628,10 @@ def login(request):
                   login2.save(update_fields=['lastLogin', 'timesLoggedin']) 
                   return HttpResponseRedirect('/project/project_list.html')
             else:
-               return render('login/login.html',{'loginform': loginform, 'err': 'Invalid user or password'}, context)
+                #04142022 
+               return render(request, 'login/login.html',{'loginform': loginform, 'err': 'Invalid user or password'})
          except ObjectDoesNotExist:
-            return render('login/login.html',{'loginform': loginform, 'err': 'Invalid user or password'}, context)
+            return render(request,'login/login.html',{'loginform': loginform, 'err': 'Invalid user or password'})
  
       else:
          form_errors = 'Yes'
@@ -1627,7 +1639,7 @@ def login(request):
    else:
       loginform = LoginForm()
 
-   return render('login/login.html',{'loginform': loginform}, context)
+   return render(request, 'login/login.html',{'loginform': loginform})
 
 def myaccount(request):
     context = RequestContext(request)
@@ -1636,32 +1648,37 @@ def myaccount(request):
     else:
        loggedinuser = 'ccc'
     try:
-       login = m.Login.objects.filter(user=loggedinuser).latest('startDate')
+       login = Login.objects.filter(user=loggedinuser).latest('startDate')
        if request.method == 'POST':
           adminform = AdminForm(request.POST)
           if adminform.is_valid():
              a = adminform.save(commit=False)
              if a.oldemail  == '' and a.email == '' and a.emailagain == '' and a.oldpassword  == '' and a.password == '' and a.passwordagain == '':
-                return render('admin/myaccount.html',{'adminform':adminform,'err':'Enter either the email or the password to Save'}, context)
+                 #04142022 
+                return render(request, 'admin/myaccount.html',{'adminform':adminform,'err':'Enter either the email or the password to Save'})
              else:
                 if a.oldemail != '' or a.email != '' or a.emailagain != '':
                    try:
-                      l = m.Login.objects.filter(user=loggedinuser, email=a.oldemail).latest('startDate')
+                      l = Login.objects.filter(user=loggedinuser, email=a.oldemail).latest('startDate')
                       if (a.oldemail is not None and (a.email == '' or a.emailagain == '')) or (a.email is not None and (a.oldemail == '' or a.emailagain == '')) or (a.emailagain is not None and (a.email == '' or a.oldemail == '')):
-                         return render('admin/myaccount.html',{'adminform':adminform,'err':'Enter the old email, new email and new email again to Save'}, context)
+                          #04142022 
+                         return render(request, 'admin/myaccount.html',{'adminform':adminform,'err':'Enter the old email, new email and new email again to Save'})
                       elif a.email != a.emailagain:
-                         return render('admin/myaccount.html',{'adminform':adminform,'err':'The new email does not match the email entered again'}, context)
+                          #04142022 
+                         return render(request, 'admin/myaccount.html',{'adminform':adminform,'err':'The new email does not match the email entered again'})
                    except:
-                      return render('admin/myaccount.html',{'adminform':adminform,'err':'The old email you have entered does not match the email we have in our records. '}, context)
+                       #04142022 
+                      return render(request, 'admin/myaccount.html',{'adminform':adminform,'err':'The old email you have entered does not match the email we have in our records. '})
                 else:
                    try:
-                      p = m.Login.objects.filter(user=loggedinuser, password=a.oldpassword).latest('startDate')
+                      p = Login.objects.filter(user=loggedinuser, password=a.oldpassword).latest('startDate')
                       if (a.oldpassword is not None and (a.password == '' or a.passwordagain == '')) or (a.password is not None and (a.oldpassword == '' or a.passwordagain == '')) or (a.passwordagain is not None and (a.password == '' or a.oldpassword == '')):
-                         return render('admin/myaccount.html',{'adminform':adminform,'err':'Enter the old password, new password and new password again to Save'}, context)
+                          #04142022 
+                         return render(request, 'admin/myaccount.html',{'adminform':adminform,'err':'Enter the old password, new password and new password again to Save'})
                       elif a.password != a.passwordagain:
-                         return render('admin/myaccount.html',{'adminform':adminform,'err':'The new password does not match the password entered again'}, context)
+                         return render(request, 'admin/myaccount.html',{'adminform':adminform,'err':'The new password does not match the password entered again'})
                    except:
-                      return render('admin/myaccount.html',{'adminform':adminform,'err':'The old password you have entered does not match the password we have in our records. '}, context)
+                      return render(request, 'admin/myaccount.html',{'adminform':adminform,'err':'The old password you have entered does not match the password we have in our records. '})
                 if a.email != '' and a.password != '':
                    l.email = a.email
                    l.password = a.password
@@ -1680,9 +1697,9 @@ def myaccount(request):
        else:
           adminform = AdminForm()
 
-       return render(
+       return render(request,
             'admin/myaccount.html',
-            {'adminform': adminform}, context)
+            {'adminform': adminform})
     except ObjectDoesNotExist:
        return render(request,'prices/message.html')
 
@@ -1694,9 +1711,10 @@ def forgot(request):
        registerform = ForgotForm(request.POST)
        if registerform.is_valid():
           register = registerform.save(commit=False)
-          r2 = m.Login.objects.filter(email = register.email)
+          r2 = Login.objects.filter(email = register.email)
           if len(r2) == 0:
-             return render('login/forgot.html',{'registerform':registerform,'err':'The email address you have entered does not match what we have in our records. Please enter again.'}, context)
+              #04142022 
+             return render(request, 'login/forgot.html',{'registerform':registerform,'err':'The email address you have entered does not match what we have in our records. Please enter again.'})
           for r in r2:
              today = date.today()
              if r.endDate > today:
@@ -1730,27 +1748,27 @@ def forgot(request):
                    smtp = smtplib.SMTP('smtp.gmail.com:587')
                    smtp.ehlo()
                    smtp.starttls()
-                   about = m.About.objects.get(id = 1)
+                   about = About.objects.get(id = 1)
                    smtp.login('cbcsecosttoolkit@gmail.com', about.sendemail)
                    #smtp.login('fmh7@tc.columbia.edu', about.sendemail)
                    smtp.sendmail(strFrom, strTo, msgRoot.as_string())
                    smtp.quit()
                 #changed   
                 except:
-                   return render('login/forgot.html',{'registerform':registerform,'err':str(error)}, context) 
+                   return render(request, 'login/forgot.html',{'registerform':registerform,'err':'Unable to send email'}) 
              #else:
                  #mesg = 'Your license agreement has expired.  Please re-register from the Home page.'
                  #return render('login/forgot.html',{'registerform':registerform,'err':mesg}, context)  
           return HttpResponseRedirect('/login/login.html')
        else:
              print(registerform.errors)
-             return render('login/forgot.html',{'registerform':registerform,'err':registerform.errors}, context)
+             return render(request, 'login/forgot.html',{'registerform':registerform,'err':registerform.errors})
     else:
        registerform = ForgotForm()
 
-    return render(
+    return render(request,
             'login/forgot.html',
-            {'registerform': registerform}, context)
+            {'registerform': registerform})
 
 def register(request):
    context = RequestContext(request)
@@ -1759,15 +1777,16 @@ def register(request):
       if registerform.is_valid():
          register = registerform.save(commit=False)
          try:
-            login = m.Login.objects.filter(user=register.user).latest('startDate')
+            login = Login.objects.filter(user=register.user).latest('startDate')
             if login.endDate > date.today():
-               return render('register/register.html',{'registerform': registerform, 'err': 'The User Name you have entered already exists. Please select another one.'}, context)  
+                #04142022 
+               return render(request, 'register/register.html',{'registerform': registerform, 'err': 'The User Name you have entered already exists. Please select another one.'})  
          except ObjectDoesNotExist:
             print ('xyz')   
          if register.password != register.passwordagain:                                                                              
-            return render('register/register.html',{'registerform': registerform, 'err': 'The password does not match the confirm password.'}, context)         
+            return render(request, 'register/register.html',{'registerform': registerform, 'err': 'The password does not match the confirm password.'})         
          if register.email != register.emailagain:
-            return render('register/register.html',{'registerform': registerform, 'err': 'The email does not match the confirm email.'}, context)
+            return render(request, 'register/register.html',{'registerform': registerform, 'err': 'The email does not match the confirm email.'})
          request.session['userR'] = register.user
          request.session['email'] = register.email
          request.session['passwordR'] = register.password
@@ -1793,7 +1812,7 @@ def register(request):
    else:                                                                                                                            
       registerform = RegisterForm()
                                                              
-   return render('register/register.html',{'registerform': registerform}, context)
+   return render(request, 'register/register.html',{'registerform': registerform})
 
 def license(request):
    context = RequestContext(request)
@@ -1811,11 +1830,11 @@ def license(request):
          license = licenseform.save(commit=False)
          if license.licenseSigned == 'Yes':
             #if request.session['phone'] is not None and request.session['phone'] != '':
-               #m.Login.objects.create(user=request.session['userR'], email=request.session['email'],password=request.session['passwordR'],firstName=request.session['firstName'],lastName=request.session['lastName'],addressline1=request.session['addressline1'],addressline2=request.session['addressline2'],city=request.session['city'],state=request.session['state'],zip=request.session['zip'],country=request.session['country'],phone=request.session['phone'],organisation=request.session['organisation'],position=request.session['position'],publicOrPrivate=request.session['publicOrPrivate'], licenseSigned ='Yes',endDate= datetime.datetime.now() + relativedelta(years=2)) 
+               #Login.objects.create(user=request.session['userR'], email=request.session['email'],password=request.session['passwordR'],firstName=request.session['firstName'],lastName=request.session['lastName'],addressline1=request.session['addressline1'],addressline2=request.session['addressline2'],city=request.session['city'],state=request.session['state'],zip=request.session['zip'],country=request.session['country'],phone=request.session['phone'],organisation=request.session['organisation'],position=request.session['position'],publicOrPrivate=request.session['publicOrPrivate'], licenseSigned ='Yes',endDate= datetime.datetime.now() + relativedelta(years=2)) 
             #else:
-            m.Login.objects.create(user=request.session['userR'], email=request.session['email'],password=request.session['passwordR'],firstName=request.session['firstName'],lastName=request.session['lastName'],state=request.session['state'],country=request.session['country'],organisation=request.session['organisation'],type_of_org=request.session['type_of_org'],other_org=request.session['other_org'],position=request.session['position'],other_pos=request.session['other_pos'],publicOrPrivate=request.session['publicOrPrivate'], licenseSigned ='Yes',endDate= datetime.datetime.now() + relativedelta(years=2))
+            Login.objects.create(user=request.session['userR'], email=request.session['email'],password=request.session['passwordR'],firstName=request.session['firstName'],lastName=request.session['lastName'],state=request.session['state'],country=request.session['country'],organisation=request.session['organisation'],type_of_org=request.session['type_of_org'],other_org=request.session['other_org'],position=request.session['position'],other_pos=request.session['other_pos'],publicOrPrivate=request.session['publicOrPrivate'], licenseSigned ='Yes',endDate= datetime.datetime.now() + relativedelta(years=2))
             try:
-               existing = m.Login.objects.get(user=request.session['userR'])                                                                                                                                              
+               existing = Login.objects.get(user=request.session['userR'])                                                                                                                                              
                temp_var = 'b'
             except MultipleObjectsReturned:
                print('there is more than one login with same user name')
@@ -1824,50 +1843,50 @@ def license(request):
                print('object does not exist')
 
             if temp_var == 'b': 
-               for p1 in m.Prices.objects.filter(priceProvider = 'Demo admin'):
-                  pr = m.Prices.objects.get(pk=p1.id)
+               for p1 in Prices.objects.filter(priceProvider = 'Demo admin'):
+                  pr = Prices.objects.get(pk=p1.id)
                   pr.priceProvider = request.session['userR']
                   pr.pk = None
                   pr.save()
 
-               for p in m.Projects.objects.filter(user = 'Demo admin'):
-                  obj = m.Projects.objects.get(pk=p.id)
+               for p in Projects.objects.filter(user = 'Demo admin'):
+                  obj = Projects.objects.get(pk=p.id)
                   obj.user = request.session['userR'] 
                   obj.created_at = datetime.datetime.now()
                   obj.pk = None
                   obj.save()
                
-                  for i in m.InflationIndices.objects.filter(projectId=p.id):
-                     inf = m.InflationIndices.objects.get(pk=i.id)
+                  for i in InflationIndices.objects.filter(projectId=p.id):
+                     inf = InflationIndices.objects.get(pk=i.id)
                      inf.projectId = obj.id
                      inf.pk = None
                      inf.save()
 
-                  for g in  m.GeographicalIndices.objects.filter(projectId=p.id):
-                     geo = m.GeographicalIndices.objects.get(pk=g.id)
+                  for g in  GeographicalIndices.objects.filter(projectId=p.id):
+                     geo = GeographicalIndices.objects.get(pk=g.id)
                      geo.projectId = obj.id
                      geo.pk = None
                      geo.save()
 
-                  sett = m.Settings.objects.get(projectId=p.id)
+                  sett = Settings.objects.get(projectId=p.id)
                   sett.projectId = obj.id
                   sett.pk = None
                   sett.save()
  
-                  for pr in m.Programs.objects.filter(projectId = p.id): 
-                     prog = m.Programs.objects.get(pk = pr.id)
+                  for pr in Programs.objects.filter(projectId = p.id): 
+                     prog = Programs.objects.get(pk = pr.id)
                      prog.projectId = obj.id
                      prog.pk = None
                      prog.save()
 
                      try:
-                        progdesc = m.ProgramDesc.objects.get(programId_id = pr.id)
-                        progdesc.programId_id = prog.id
+                        progdesc = ProgramDesc.objects.get(programId = pr.id)
+                        progdesc.programId = prog.id
                         old_progdesc_id = progdesc.pk
                         progdesc.pk = None
                         progdesc.save()
-                        for part in m.ParticipantsPerYear.objects.filter(programdescId_id = old_progdesc_id):
-                           ppy = m.ParticipantsPerYear.objects.get(pk = part.id)
+                        for part in ParticipantsPerYear.objects.filter(programdescId_id = old_progdesc_id):
+                           ppy = ParticipantsPerYear.objects.get(pk = part.id)
                            ppy.programdescId_id = progdesc.id
                            ppy.pk = None
                            ppy.save()
@@ -1875,21 +1894,21 @@ def license(request):
                         print('program desc does not exist')
 
                      try:
-                        eff = m.Effectiveness.objects.get(programId_id = pr.id)
-                        eff.programId_id = prog.id
+                        eff = Effectiveness.objects.get(programId = pr.id)
+                        eff.programId = prog.id
                         eff.pk = None
                         eff.save()
                      except ObjectDoesNotExist:
                         print('effectiveness does not exist')
 
                      try:
-                        for i in  m.Ingredients.objects.filter(programId=pr.id):
-                           ing = m.Ingredients.objects.get(pk = i.id)
+                        for i in  Ingredients.objects.filter(programId=pr.id):
+                           ing = Ingredients.objects.get(pk = i.id)
                            ing.programId = prog.id 
                            ing.pk = None
                            ing.save()
                            try:
-                              dis = m.Distribution.objects.get(ingredientId = i.id)
+                              dis = Distribution.objects.get(ingredientId = i.id)
                               dis.programId = prog.id
                               dis.ingredientId = ing.id 
                               dis.pk = None
@@ -1900,7 +1919,7 @@ def license(request):
                         print('ingredients do not exist')
 
                      try:
-                        ag = m.Agencies.objects.get(programId=pr.id)
+                        ag = Agencies.objects.get(programId=pr.id)
                         ag.programId = prog.id
                         ag.pk = None
                         ag.save()
@@ -1908,8 +1927,8 @@ def license(request):
                         print('agencies do not exist')
 
                      try:
-                        for t in m.Transfers.objects.filter(programId=pr.id):
-                           trans = m.Transfers.objects.get(pk=t.id)
+                        for t in Transfers.objects.filter(programId=pr.id):
+                           trans = Transfers.objects.get(pk=t.id)
                            trans.programId = prog.id 
                            trans.pk = None
                            trans.save()
@@ -1921,28 +1940,28 @@ def license(request):
             return HttpResponseRedirect('/about.html')
       else:
          form_errors = 'Select Yes or No to proceed'
-         return render('register/license.html',{'licenseform': licenseform, 'form_errors':form_errors, 'publicOrPrivate':'publicOrPrivate'}, context)
+         return render(request, 'register/license.html',{'licenseform': licenseform, 'form_errors':form_errors, 'publicOrPrivate':'publicOrPrivate'})
    else:                                                                                                                            
       licenseform = License()
-   return render('register/license.html',{'licenseform': licenseform, 'publicOrPrivate':'publicOrPrivate'}, context)
+   return render(request, 'register/license.html',{'licenseform': licenseform, 'publicOrPrivate':'publicOrPrivate'})
 
 def return_pdf(request):
    publicOrPrivate=request.session['publicOrPrivate']
    if publicOrPrivate == 'Public':
-      with open('/home/amritha/costtool/documents/Online Public Institution Tool Kit License.pdf', 'r') as pdf:
+      with open('/home/costout/costtool/documents/Online Public Institution Tool Kit License.pdf', 'rb') as pdf:
          response = HttpResponse(pdf.read(), content_type='application/pdf')
          response['Content-Disposition'] = 'inline;filename=Online Public Institution Tool Kit License.pdf'
          return response
       pdf.closed
    else:
-      with open('/home/amritha/costtool/documents/Online Private Institution Tool Kit License.pdf', 'r') as pdf:
+      with open('/home/costout/costtool/documents/Online Private Institution Tool Kit License.pdf', 'rb') as pdf:
          response = HttpResponse(pdf.read(), content_type='application/pdf')
          response['Content-Disposition'] = 'inline;filename=Online Private Institution Tool Kit License.pdf'
          return response
       pdf.closed
 
 def quickstart(request):
-   with open('/home/amritha/costtool/documents/Quickstart.docx', 'r') as docx:
+   with open('/home/costout/costtool/documents/Quickstart.docx', 'rb') as docx:
       response = HttpResponse(docx.read(), content_type='application/docx')
       response['Content-Disposition'] = 'inline;filename=Quickstart.docx'
       return response
@@ -1952,7 +1971,7 @@ def tutorial1_pdf(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Tutorial 1 Add personnel ingredient.pdf', 'r') as pdf:                             
+       with open('/home/costout/costtool/documents/Tutorial 1 Add personnel ingredient.pdf', 'rb') as pdf:                             
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Tutorial 1 Add personnel ingredient.pdf'
           return response
@@ -1962,7 +1981,7 @@ def tutorial2_pdf(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Tutorial 2 Adding a new ingredient.pdf', 'r') as pdf:     
+       with open('/home/costout/costtool/documents/Tutorial 2 Adding a new ingredient.pdf', 'rb') as pdf:     
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Tutorial 2 Adding a new ingredient.pdf'
           return response
@@ -1972,7 +1991,7 @@ def tutorial3_pdf(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Tutorial 3 How to choose a price.pdf', 'r') as pdf:
+       with open('/home/costout/costtool/documents/Tutorial 3 How to choose a price.pdf', 'rb') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Tutorial 3 How to choose a price.pdf'
           return response
@@ -1982,7 +2001,7 @@ def tutorial4_pdf(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Tutorial 4 Project Settings.pdf', 'r') as pdf:
+       with open('/home/costout/costtool/documents/Tutorial 4 Project Settings.pdf', 'rb') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Tutorial 4 Project Settings.pdf'                                          
           return response                                                                                                                    
@@ -1992,7 +2011,7 @@ def tutorial5_pdf(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Tutorial 5 Adding facilities prices.pdf', 'r') as pdf:
+       with open('/home/costout/costtool/documents/Tutorial 5 Adding facilities prices.pdf', 'rb') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Tutorial 5 Adding facilities prices.pdf'                                       
           return response
@@ -2004,7 +2023,7 @@ def tutorials(request):
     else:
        loggedinuser = 'ccc'
     try:
-       login = m.Login.objects.filter(user=loggedinuser).latest('startDate')
+       login = Login.objects.filter(user=loggedinuser).latest('startDate')
        return render(request,'tutorials.html')
     except ObjectDoesNotExist:
        return render(request,'prices/message.html')
@@ -2016,28 +2035,28 @@ def license2(request):
     return render(request,'license2.html')
 
 def private_pdf(request):
-   with open('/home/amritha/costtool/documents/Online Private Institution Tool Kit License.pdf', 'r') as pdf:
+   with open('/home/costout/costtool/documents/Online Private Institution Tool Kit License.pdf', 'rb') as pdf:
       response = HttpResponse(pdf.read(), content_type='application/pdf')
       response['Content-Disposition'] = 'inline;filename=Online Private Institution Tool Kit License.pdf'
       return response
    pdf.closed
 
 def public_pdf(request):
-   with open('/home/amritha/costtool/documents/Online Public Institution Tool Kit License.pdf', 'r') as pdf:
+   with open('/home/costout/costtool/documents/Online Public Institution Tool Kit License.pdf', 'rb') as pdf:
       response = HttpResponse(pdf.read(), content_type='application/pdf')
       response['Content-Disposition'] = 'inline;filename=Online Public Institution Tool Kit License.pdf'
       return response
    pdf.closed
 
-'''def tech1(request):
-   with open('/home/amritha/costtool/documents/Internal_Updating the CostOut Database Handbook.docx', 'r') as docx:
+def tech1(request):
+   with open('/home/costout/costtool/documents/Internal_Updating the CostOut Database Handbook.docx', 'rb') as docx:
       response = HttpResponse(docx.read(), content_type='application/docx')
       response['Content-Disposition'] = 'inline;filename=Internal_Updating the CostOut Database Handbook.docx'
       return response
    docx.closed
-'''
+
 def tech2(request):
-   with open('/home/amritha/costtool/documents/Developer Instructions.docx', 'r') as docx:
+   with open('/home/costout/costtool/documents/Developer Instructions.docx', 'rb') as docx:
       response = HttpResponse(docx.read(), content_type='application/docx')
       response['Content-Disposition'] = 'inline;filename=Developer Instructions.docx'
       return response
@@ -2049,48 +2068,48 @@ def additional(request):
     else:
        loggedinuser = 'ccc'
     try:
-       login = m.Login.objects.filter(user=loggedinuser).latest('startDate')
+       login = Login.objects.filter(user=loggedinuser).latest('startDate')
        return render(request,'additional.html')
     except ObjectDoesNotExist:
        return render(request,'prices/message.html')
 
 def xl1(request):
-   with open('/home/amritha/costtool/documents/DBofPrices.xlsx', 'r') as xlsx:
+   with open('/home/costout/costtool/documents/DBofPrices.xlsx', 'rb') as xlsx:
       response = HttpResponse(xlsx.read(), content_type='application/xlsx')
       response['Content-Disposition'] = 'inline;filename=DBofPrices.xlsx'
       return response
    xlsx.closed
 
 def xl2(request):
-   with open('/home/amritha/costtool/documents/InflationIndex.xlsx', 'r') as xlsx:
+   with open('/home/costout/costtool/documents/InflationIndex.xlsx', 'rb') as xlsx:
       response = HttpResponse(xlsx.read(), content_type='application/xlsx')
       response['Content-Disposition'] = 'inline;filename=InflationIndex.xlsx'
       return response
    xlsx.closed
 
 def xl3(request):
-   with open('/home/amritha/costtool/documents/GeographicalIndex.xlsx', 'r') as xlsx:
+   with open('/home/costout/costtool/documents/GeographicalIndex.xlsx', 'rb') as xlsx:
       response = HttpResponse(xlsx.read(), content_type='application/xlsx')
       response['Content-Disposition'] = 'inline;filename=GeographicalIndex.xlsx'
       return response
    xlsx.closed
 
 def doc1(request):
-   with open('/home/amritha/costtool/documents/Internal_Updating the CostOut Database Handbook.docx', 'r') as docx:
+   with open('/home/costout/costtool/documents/Internal_Updating the CostOut Database Handbook.docx', 'rb') as docx:
       response = HttpResponse(docx.read(), content_type='application/docx')
       response['Content-Disposition'] = 'inline;filename=Internal_Updating the CostOut Database Handbook.docx'
       return response
    docx.closed
 
 def doc2(request):
-   with open('/home/amritha/costtool/documents/Tutorial template.docx', 'r') as docx:
+   with open('/home/costout/costtool/documents/Tutorial template.docx', 'rb') as docx:
       response = HttpResponse(docx.read(), content_type='application/docx')
       response['Content-Disposition'] = 'inline;filename=Tutorial template.docx'
       return response
    docx.closed
 
 def doc3(request):
-   with open('/home/amritha/costtool/documents/Developer Instructions.docx', 'r') as docx:
+   with open('/home/costout/costtool/documents/Developer Instructions.docx', 'rb') as docx:
       response = HttpResponse(docx.read(), content_type='application/docx')
       response['Content-Disposition'] = 'inline;filename=Developer Instructions.docx'
       return response
@@ -2100,7 +2119,7 @@ def add1(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Average Size of Educational Facilities.xlsx', 'r') as xlsx:
+       with open('/home/costout/costtool/documents/Average Size of Educational Facilities.xlsx', 'rb') as xlsx:
           response = HttpResponse(xlsx.read(), content_type='application/xlsx')
           response['Content-Disposition'] = 'inline;filename=Average Size of Educational Facilities.xlsx'
           return response
@@ -2110,7 +2129,7 @@ def add2(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Calculating Cost Differences Between Programs.pdf', 'r') as pdf:
+       with open('/home/costout/costtool/documents/Calculating Cost Differences Between Programs.pdf', 'rb') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Calculating Cost Differences Between Programs.pdf'
           return response
@@ -2120,7 +2139,7 @@ def add3(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/CostOut Feedback Form.docx', 'r') as docx:
+       with open('/home/costout/costtool/documents/CostOut Feedback Form.docx', 'rb') as docx:
           response = HttpResponse(docx.read(), content_type='application/docx')
           response['Content-Disposition'] = 'inline;filename=CostOut Feedback Form.docx'
           return response
@@ -2130,7 +2149,7 @@ def add4(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Database of Benefits Rates.xls', 'r') as xlsx:
+       with open('/home/costout/costtool/documents/Database of Benefits Rates.xls', 'rb') as xlsx:
           response = HttpResponse(xlsx.read(), content_type='application/xls')
           response['Content-Disposition'] = 'inline;filename=Database of Benefits Rates.xls'
           return response
@@ -2140,7 +2159,7 @@ def add5(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Example Interview Protocol.pdf', 'r') as pdf:
+       with open('/home/costout/costtool/documents/Example Interview Protocol.pdf', 'rb') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Example Interview Protocol.pdf'
           return response
@@ -2150,7 +2169,7 @@ def add6(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Formulas used in CostOut.pdf', 'r') as pdf:
+       with open('/home/costout/costtool/documents/Formulas used in CostOut.pdf', 'rb') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Formulas used in CostOut.pdf'
           return response
@@ -2160,7 +2179,7 @@ def add7(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Sources of Prices and Benefits.pdf', 'r') as pdf:
+       with open('/home/costout/costtool/documents/Sources of Prices and Benefits.pdf', 'rb') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Sources of Prices and Benefits.pdf'
           return response
@@ -2170,7 +2189,7 @@ def add8(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/Finding National Prices.pdf', 'r') as pdf:
+       with open('/home/costout/costtool/documents/Finding National Prices.pdf', 'rb') as pdf:
           response = HttpResponse(pdf.read(), content_type='application/pdf')
           response['Content-Disposition'] = 'inline;filename=Finding National Prices.pdf'
           return response
@@ -2182,7 +2201,7 @@ def manual(request):
     else:
        loggedinuser = 'ccc'
     try:
-       login = m.Login.objects.filter(user=loggedinuser).latest('startDate')
+       login = Login.objects.filter(user=loggedinuser).latest('startDate')
        return render(request,'manual.html')
     except ObjectDoesNotExist:
        return render(request,'prices/message.html')
@@ -2191,7 +2210,7 @@ def manual1(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/CostOut Manual 2015.docx', 'r') as docx:
+       with open('/home/costout/costtool/documents/CostOut Manual 2015.docx', 'rb') as docx:
           response = HttpResponse(docx.read(), content_type='application/docx')
           response['Content-Disposition'] = 'inline;filename=CostOut Manual 2015.docx'
           return response
@@ -2201,7 +2220,7 @@ def manual2(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       with open('/home/amritha/costtool/documents/CostOut Screenshots.docx', 'r') as docx:
+       with open('/home/costout/costtool/documents/CostOut Screenshots.docx', 'rb') as docx:
           response = HttpResponse(docx.read(), content_type='application/docx')
           response['Content-Disposition'] = 'inline;filename=CostOut Screenshots.docx'
           return response
@@ -2233,15 +2252,15 @@ def full_table(request):
     eff_ratio = None
 
     try:
-       sett = m.Settings.objects.get(projectId=request.session['project_id'])
+       sett = Settings.objects.get(projectId=request.session['project_id'])
        discountRateEstimates = sett.discountRateEstimates
        try:
-          infEstimate = m.InflationIndices.objects.get(projectId=request.session['project_id'],yearCPI=sett.yearEstimates)
+          infEstimate = InflationIndices.objects.get(projectId=request.session['project_id'],yearCPI=sett.yearEstimates)
        except ObjectDoesNotExist:
           infEstimate = 'No inflation index available' 
 
        try:    
-          geoEstimate = m.GeographicalIndices.objects.get(projectId=request.session['project_id'],stateIndex=sett.stateEstimates,areaIndex=sett.areaEstimates)
+          geoEstimate = GeographicalIndices.objects.get(projectId=request.session['project_id'],stateIndex=sett.stateEstimates,areaIndex=sett.areaEstimates)
        except ObjectDoesNotExist:
           geoEstimate = 'No geographical index available'
 
@@ -2249,7 +2268,7 @@ def full_table(request):
        discountRateEstimates = 'No discount rate' 
 
     try:
-       ingredients = m.Ingredients.objects.filter(programId = program_id)
+       ingredients = Ingredients.objects.filter(programId = program_id)
        for i in ingredients:
           total_cost = i.totalCost
           avg_cost = i.averageCost
@@ -2262,7 +2281,7 @@ def full_table(request):
     if request.method == 'POST' and request.is_ajax():
        if 'id' in request.POST:
           changed = False
-          i = m.Ingredients.objects.get(pk=request.POST.get('id'))
+          i = Ingredients.objects.get(pk=request.POST.get('id'))
           if i.ingredient != request.POST.get('ingredient'):
              i.ingredient = request.POST.get('ingredient')
              changed = True
@@ -2313,14 +2332,15 @@ def full_table(request):
 
           i.save(update_fields=['ingredient','notes','category','yearQtyUsed','variableFixed','quantityUsed','lifetimeAsset','interestRate','benefitRate', 'percentageofUsage','priceAdjAmortization','priceAdjBenefits'])
           result = calculations2(project_id, program_id)
-          upd = updateDate(project_id, program_id)
+          #reimaging upd = updateDate(project_id, program_id)
        else:
           print('no id given')
-    return render('project/programs/costs/full_table.html',{'ingredients':ingredients,'project_id':project_id, 'program_id':program_id,'total_cost':round(total_cost,3),'avg_cost':avg_cost,'eff_ratio':eff_ratio,'projectname':projectname, 'programname':progname, 'discountRateEstimates':discountRateEstimates, 'infEstimate':infEstimate,'geoEstimate':geoEstimate, 'geoArea':'' },context)
+     #04142022      
+    return render(request, 'project/programs/costs/full_table.html',{'ingredients':ingredients,'project_id':project_id, 'program_id':program_id,'total_cost':round(total_cost,3),'avg_cost':avg_cost,'eff_ratio':eff_ratio,'projectname':projectname, 'programname':progname, 'discountRateEstimates':discountRateEstimates, 'infEstimate':infEstimate,'geoEstimate':geoEstimate, 'geoArea':'' })
 
 def tabbedlayout(request,project_id,program_id):
-    project = m.Projects.objects.get(pk=project_id)
-    program = m.Programs.objects.get(pk=program_id)
+    project = Projects.objects.get(pk=project_id)
+    program = Programs.objects.get(pk=program_id)
 
     request.session['program_id'] = program_id
     request.session['projectname'] = project.projectname
@@ -2346,10 +2366,10 @@ def tabbedlayout(request,project_id,program_id):
     net_other = 0.0
     agcount = 0
     noofpart = 0
-    IngFormSet = modelformset_factory(m.Ingredients,extra=20)
-    ingform = IngFormSet(queryset = m.Ingredients.objects.filter(programId = program_id),prefix="ingform")
+    IngFormSet = modelformset_factory(Ingredients,fields=['ingredient', 'yearQtyUsed','quantityUsed','unitMeasurePrice','variableFixed','adjPricePerIngredient','costPerIngredient','percentageCost','costPerParticipant','totalCost','hrsCalendarYr', 'hrsAcademicYr', 'hrsHigherEdn','category','edLevel','sector','unitMeasurePrice', 'price','lifetimeAsset', 'interestRate', 'yearPrice', 'statePrice', 'areaPrice','sourcePriceData','urlPrice','benefitRate','newMeasureVol','newMeasureLen', 'newMeasureTime','convertedPrice','priceAdjAmortization','SourceBenefitData','YearBenefit','priceAdjBenefits','percentageofUsage','geoIndex','indexCPI','priceAdjInflation','priceAdjGeographicalArea', 'priceNetPresentValue','averageCost','newMeasure', 'notes'],extra=20)
+    ingform = IngFormSet(queryset = Ingredients.objects.filter(programId = program_id),prefix="ingform")
     try:
-        programdesc = m.ProgramDesc.objects.get(programId=program_id)
+        programdesc = ProgramDesc.objects.get(programId=program_id)
         form1 = ProgramDescForm(request.POST, instance=programdesc)
         numberofparticipants = programdesc.numberofparticipants
         noofyears = programdesc.numberofyears
@@ -2361,7 +2381,7 @@ def tabbedlayout(request,project_id,program_id):
         else:
            noofpart = numberofparticipants
         old_total = 0
-        for q in m.ParticipantsPerYear.objects.filter(programdescId=programdesc.id):
+        for q in ParticipantsPerYear.objects.filter(programdescId=programdesc.id):
            old_total = old_total + q.noofparticipants
 
     except ObjectDoesNotExist:
@@ -2375,7 +2395,7 @@ def tabbedlayout(request,project_id,program_id):
         noofpart = 0
     
     try:
-       effect = m.Effectiveness.objects.get(programId_id=program_id)
+       effect = Effectiveness.objects.get(programId =program_id)
        effectform = EffectForm(request.POST, instance=effect)
        avgeff = effect.avgeffectperparticipant
        effobjexists = True
@@ -2385,7 +2405,7 @@ def tabbedlayout(request,project_id,program_id):
        avgeff = None    
 
     try:
-        ing = m.Ingredients.objects.filter(programId = program_id)
+        ing = Ingredients.objects.filter(programId = program_id)
         for i in ing:
            total_cost = i.totalCost
            avg_cost = i.averageCost
@@ -2396,7 +2416,7 @@ def tabbedlayout(request,project_id,program_id):
        eff_ratio = None    
     
     try:
-       ing2 = m.Ingredients.objects.get(programId = program_id)
+       ing2 = Ingredients.objects.get(programId = program_id)
        recordExists = True
        ingRecordExists = 'True'
     except MultipleObjectsReturned:
@@ -2406,11 +2426,11 @@ def tabbedlayout(request,project_id,program_id):
        recordExists = False
        ingRecordExists = 'False' 
 
-    DistFormSet = modelformset_factory(m.Distribution,form=DistForm,extra=20)
+    DistFormSet = modelformset_factory(Distribution,fields=['ingredient', 'cost', 'yearQtyUsed', 'cost_agency1','cost_agency1_percent','cost_agency2', 'cost_agency2_percent','cost_agency3', 'cost_agency3_percent','cost_agency4','cost_agency4_percent', 'cost_other_percent','cost_other'],extra=20)
     distform = DistFormSet(prefix="distform")
 
     try:
-       ag = m.Agencies.objects.get(programId = program_id)
+       ag = Agencies.objects.get(programId = program_id)
        agcount = 0
        agency1 = ag.agency1
        agency2 = ag.agency2
@@ -2430,7 +2450,7 @@ def tabbedlayout(request,project_id,program_id):
        agency3 = 'Private Organizations'
        agency4 = 'Students/Parents'
     
-    PartFormSet = inlineformset_factory(m.ProgramDesc,m.ParticipantsPerYear,form=ParticipantsForm,extra=10)
+    PartFormSet = inlineformset_factory(ProgramDesc,ParticipantsPerYear,fields=['yearnumber', 'noofparticipants'],extra=10)
     if objectexists:
         try:
             partform = PartFormSet(request.POST,request.FILES, instance=programdesc,prefix="partform" )
@@ -2447,10 +2467,10 @@ def tabbedlayout(request,project_id,program_id):
     else:
         partform = PartFormSet(prefix="partform")   
 
-    TransFormSet = modelformset_factory(m.Transfers,extra=20)
+    TransFormSet = modelformset_factory(Transfers,fields=['grantFrom','grantTo', 'grantAmount', 'grantYear', 'perparticipantOrTotal','grantName','averageno', 'total_amount', 'cost_agency1', 'cost_agency2','cost_agency3','cost_agency4','cost_other'],extra=20)
     try:
-        ag = m.Agencies.objects.get(programId = program_id)
-        trans = m.Transfers.objects.filter(programId = program_id) 
+        ag = Agencies.objects.get(programId = program_id)
+        trans = Transfers.objects.filter(programId = program_id) 
         transform = TransFormSet(queryset = trans,prefix="transform")
     except ObjectDoesNotExist:
         transform = TransFormSet(prefix="transform")
@@ -2460,19 +2480,19 @@ def tabbedlayout(request,project_id,program_id):
             if form1.is_valid():
                id = form1.save(commit=False)
                id.numberofyears = 1
-               id.programId = program
+               id.programId = program_id
                id.save()
-               upd = updateDate(project_id, program_id)
-               programdesc = m.ProgramDesc.objects.get(pk=id.id)
+               #reimaging upd = updateDate(project_id, program_id)
+               programdesc = ProgramDesc.objects.get(pk=id.id)
                partform = PartFormSet(request.POST,request.FILES, instance=programdesc,prefix="partform" )
                if partform.is_valid():
                   partform.save()
-                  upd = updateDate(project_id, program_id)
-                  m.ParticipantsPerYear.objects.filter(noofparticipants__isnull=True).delete()
-                  queryset = m.ParticipantsPerYear.objects.filter(programdescId=id.id)
+                  #reimaging upd = updateDate(project_id, program_id)
+                  ParticipantsPerYear.objects.filter(noofparticipants__isnull=True).delete()
+                  queryset = ParticipantsPerYear.objects.filter(programdescId=id.id)
                   programdesc.numberofyears=queryset.count()
                   total = 0
-                  if (m.ParticipantsPerYear.objects.filter(programdescId=id.id).count() == 0) and programdesc.lengthofprogram == 'More than one year':
+                  if (ParticipantsPerYear.objects.filter(programdescId=id.id).count() == 0) and programdesc.lengthofprogram == 'More than one year':
                      errtext = 'You have selected the length of the program as More than one year but have not entered the number of participants per year.'
                      return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart, 'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'errtext':errtext,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'form1','project':project,'program':program,'frm1':form1,'partform':partform, 'frm3':ingform,'partform.errors':partform.errors,'frm2':effectform,'frm4':distform, 'frm5':transform, 'loggedinuser':loggedinuser})
 
@@ -2484,10 +2504,10 @@ def tabbedlayout(request,project_id,program_id):
                         programdesc.numberofparticipants = total / programdesc.numberofyears   
                   if programdesc.lengthofprogram == 'One year or less':
                      programdesc.numberofyears = 1 
-                     m.ParticipantsPerYear.objects.filter(programdescId=id.id).delete()
+                     ParticipantsPerYear.objects.filter(programdescId=id.id).delete()
                   programdesc.save()
-                  upd = updateDate(project_id, program_id)
-                  ing = m.Ingredients.objects.filter(programId = program_id)
+                  #reimaging upd = updateDate(project_id, program_id)
+                  ing = Ingredients.objects.filter(programId = program_id)
                   for i in ing:
                      if programdesc.numberofparticipants is not None:
                         if programdesc.numberofparticipants == 0:
@@ -2507,7 +2527,7 @@ def tabbedlayout(request,project_id,program_id):
                      else:   
                         i.effRatio = None 
                      try:
-                        partperyear = m.ParticipantsPerYear.objects.get(programdescId_id=programdesc.id, yearnumber=i.yearQtyUsed)                 
+                        partperyear = ParticipantsPerYear.objects.get(programdescId_id=programdesc.id, yearnumber=i.yearQtyUsed)                 
                         if i.costPerIngredient is not None:
                            i.costPerParticipant = float(i.costPerIngredient) / float(partperyear.noofparticipants)
                      except ObjectDoesNotExist:
@@ -2520,14 +2540,14 @@ def tabbedlayout(request,project_id,program_id):
                               else:
                                  i.costPerParticipant = float(i.costPerIngredient) / float(numberofparticipants) 
                      i.save(update_fields=['averageCost','effRatio','costPerParticipant'])
-                     upd = updateDate(project_id, program_id)
+                     #reimaging upd = updateDate(project_id, program_id)
                   try:
-                     trans = m.Transfers.objects.filter(programId = program_id)
+                     trans = Transfers.objects.filter(programId = program_id)
                       
                      for transfer1 in trans:
                         if transfer1.perparticipantOrTotal == 'Participant':
                            try:
-                              partperyear = m.ParticipantsPerYear.objects.get(programdescId_id=programdesc.id, yearnumber=transfer1.grantYear)
+                              partperyear = ParticipantsPerYear.objects.get(programdescId_id=programdesc.id, yearnumber=transfer1.grantYear)
                               transfer1.total_amount =  float(transfer1.grantAmount) * float(partperyear.noofparticipants)
                               pe = True
                            except ObjectDoesNotExist:
@@ -2555,7 +2575,7 @@ def tabbedlayout(request,project_id,program_id):
                            elif transfer1.grantTo == agency4:
                               transfer1.cost_agency4 = -transfer1.total_amount
                            transfer1.save(update_fields=['total_amount','cost_agency1','cost_agency2', 'cost_agency3','cost_agency4'])
-                           upd = updateDate(project_id, program_id)
+                           #reimaging upd = updateDate(project_id, program_id)
                   except ObjectDoesNotExist:
                      print('no transfer records')
 
@@ -2593,10 +2613,10 @@ def tabbedlayout(request,project_id,program_id):
        if 'submit2' in request.POST:
           if effectform.is_valid():
              sourceeffectdata = effectform.save(commit=False)
-             sourceeffectdata.programId = program
+             sourceeffectdata.programId = program_id
              sourceeffectdata.save()
              upd = updateDate(project_id, program_id)
-             ing = m.Ingredients.objects.filter(programId = program_id)
+             ing = Ingredients.objects.filter(programId = program_id)
              for i in ing:
                 if sourceeffectdata.avgeffectperparticipant is not None  and i.averageCost is not None:
                    if sourceeffectdata.avgeffectperparticipant == '0':
@@ -2627,7 +2647,10 @@ def tabbedlayout(request,project_id,program_id):
              f = ingform.save(commit=False)
              for ing in f:
                 if ing.priceAdjInflation != 'No index' and ing.priceAdjGeographicalArea != 'No index':
-                   perc = m.Ingredients.objects.get(pk = ing.id)
+                #and ing.id is not None:
+                   print ('may 27')
+                   print (ing.id)
+                   perc = Ingredients.objects.get(pk = ing.id)
                    ing.percentageofUsage = perc.percentageofUsage
                    if ing.percentageofUsage is None:
                       ing.percentageofUsage = 100     
@@ -2639,7 +2662,7 @@ def tabbedlayout(request,project_id,program_id):
                          if ing.adjPricePerIngredient is not None and ing.quantityUsed is not None and ing.quantityUsed != '':  
                             ing.costPerIngredient = round(float(ing.adjPricePerIngredient) * float(ing.quantityUsed) * float(ing.percentageofUsage) / 100,3) 
                    try:
-                      partperyear = m.ParticipantsPerYear.objects.get(programdescId_id=progid, yearnumber=ing.yearQtyUsed)
+                      partperyear = ParticipantsPerYear.objects.get(programdescId_id=progid, yearnumber=ing.yearQtyUsed)
                       if ing.costPerIngredient is not None: 
                          ing.costPerParticipant = round(float(ing.costPerIngredient) / float(partperyear.noofparticipants),3)
                       ing.save(update_fields=['ingredient', 'quantityUsed','variableFixed','costPerIngredient','costPerParticipant','notes']) 
@@ -2657,8 +2680,8 @@ def tabbedlayout(request,project_id,program_id):
                                    ing.costPerParticipant = float(ing.costPerIngredient) / float(numberofparticipants)
 
                       ing.save(update_fields=['ingredient', 'quantityUsed','variableFixed','costPerIngredient','costPerParticipant','notes'])
-                   upd = updateDate(project_id, program_id)
-             ing1 = m.Ingredients.objects.filter(programId = program_id)
+                   #reimaging upd = updateDate(project_id, program_id)
+             ing1 = Ingredients.objects.filter(programId = program_id)
              total_cost = 0
              for i in ing1:
                 if i.costPerIngredient is not None:  
@@ -2695,13 +2718,13 @@ def tabbedlayout(request,project_id,program_id):
                    eff_ratio = None
 
                 i.save(update_fields=['totalCost','averageCost','percentageCost','effRatio'])
-                upd = updateDate(project_id, program_id)
+                #reimaging upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=costform')
           else:
              print(ingform.errors)
              return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart,'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'costform','project':project,'program':program,'frm1':form1,'partform':partform, 'frm3':ingform,'ingform.errors':ingform.errors,'frm2':effectform,'frm4':distform,'frm5':transform})
     else:
-       ing = m.Ingredients.objects.filter(programId = program_id)
+       ing = Ingredients.objects.filter(programId = program_id)
        for i in ing:
           total_cost = i.totalCost
           avg_cost = i.averageCost
@@ -2733,7 +2756,7 @@ def tabbedlayout(request,project_id,program_id):
     if request.method == 'POST':
        if 'editDist' in request.POST:
           distform = DistFormSet(request.POST,request.FILES,prefix="distform")
-          ag = m.Agencies.objects.get(programId = program_id)
+          ag = Agencies.objects.get(programId = program_id)
           if distform.is_valid():
              f = distform.save(commit=False)
              for dist in f:
@@ -2779,7 +2802,7 @@ def tabbedlayout(request,project_id,program_id):
                 ag.total_other = total_other
                 ag.total_cost = total_cost
                 ag.save(update_fields=['total_agency1','total_agency2','total_agency3','total_agency4','total_other','total_cost'])
-                upd = updateDate(project_id, program_id)
+                #reimaging upd = updateDate(project_id, program_id)
 
                 if dist.cost_other_percent < 0:
                     return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart, 'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'distform','project':project,'program':program,'frm1':form1,'partform':partform, 'frm3':ingform,'distform_errors':'The percentage cost spread between the different agencies cannot be greater than 100.','frm2':effectform,'frm4':distform, 'frm5':transform, 'loggedinuser':loggedinuser})
@@ -2792,19 +2815,19 @@ def tabbedlayout(request,project_id,program_id):
              return render (request,'project/programs/effect/tabbedview.html',{'ingRecordExists':ingRecordExists, 'noofpart' : noofpart,'agcount': agcount,'recordExists': recordExists,'net_agency1':net_agency1,'net_agency2':net_agency2,'net_agency3':net_agency3,'net_agency4':net_agency4,'net_other':net_other,'agency1': agency1,'agency2': agency2,'agency3': agency3,'agency4': agency4,'total_agency1':total_agency1,'total_agency2':total_agency2,'total_agency3':total_agency3,'total_agency4':total_agency4,'total_other':total_other,'eff_ratio':eff_ratio,'noofyears':noofyears,'total_cost':total_cost,'avg_cost':avg_cost,'active':'effform','project':project,'program':program,'frm1':form1,'partform':partform, 'frm2':effectform, 'frm3':ingform,'distform.errors':distform.errors,'frm4':distform,'frm5':transform})       
     else:
        try:
-          inglist = m.Ingredients.objects.filter(programId = program_id)
+          inglist = Ingredients.objects.filter(programId = program_id)
           try:
-             ag = m.Agencies.objects.get(programId = program_id)
+             ag = Agencies.objects.get(programId = program_id)
           except ObjectDoesNotExist:
-             m.Agencies.objects.create(agency1 = 'Program Sponsor', agency2 = 'Government Agencies', agency3 = 'Private Organizations', agency4 = 'Students/Parents', programId = program_id)
-             ag = m.Agencies.objects.get(programId = program_id)
+             Agencies.objects.create(agency1 = 'Program Sponsor', agency2 = 'Government Agencies', agency3 = 'Private Organizations', agency4 = 'Students/Parents', programId = program_id)
+             ag = Agencies.objects.get(programId = program_id)
              print('agencies do not exist')
           for ing in inglist: 
               try:
-                 dist = m.Distribution.objects.get(ingredientId = ing.id)
+                 dist = Distribution.objects.get(ingredientId = ing.id)
               except ObjectDoesNotExist:
-                 m.Distribution.objects.create(ingredient = ing.ingredient,cost = ing.costPerIngredient, yearQtyUsed = ing.yearQtyUsed, programId = ing.programId, ingredientId = ing.id)
-                 dist = m.Distribution.objects.get(ingredientId = ing.id)
+                 Distribution.objects.create(ingredient = ing.ingredient,cost = ing.costPerIngredient, yearQtyUsed = ing.yearQtyUsed, programId = ing.programId, ingredientId = ing.id)
+                 dist = Distribution.objects.get(ingredientId = ing.id)
                  recordExists = True
     
               dist.cost = ing.costPerIngredient
@@ -2854,7 +2877,7 @@ def tabbedlayout(request,project_id,program_id):
        except ObjectDoesNotExist:
           print('no point in doing anything if no records in Ingredients')
    
-       distform = DistFormSet(queryset = m.Distribution.objects.filter(programId = program_id),prefix="distform")
+       distform = DistFormSet(queryset = Distribution.objects.filter(programId = program_id),prefix="distform")
        for form in distform:
           form.fields['ingredient'].widget.attrs['readonly'] = True
           form.fields['yearQtyUsed'].widget.attrs['readonly'] = True
@@ -2873,7 +2896,7 @@ def tabbedlayout(request,project_id,program_id):
              f = transform.save(commit=False)
              for t in f:
                 t.save(update_fields=['grantName'])
-                upd = updateDate(project_id, program_id)
+                #reimaging upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=transform')
  
           else:
@@ -2882,8 +2905,8 @@ def tabbedlayout(request,project_id,program_id):
 
     else:
        try:
-          ag = m.Agencies.objects.get(programId = program_id)
-          trans = m.Transfers.objects.filter(programId = program_id)
+          ag = Agencies.objects.get(programId = program_id)
+          trans = Transfers.objects.filter(programId = program_id)
 
           for t in trans:
              if t.cost_agency1 is not None:
@@ -2936,7 +2959,7 @@ def add_agency(request):
        program_id = 0   
     context = RequestContext(request)
     try:
-       agency = m.Agencies.objects.get(programId=program_id)
+       agency = Agencies.objects.get(programId=program_id)
     except ObjectDoesNotExist:
        print('object does not exist')
 
@@ -2945,7 +2968,7 @@ def add_agency(request):
 
         if agencyform.is_valid():
             agency1 = agencyform.save(commit=False)
-            distrib = m.Distribution.objects.filter(programId=program_id)
+            distrib = Distribution.objects.filter(programId=program_id)
             for dist in distrib:
                if agency1.agency2 is None or agency1.agency2 == '':
                   dist.cost_agency2 = 0.0
@@ -2953,7 +2976,7 @@ def add_agency(request):
                   agency1.total_agency2 = 0.0
                   agency1.net_agency2 = 0.0
                   try:
-                     m.Transfers.objects.exclude(cost_agency2__isnull=True).delete()
+                     Transfers.objects.exclude(cost_agency2__isnull=True).delete()
                   except ObjectDoesNotExist:
                      print('no idea what was here') 
                if agency1.agency3 is None or agency1.agency3 == '':
@@ -2962,7 +2985,7 @@ def add_agency(request):
                   agency1.total_agency3 = 0.0
                   agency1.net_agency3 = 0.0
                   try:
-                     m.Transfers.objects.exclude(cost_agency3__isnull=True).delete()
+                     Transfers.objects.exclude(cost_agency3__isnull=True).delete()
                   except ObjectDoesNotExist:
                      print('3')
                if agency1.agency4 is None or agency1.agency4 == '':
@@ -2971,7 +2994,7 @@ def add_agency(request):
                   agency1.total_agency4 = 0.0
                   agency1.net_agency4 = 0.0
                   try:
-                     m.Transfers.objects.exclude(cost_agency4__isnull=True).delete()
+                     Transfers.objects.exclude(cost_agency4__isnull=True).delete()
                   except ObjectDoesNotExist:
                      print('4') 
                if  dist.cost_agency1_percent is not None and dist.cost_agency2_percent is not None and dist.cost_agency3_percent is not None and dist.cost_agency4_percent is not None:
@@ -2983,7 +3006,7 @@ def add_agency(request):
             else:
                print('not None')
             agency1.save(update_fields=['agency1','agency2','agency3','agency4','total_agency2','net_agency2','total_agency3','net_agency3','total_agency4','net_agency4'])
-            upd = updateDate(project_id, program_id)
+            #reimaging upd = updateDate(project_id, program_id)
             return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=distform')
         else:
             print(agencyform.errors)
@@ -3008,9 +3031,9 @@ def add_transfer(request):
     ptext = ' ' 
     pcount = 0
     try:
-       progdesc = m.ProgramDesc.objects.get(programId_id = program_id)
+       progdesc = ProgramDesc.objects.get(programId = program_id)
        try: 
-          part = m.ParticipantsPerYear.objects.filter(programdescId_id=progdesc.id)
+          part = ParticipantsPerYear.objects.filter(programdescId_id=progdesc.id)
           pcount = part.count()
           for p in part:
              ptext = ptext + str(p.noofparticipants) + ' for Year ' + str(p.yearnumber) +', '   
@@ -3021,7 +3044,7 @@ def add_transfer(request):
        avgno = 1
     
     try:
-       agency = m.Agencies.objects.get(programId=program_id)
+       agency = Agencies.objects.get(programId=program_id)
        ag1 = agency.agency1
        ag2 = agency.agency2
        ag3 = agency.agency3
@@ -3034,7 +3057,7 @@ def add_transfer(request):
        ag4 = ''
 
     if pcount > 0:
-       MFormSet = modelformset_factory(m.Transfers, form=TransfersForm, extra=pcount)
+       MFormSet = modelformset_factory(Transfers, TransfersForm, fields=['grantFrom','grantTo', 'grantAmount', 'grantYear', 'perparticipantOrTotal', 'grantName','averageno', 'total_amount'],extra=pcount)
        if request.method == 'POST':
           transferform = MFormSet(request.POST, request.FILES)
           if transferform.is_valid():
@@ -3048,7 +3071,8 @@ def add_transfer(request):
 
              if tamountNone == True:
                 err = 'Enter an  amount for atleast one year'
-                return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)  
+                 #04142022
+                return render (request, 'project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err})  
  
              for transfer1 in transfers:
                 transfer1.programId = program_id
@@ -3058,18 +3082,18 @@ def add_transfer(request):
                 transfer1.perparticipantOrTotal = request.POST.get('pOrTotal')
                 if transfer1.grantName == '' or transfer1.grantName is None:
                    err = 'Enter the name of the transfer/subsidy/fee'
-                   return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)  
+                   return render (request, 'project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err})  
 
                 if transfer1.grantFrom == transfer1.grantTo:
                    err = 'From and To cannot be the same agency'
                    transfer1.grantName = request.POST.get('desc')
-                   return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
+                   return render (request, 'project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err})
 
                 if transfer1.perparticipantOrTotal == 'Total':
                    transfer1.total_amount = transfer1.grantAmount
                 else:
                    try:
-                      partperyear = m.ParticipantsPerYear.objects.get(programdescId_id=progdesc.id, yearnumber=transfer1.grantYear)
+                      partperyear = ParticipantsPerYear.objects.get(programdescId_id=progdesc.id, yearnumber=transfer1.grantYear)
                       if transfer1.grantAmount is not None: 
                          transfer1.total_amount =  float(transfer1.grantAmount) * float(partperyear.noofparticipants)
                    except ObjectDoesNotExist:
@@ -3103,10 +3127,10 @@ def add_transfer(request):
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=transform')
           else:
              print(transferform.errors)
-             return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors},context)
+             return render (request, 'project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors})
 
        else:
-          transferform = MFormSet(queryset=m.Transfers.objects.none(),initial=[{'grantYear': "%d" % (i+1)} for i in range(10)])
+          transferform = MFormSet(queryset=Transfers.objects.none(),initial=[{'grantYear': "%d" % (i+1)} for i in range(10)])
     else:
        if request.method == 'POST':
           transferform = TransfersForm(request.POST)
@@ -3117,15 +3141,15 @@ def add_transfer(request):
              
              if transfer1.grantAmount is None:
                 err = 'Enter an  amount'
-                return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
+                return render (request, 'project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err})
 
              if transfer1.grantName == '' or transfer1.grantName is None:
                    err = 'Enter the name of the transfer/subsidy/fee'
-                   return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err},context)
+                   return render (request, 'project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors,'err': err})
 
              if transfer1.grantFrom == transfer1.grantTo:
                 err = 'From and To cannot be the same agency'
-                return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'err': err},context)
+                return render (request, 'project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'err': err})
 
              if transfer1.perparticipantOrTotal == 'Total':
                 transfer1.total_amount = transfer1.grantAmount
@@ -3158,11 +3182,11 @@ def add_transfer(request):
                 transfer1.cost_other = -transfer1.total_amount
 
              transfer1.save() 
-             upd = updateDate(project_id, program_id)
+             #reimaging upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=transform')
           else:
               print(transferform.errors)
-              return render ('project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors},context)
+              return render (request, 'project/programs/transfer/add_transfer.html',{'ptext': ptext,'pcount':pcount,'project_id':project_id,'program_id':program_id,'avgno':avgno,'ag1':ag1,'ag2':ag2,'ag3':ag3,'ag4':ag4,'transferform': transferform,'transferform.errors': transferform.errors})
        else:
            transferform = TransfersForm()
 
@@ -3181,8 +3205,8 @@ def del_transfer(request, trans_id):
     else:
        program_id = 0   
 
-    m.Transfers.objects.get(pk=trans_id).delete()
-    upd = updateDate(project_id, program_id)
+    Transfers.objects.get(pk=trans_id).delete()
+    #reimaging upd = updateDate(project_id, program_id)
     return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=transform')
 
 def del_ingredient(request, ing_id):
@@ -3199,23 +3223,23 @@ def del_ingredient(request, ing_id):
     eff_Ratio = None
 
     try:
-       programdesc = m.ProgramDesc.objects.get(programId = program_id)
+       programdesc = ProgramDesc.objects.get(programId = program_id)
        numberofparticipants = programdesc.numberofparticipants
     except ObjectDoesNotExist:
        numberofparticipants = 1
 
     try:
-       eff = m.Effectiveness.objects.get(programId_id = request.session['program_id'])
+       eff = Effectiveness.objects.get(programId = request.session['program_id'])
        avgeff = eff.avgeffectperparticipant                  
     except ObjectDoesNotExist:
        avgeff = None
 
-    if (m.Distribution.objects.filter(programId=program_id).count()== 1):
-       m.Agencies.objects.get(programId=program_id).delete()
-    m.Distribution.objects.get(ingredientId=ing_id).delete()
-    m.Ingredients.objects.get(pk=ing_id).delete()
+    if (Distribution.objects.filter(programId=program_id).count()== 1):
+       Agencies.objects.get(programId=program_id).delete()
+    Distribution.objects.get(ingredientId=ing_id).delete()
+    Ingredients.objects.get(pk=ing_id).delete()
     total_cost = 0
-    ing = m.Ingredients.objects.filter(programId = program_id)
+    ing = Ingredients.objects.filter(programId = program_id)
     for i in ing:
         if i.costPerIngredient is not None: 
            total_cost = total_cost + i.costPerIngredient
@@ -3248,7 +3272,7 @@ def del_ingredient(request, ing_id):
            i.effRatio = None
            eff_ratio = None
         i.save(update_fields=['totalCost','averageCost','percentageCost','effRatio'])        
-        upd = updateDate(project_id, program_id)
+        #reimaging upd = updateDate(project_id, program_id)
     return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=costform')
 
 def dupl_ingredient(request, ing_id):
@@ -3265,25 +3289,25 @@ def dupl_ingredient(request, ing_id):
     eff_Ratio = None
 
     try:
-       programdesc = m.ProgramDesc.objects.get(programId = program_id)
+       programdesc = ProgramDesc.objects.get(programId = program_id)
        numberofparticipants = programdesc.numberofparticipants
     except ObjectDoesNotExist:
        numberofparticipants = 1
 
     try:
-       eff = m.Effectiveness.objects.get(programId_id = request.session['program_id'])
+       eff = Effectiveness.objects.get(programId = request.session['program_id'])
        avgeff = eff.avgeffectperparticipant
     except ObjectDoesNotExist:
        avgeff = None
 
-    ingredient = m.Ingredients.objects.get(pk=ing_id)
+    ingredient = Ingredients.objects.get(pk=ing_id)
     if ingredient.yearQtyUsed is None:
        ingredient.yearQtyUsed = 1
 
-    m.Ingredients.objects.create(SourceBenefitData = ingredient.SourceBenefitData, notes = ingredient.notes, category = ingredient.category, ingredient = ingredient.ingredient, edLevel = ingredient.edLevel, sector = ingredient.sector, unitMeasurePrice = ingredient.unitMeasurePrice, price =  ingredient.price, sourcePriceData = ingredient.sourcePriceData, urlPrice = ingredient.urlPrice, newMeasure = ingredient.newMeasure, convertedPrice = ingredient.convertedPrice, yearPrice = ingredient.yearPrice, statePrice = ingredient.statePrice, areaPrice = ingredient.areaPrice, programId = ingredient.programId, lifetimeAsset = ingredient.lifetimeAsset, interestRate = ingredient.interestRate, benefitRate = ingredient.benefitRate, indexCPI = ingredient.indexCPI, geoIndex = ingredient.geoIndex, quantityUsed = ingredient.quantityUsed, variableFixed = ingredient.variableFixed, yearQtyUsed = ingredient.yearQtyUsed, priceAdjAmortization = ingredient.priceAdjAmortization, percentageofUsage = ingredient.percentageofUsage, adjPricePerIngredient = ingredient.adjPricePerIngredient, priceAdjInflation = ingredient.priceAdjInflation, priceAdjBenefits = ingredient.priceAdjBenefits,priceAdjGeographicalArea = ingredient.priceAdjGeographicalArea, priceNetPresentValue = ingredient.priceNetPresentValue, costPerIngredient = ingredient.costPerIngredient, costPerParticipant = ingredient.costPerParticipant )
+    Ingredients.objects.create(SourceBenefitData = ingredient.SourceBenefitData, notes = ingredient.notes, category = ingredient.category, ingredient = ingredient.ingredient, edLevel = ingredient.edLevel, sector = ingredient.sector, unitMeasurePrice = ingredient.unitMeasurePrice, price =  ingredient.price, sourcePriceData = ingredient.sourcePriceData, urlPrice = ingredient.urlPrice, newMeasure = ingredient.newMeasure, convertedPrice = ingredient.convertedPrice, yearPrice = ingredient.yearPrice, statePrice = ingredient.statePrice, areaPrice = ingredient.areaPrice, programId = ingredient.programId, lifetimeAsset = ingredient.lifetimeAsset, interestRate = ingredient.interestRate, benefitRate = ingredient.benefitRate, indexCPI = ingredient.indexCPI, geoIndex = ingredient.geoIndex, quantityUsed = ingredient.quantityUsed, variableFixed = ingredient.variableFixed, yearQtyUsed = ingredient.yearQtyUsed, priceAdjAmortization = ingredient.priceAdjAmortization, percentageofUsage = ingredient.percentageofUsage, adjPricePerIngredient = ingredient.adjPricePerIngredient, priceAdjInflation = ingredient.priceAdjInflation, priceAdjBenefits = ingredient.priceAdjBenefits,priceAdjGeographicalArea = ingredient.priceAdjGeographicalArea, priceNetPresentValue = ingredient.priceNetPresentValue, costPerIngredient = ingredient.costPerIngredient, costPerParticipant = ingredient.costPerParticipant )
 
     total_cost = 0
-    ing = m.Ingredients.objects.filter(programId = program_id)
+    ing = Ingredients.objects.filter(programId = program_id)
     for i in ing:
         if i.costPerIngredient is not None: 
            total_cost = total_cost + i.costPerIngredient
@@ -3317,7 +3341,7 @@ def dupl_ingredient(request, ing_id):
            eff_ratio = None
                               
         i.save(update_fields=['totalCost','averageCost','percentageCost','effRatio'])        
-        upd = updateDate(project_id, program_id)
+        #reimaging upd = updateDate(project_id, program_id)
     return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/'+ program_id +'/tabbedview.html?activeform=costform')
 
 def search_costs(request):
@@ -3343,7 +3367,7 @@ def search_costs(request):
        progname = 'ccc'
 
     try:
-       sett = m.Settings.objects.get(projectId = project_id)
+       sett = Settings.objects.get(projectId = project_id)
        choicesEdn = ''
        choicesSec = ''
        if 'Select' in sett.limitEdn:
@@ -3432,7 +3456,7 @@ def search_costs(request):
             return HttpResponse(costform.errors)
     else:
        costform = PricesSearchForm()
-    return render('project/programs/costs/search_costs.html',{'costform':costform,'choicesEdn':choicesEdn,'choicesSec':choicesSec,'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname},context)
+    return render(request, 'project/programs/costs/search_costs.html',{'costform':costform,'choicesEdn':choicesEdn,'choicesSec':choicesSec,'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname})
 
 def price_search2(request):
     context = RequestContext(request)
@@ -3440,7 +3464,7 @@ def price_search2(request):
     program_id = request.session['program_id']
     projectname = request.session['projectname']
     progname = request.session['programname']  
-    prices = m.Prices.objects.all()
+    prices = Prices.objects.all()
     pcount = prices.count()
     cat = request.GET['category']
     request.session['search_cat'] = cat
@@ -3450,9 +3474,10 @@ def price_search2(request):
     request.session['search_sector'] = sector
     ingredient = request.GET['ingredient']
     request.session['search_ingredient'] = ingredient
-    template = loader.get_template('project/programs/costs/price_search_results.html')
+    '''template = loader.get_template('project/programs/costs/price_search_results.html')
     context = Context({'projectname':projectname, 'programname':progname,'prices' : prices, 'pcount':pcount, 'cat': cat, 'edLevel':edLevel, 'sector':sector, 'ingredient':ingredient, 'project_id':project_id, 'program_id':program_id})
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context))'''
+    return render(request, 'project/programs/costs/price_search_results.html',{'projectname':projectname, 'programname':progname,'prices': prices, 'pcount':pcount, 'cat': cat, 'edLevel':edLevel, 'sector':sector, 'ingredient':ingredient, 'project_id':project_id, 'program_id':program_id})
  
 def price_search(request):
     context = RequestContext(request)
@@ -3481,18 +3506,18 @@ def price_search(request):
         del request.session['new_measure']
 
     try:
-       sett = m.Settings.objects.get(projectId = project_id)
+       sett = Settings.objects.get(projectId = project_id)
        if 'CBCSE' in sett.selectDatabase and 'My' in sett.selectDatabase:
-          prices = m.Prices.objects.filter(priceProvider = 'CBCSE') | m.Prices.objects.filter(priceProvider = request.session['user'])
-          #prices = m.Prices.objects.raw("SELECT * from costtool_prices WHERE priceProvider = 'CBCSE' or priceProvider = %s", [request.session['user']])
+          prices = Prices.objects.filter(priceProvider = 'CBCSE') | Prices.objects.filter(priceProvider = request.session['user'])
+          #prices = Prices.objects.raw("SELECT * from costtool_prices WHERE priceProvider = 'CBCSE' or priceProvider = %s", [request.session['user']])
           prices2 = prices
        elif 'CBCSE' in sett.selectDatabase:
-          prices = m.Prices.objects.filter(priceProvider = 'CBCSE')
+          prices = Prices.objects.filter(priceProvider = 'CBCSE')
        elif 'My' in sett.selectDatabase:
-          prices = m.Prices.objects.filter(priceProvider = request.session['user'])
+          prices = Prices.objects.filter(priceProvider = request.session['user'])
 
     except ObjectDoesNotExist:
-       prices = m.Prices.objects.all()
+       prices = Prices.objects.all()
  
     if 'category' in request.GET or 'edlevel' in request.GET or 'sector' in request.GET or 'ingredient' in request.GET:
        cat = request.GET['category']
@@ -3596,18 +3621,19 @@ def price_search(request):
           prices = prices.filter(pk__in=price_pks)
        prices = prices.order_by('ingredient')   
        pcount = prices.count()
-       template = loader.get_template('project/programs/costs/price_search_results.html')
-       context = Context({'projectname':projectname, 'programname':progname,'prices' : prices, 'pcount':pcount, 'cat': cat, 'edLevel':edLevel, 'sector':sector, 'ingredient':ingredient, 'project_id':project_id, 'program_id':program_id})
-       return HttpResponse(template.render(context))
+       #template = loader.get_template('project/programs/costs/price_search_results.html')
+       #context = Context({'projectname':projectname, 'programname':progname,'prices' : prices, 'pcount':pcount, 'cat': cat, 'edLevel':edLevel, 'sector':sector, 'ingredient':ingredient, 'project_id':project_id, 'program_id':program_id})
+       #return HttpResponse(template.render(context))
+       return render(request, 'project/programs/costs/price_search_results.html',{'projectname':projectname, 'programname':progname,'prices' : prices, 'pcount':pcount, 'cat': cat, 'edLevel':edLevel, 'sector':sector, 'ingredient':ingredient, 'project_id':project_id, 'program_id':program_id})
     else:
         return HttpResponse('Please enter some criteria to do a search')
 
 def decideCat(request,price_id):
     context = RequestContext(request)
-    price = m.Prices.objects.get(pk=price_id)
+    price = Prices.objects.get(pk=price_id)
     try:
        request.session['price_id'] = price_id 
-       inf = m.InflationIndices.objects.get(projectId=request.session['project_id'],yearCPI=price.yearPrice)
+       inf = InflationIndices.objects.get(projectId=request.session['project_id'],yearCPI=price.yearPrice)
        request.session['priceExists'] = True
        if price.category == 'Personnel':
           return HttpResponseRedirect('/project/programs/costs/'+ price_id +'/price_indices.html')
@@ -3615,13 +3641,13 @@ def decideCat(request,price_id):
           return HttpResponseRedirect('/project/programs/costs/'+ price_id +'/nonper_indices.html')
     except ObjectDoesNotExist:
        request.session['priceExists'] = False 
-       return render('project/programs/costs/gotoinf.html',{'yearPrice':price.yearPrice},context)
+       return render(request, 'project/programs/costs/gotoinf.html',{'yearPrice':price.yearPrice})
 
 def gotoinf(request):
    return render(request,'project/programs/costs/gotoinf.html')
     
 def price_indices(request,price_id):
-    price = m.Prices.objects.get(pk=price_id)
+    price = Prices.objects.get(pk=price_id)
 
     if 'project_id' in request.session:
        project_id = request.session['project_id']
@@ -3678,7 +3704,7 @@ def price_indices(request,price_id):
     request.session['price_id'] = price_id
     request.session['price'] = price.price
     request.session['measure'] = price.unitMeasurePrice
-    template = loader.get_template('project/programs/costs/price_indices.html')
+    '''template = loader.get_template('project/programs/costs/price_indices.html')
     context = Context({
         'price' : price,
         'new_price' : new_price,
@@ -3686,11 +3712,12 @@ def price_indices(request,price_id):
         'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient, 
         'project_id':project_id, 'program_id':program_id, 'projectname':projectname, 'programname':progname 
     })
-    return HttpResponse(template.render(context))
+    return HttpResponse()'''
+    return render(request, 'project/programs/costs/price_indices.html',{'price' : price,'new_price' : new_price,'new_measure' : new_measure,'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient, 'project_id':project_id, 'program_id':program_id, 'projectname':projectname, 'programname':progname}) 
 
 def nonper_indices(request,price_id):
     context = RequestContext(request)
-    price = m.Prices.objects.get(pk=price_id)
+    price = Prices.objects.get(pk=price_id)
 
     if 'project_id' in request.session:
        project_id = request.session['project_id']
@@ -3755,11 +3782,11 @@ def nonper_indices(request,price_id):
             return HttpResponseRedirect('/project/programs/costs/summary.html')
         else:
             print(form.errors)
-            return render('project/programs/costs/nonper_indices.html',{'form':form, 'price':price, 'new_price' : new_price, 'new_measure' : new_measure, 'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient,'project_id':project_id, 'program_id':program_id,'form.errors':form.errors,'projectname':projectname, 'programname':progname},context)
+            return render(request, 'project/programs/costs/nonper_indices.html',{'form':form, 'price':price, 'new_price' : new_price, 'new_measure' : new_measure, 'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient,'project_id':project_id, 'program_id':program_id,'form.errors':form.errors,'projectname':projectname, 'programname':progname})
     else:
         form = NonPerIndicesForm()
 
-    return render('project/programs/costs/nonper_indices.html',{'form':form, 'price':price, 'new_price' : new_price, 'new_measure' : new_measure, 'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient,'project_id':project_id, 'program_id':program_id, 'projectname':projectname, 'programname':progname},context)
+    return render(request, 'project/programs/costs/nonper_indices.html',{'form':form, 'price':price, 'new_price' : new_price, 'new_measure' : new_measure, 'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient,'project_id':project_id, 'program_id':program_id, 'projectname':projectname, 'programname':progname})
 
 def um_converter(request):
     context = RequestContext(request)
@@ -3774,7 +3801,7 @@ def um_converter(request):
        price_id = 0   
 
     try:
-       sett = m.Settings.objects.get(projectId=project_id)
+       sett = Settings.objects.get(projectId=project_id)
        hrsCalendarYr = float(sett.hrsCalendarYr)
        hrsAcademicYr = float(sett.hrsAcademicYr)
        hrsHigherEdn = float(sett.hrsHigherEdn)
@@ -4260,8 +4287,8 @@ def um_converter(request):
            form = UMConverter(initial={'convertedPrice':new_price,'newMeasureLen':new_measure})
         elif measureType == 'listTime':
            form = UMConverter(initial={'convertedPrice':new_price,'newMeasureTime':new_measure})
-
-    return render('project/programs/costs/umconverter.html',{'form':form, 'price':price,'measure':measure,'measureType':measureType, 'new_price' : new_price, 'new_measure' : new_measure, 'price_id':price_id},context)
+     #04142022
+    return render(request, 'project/programs/costs/umconverter.html',{'form':form, 'price':price,'measure':measure,'measureType':measureType, 'new_price' : new_price, 'new_measure' : new_measure, 'price_id':price_id})
 
 def wage_converter(request):
     context = RequestContext(request)
@@ -4286,7 +4313,7 @@ def wage_converter(request):
        hrsCalendarYr = request.session['hrsCalendarYr']
     else:
         try:
-            sett = m.Settings.objects.get(projectId=project_id)
+            sett = Settings.objects.get(projectId=project_id)
             hrsCalendarYr = sett.hrsCalendarYr
             request.session['hrsCalendarYr'] = hrsCalendarYr
             objExists = True
@@ -4426,8 +4453,8 @@ def wage_converter(request):
 
     else:
         form = WageConverter(initial={'convertedPrice':new_price,'newMeasure':new_measure})
-
-    return render('project/programs/costs/wage_converter.html',{'form':form, 'convertedPrice':new_price,'newMeasure':new_measure,'price':price, 'price_id':price_id,'measure':measure, 'hrsCalendarYr': hrsCalendarYr, 'hrsAcademicYr':hrsAcademicYr, 'hrsHigherEdn':hrsHigherEdn},context)
+     #04142022
+    return render(request, 'project/programs/costs/wage_converter.html',{'form':form, 'convertedPrice':new_price,'newMeasure':new_measure,'price':price, 'price_id':price_id,'measure':measure, 'hrsCalendarYr': hrsCalendarYr, 'hrsAcademicYr':hrsAcademicYr, 'hrsHigherEdn':hrsHigherEdn})
  
 def wage_defaults(request):
     context = RequestContext(request)
@@ -4436,7 +4463,7 @@ def wage_defaults(request):
        hrsCalendarYr = request.session['hrsCalendarYr']
     else:   
         try:
-            sett = m.Settings.objects.get(projectId=project_id)
+            sett = Settings.objects.get(projectId=project_id)
             hrsCalendarYr = sett.hrsCalendarYr
             objExists = True 
         except ObjectDoesNotExist:
@@ -4471,8 +4498,8 @@ def wage_defaults(request):
             print(form.errors)
     else:
        form = WageDefaults(initial={'hrsCalendarYr': hrsCalendarYr, 'hrsAcademicYr':hrsAcademicYr, 'hrsHigherEdn':hrsHigherEdn}) 
-
-    return render('project/programs/costs/wage_defaults.html',{'form':form},context)
+     #04142022
+    return render(request, 'project/programs/costs/wage_defaults.html',{'form':form})
 
 def price_benefits(request,price_id):
     context = RequestContext(request)
@@ -4495,14 +4522,14 @@ def price_benefits(request,price_id):
        progname = 'ccc'
 
     request.session['price_id'] = price_id
-    price = m.Prices.objects.get(pk=price_id)
+    price = Prices.objects.get(pk=price_id)
 
     if 'Rate' in request.session:
         benefitRate = request.session['Rate']
     else:
         if 'benefit_id' in request.session:
             benefit_id = request.session['benefit_id']
-            benefit = m.Benefits.objects.get(pk=benefit_id)
+            benefit = Benefits.objects.get(pk=benefit_id)
             benefitRate = benefit.BenefitRate
         else:
             benefitRate = 0
@@ -4515,10 +4542,10 @@ def price_benefits(request,price_id):
             return HttpResponseRedirect('/project/programs/costs/summary.html')
         else:
             print(form.errors)
-            return render('project/programs/costs/price_benefits.html',{'form':form, 'benefitRate':benefitRate,'price':price, 'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname,'form.errors':form.errors},context)
+            return render(request, 'project/programs/costs/price_benefits.html',{'form':form, 'benefitRate':benefitRate,'price':price, 'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname,'form.errors':form.errors})
     else:
         form = PriceBenefits()
-    return render('project/programs/costs/price_benefits.html',{'form':form, 'benefitRate':benefitRate,'price':price, 'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname},context)
+    return render(request, 'project/programs/costs/price_benefits.html',{'form':form, 'benefitRate':benefitRate,'price':price, 'project_id':project_id, 'program_id':program_id,'projectname':projectname, 'programname':progname})
 
 def benefits(request):
     context = RequestContext(request)
@@ -4534,7 +4561,7 @@ def benefits(request):
        price_id = request.session['price_id']
     else:
        price_id = ''
-    allbenefits = m.Benefits.objects.all()
+    allbenefits = Benefits.objects.all()
     return render(request,'project/programs/costs/benefits.html', {'project_id':project_id, 'program_id':program_id, 'allbenefits' : allbenefits, 'price_id':price_id})
 
 def save_benefit(request,ben_id):
@@ -4552,7 +4579,7 @@ def price_summary(request):
        price_id = request.session['price_id']
     else:
        price_id = ''
-    price = m.Prices.objects.get(pk=price_id)
+    price = Prices.objects.get(pk=price_id)
     
     if 'Rate' in request.session:
        Rate = request.session['Rate']
@@ -4589,7 +4616,7 @@ def price_summary(request):
        new_measure = price.unitMeasurePrice
 
     if 'benefit_id' in request.session:
-        benefit = m.Benefits.objects.get(pk=request.session['benefit_id'])
+        benefit = Benefits.objects.get(pk=request.session['benefit_id'])
         SourceBenefitData = benefit.SourceBenefitData
         YearBenefit = benefit.YearBenefit
     else:
@@ -4607,14 +4634,14 @@ def price_summary(request):
        interestRate = 0.0
 
     try:
-       sett = m.Settings.objects.get(projectId=request.session['project_id'])
+       sett = Settings.objects.get(projectId=request.session['project_id'])
        discountRateEstimates = sett.discountRateEstimates
        try:
-          infEstimate = m.InflationIndices.objects.get(projectId=request.session['project_id'],yearCPI=sett.yearEstimates)
+          infEstimate = InflationIndices.objects.get(projectId=request.session['project_id'],yearCPI=sett.yearEstimates)
        except ObjectDoesNotExist:
           infEstimate = 'No inflation index available'
        try:
-          geoEstimate = m.GeographicalIndices.objects.get(projectId=request.session['project_id'],stateIndex=sett.stateEstimates,areaIndex=sett.areaEstimates)
+          geoEstimate = GeographicalIndices.objects.get(projectId=request.session['project_id'],stateIndex=sett.stateEstimates,areaIndex=sett.areaEstimates)
           geoEst = geoEstimate.geoIndex
        except ObjectDoesNotExist:
           geoEst = 'No geographical index available'
@@ -4622,19 +4649,19 @@ def price_summary(request):
        discountRateEstimates = 'No discount rate'
 
     try:
-       inf = m.InflationIndices.objects.get(projectId=request.session['project_id'],yearCPI=price.yearPrice)
+       inf = InflationIndices.objects.get(projectId=request.session['project_id'],yearCPI=price.yearPrice)
        infinf = inf.indexCPI
     except ObjectDoesNotExist:
        infinf = 'No inflation index available'
 
     try:
-       geo = m.GeographicalIndices.objects.get(projectId=request.session['project_id'],stateIndex=price.statePrice,areaIndex=price.areaPrice)
+       geo = GeographicalIndices.objects.get(projectId=request.session['project_id'],stateIndex=price.statePrice,areaIndex=price.areaPrice)
        geoIndex = geo.geoIndex
     except ObjectDoesNotExist:
        geoIndex = 'No geographical index available'
 
     try:
-       programdesc = m.ProgramDesc.objects.get(programId = request.session['program_id'])
+       programdesc = ProgramDesc.objects.get(programId = request.session['program_id'])
        progid = programdesc.id
        if programdesc.numberofparticipants is None:
           numberofparticipants = 1
@@ -4645,18 +4672,18 @@ def price_summary(request):
        progid = 0
    
     try:
-       pcount = m.ParticipantsPerYear.objects.filter(programdescId_id=progid).count()
+       pcount = ParticipantsPerYear.objects.filter(programdescId_id=progid).count()
     except ObjectDoesNotExist:
        pcount = 0
  
     try:
-       eff = m.Effectiveness.objects.get(programId_id = request.session['program_id'])
+       eff = Effectiveness.objects.get(programId = request.session['program_id'])
        avgeff = eff.avgeffectperparticipant
     except ObjectDoesNotExist:
        avgeff = None
 
     if pcount > 0:
-       MFormSet = modelformset_factory(m.Ingredients, form=PriceSummary, extra=pcount)
+       MFormSet = modelformset_factory(Ingredients, PriceSummary, fields=['yearQtyUsed','quantityUsed', 'variableFixed','percentageofUsage','lifetimeAsset','interestRate', 'notes'],extra=pcount)
        if request.method == 'POST':
           form = MFormSet(request.POST, request.FILES)
           if form.is_valid():
@@ -4671,10 +4698,11 @@ def price_summary(request):
 
              if qtyNone == True:
                 err = 'Enter a Quantity for at least one year'
-                return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
+                 #04142022
+                return render(request, 'project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err})
              if percNone == True:
                 err = 'Enter % of time used for at least one year'
-                return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
+                return render(request, 'project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err})
 
 
              for ingredient in ingredients:
@@ -4757,14 +4785,14 @@ def price_summary(request):
                              else:
                                 ingredient.costPerIngredient = round(round(ingredient.adjPricePerIngredient,3) * float(ingredient.quantityUsed) * (float(ingredient.percentageofUsage)/100),3)
                              try:
-                                partperyear = m.ParticipantsPerYear.objects.get(programdescId_id=programdesc.id, yearnumber=ingredient.yearQtyUsed)
+                                partperyear = ParticipantsPerYear.objects.get(programdescId_id=programdesc.id, yearnumber=ingredient.yearQtyUsed)
                                 ingredient.costPerParticipant = round(round(float(ingredient.costPerIngredient),3) / float(partperyear.noofparticipants),3)
                              except ObjectDoesNotExist:
                                 ingredient.costPerParticipant = round(round(float(ingredient.costPerIngredient),3) / float(numberofparticipants),3)
                     ingredient.save()
 
              total_cost = 0
-             ing =  m.Ingredients.objects.filter(programId = request.session['program_id'])
+             ing =  Ingredients.objects.filter(programId = request.session['program_id'])
              for i in ing:
                  if i.costPerIngredient is not None:
                     total_cost = total_cost + i.costPerIngredient
@@ -4790,14 +4818,15 @@ def price_summary(request):
                    i.effRatio = None
 
                 i.save(update_fields=['totalCost','averageCost','percentageCost','effRatio'])
-                upd = updateDate(project_id, program_id)
+                #reimaging upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id + '/' + program_id + '/tabbedview.html?activeform=costform')
              
           else:
              print(form.errors)
-             return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors},context)
+              #04142022
+             return render(request, 'project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors})
        else:
-          form = MFormSet(queryset=m.Ingredients.objects.none(),initial=[{'yearQtyUsed': "%d" % (i+1)} for i in range(10)])
+          form = MFormSet(queryset=Ingredients.objects.none(),initial=[{'yearQtyUsed': "%d" % (i+1)} for i in range(10)])
     else:
        if request.method == 'POST':
           form = PriceSummary(request.POST)
@@ -4805,10 +4834,10 @@ def price_summary(request):
              ingredient = form.save(commit=False)
              if ingredient.quantityUsed is None:
                 err = 'Enter Quantity'
-                return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
+                return render(request, 'project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err})
              if ingredient.percentageofUsage is None:
                 err = 'Enter % of time used'
-                return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err},context)
+                return render(request, 'project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'new_measure':new_measure,'projectname':projectname, 'programname':progname,'form.errors':form.errors,'err': err})
              ingredient.category = price.category
              ingredient.ingredient = price.ingredient
              ingredient.edLevel = price.edLevel
@@ -4889,7 +4918,7 @@ def price_summary(request):
              ingredient.save()
 
              total_cost = 0
-             ing = m.Ingredients.objects.filter(programId = request.session['program_id'])
+             ing = Ingredients.objects.filter(programId = request.session['program_id'])
              for i in ing:
                 if i.costPerIngredient is not None:
                    total_cost = total_cost + i.costPerIngredient
@@ -4911,37 +4940,38 @@ def price_summary(request):
                    i.save(update_fields=['totalCost','averageCost','percentageCost','effRatio'])
                 else:
                    i.save(update_fields=['totalCost','percentageCost','effRatio']) 
-                upd = updateDate(project_id, program_id)
+                #reimaging upd = updateDate(project_id, program_id)
              return HttpResponseRedirect('/project/programs/effect/'+ project_id +'/' + program_id + '/tabbedview.html?activeform=costform')
           else:
              print(form.errors)
 
        else:
           form = PriceSummary()
-    return render('project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'projectname':projectname, 'programname':progname,'new_measure':new_measure},context)
+    return render(request, 'project/programs/costs/summary.html',{'project_id':project_id, 'program_id':program_id, 'pcount':pcount,'form':form, 'price':price, 'Rate':Rate, 'new_price':new_price,'projectname':projectname, 'programname':progname,'new_measure':new_measure})
 
 def program_list(request,project_id):
     request.session['project_id'] = project_id
     loggedinuser = request.session['user']
     sharList = [] 
     try:
-        project = m.Projects.objects.get(pk=project_id)
-        program = m.Programs.objects.filter(projectId=project_id)
+        project = Projects.objects.get(pk=project_id)
+        program = Programs.objects.filter(projectId=project_id)
         if project.shared == 'Y':
             try:
-               qset = m.SharedProj.objects.filter(projectid=project_id)
+               qset = SharedProj.objects.filter(projectid=project_id)
                for q in qset:
                    sharList.append(q.shared_user)
                    sharList.append(', ')
             except MultipleObjectsReturned: 
-               qset  = m.SharedProj.objects.get(projectid=project_id)
+               qset  = SharedProj.objects.get(projectid=project_id)
                sharList.append(q.shared_user)
+        #uncommented in Apr 2022       
         sharList = ''.join(sharList)
         if sharList[-2:] == ", ":
            sharList = sharList[:-2]
     except ObjectDoesNotExist:
         return HttpResponse('A Project and/or Program does not exist! Cannot proceed further.')
-    return render(
+    return render(request,
             'project/programs/program_list.html',
             {'project':project,'program':program,'loggedinuser':loggedinuser, 'sharList':sharList})
 
@@ -4954,36 +4984,37 @@ def del_program(request, program_id):
        project_id = 0
 
     try:
-       m.Distribution.objects.filter(programId=program_id).delete()
+       Distribution.objects.filter(programId=program_id).delete()
     except ObjectDoesNotExist:
        print('distribution do not exist')
 
     try:
-       m.Agencies.objects.filter(programId=program_id).delete()
+       Agencies.objects.filter(programId=program_id).delete()
     except ObjectDoesNotExist:
        print('agencies do not exist')
 
     try:
-       m.Transfers.objects.filter(programId=program_id).delete()
+       Transfers.objects.filter(programId=program_id).delete()
     except ObjectDoesNotExist:
        print('transfers do not exist')
 
     try:
-       m.Ingredients.objects.filter(programId=program_id).delete()
+       Ingredients.objects.filter(programId=program_id).delete()
     except ObjectDoesNotExist:
        print('ingredients do not exist')
-    try:   
-       m.Effectiveness.objects.get(programId_id = program_id).delete()
+    try:  
+       #remimaging 
+       Effectiveness.objects.get(programId = program_id).delete()
     except ObjectDoesNotExist:
        print('effectiveness does not exist')
     try:   
-       progdesc = m.ProgramDesc.objects.get(programId_id = program_id)
-       m.ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
-       m.ProgramDesc.objects.get(programId_id = program_id).delete()
+       progdesc = ProgramDesc.objects.get(programId = program_id)
+       ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
+       ProgramDesc.objects.get(programId = program_id).delete()
     except ObjectDoesNotExist:
        print('program desc does not exist')
-    m.Programs.objects.get(pk = program_id).delete()
-    upd = updateDate(project_id, None)
+    Programs.objects.get(pk = program_id).delete()
+    #reimaging upd = updateDate(project_id, None)
     return HttpResponseRedirect('/project/programs/' + project_id + '/program_list.html')
 
 
@@ -4994,19 +5025,19 @@ def dupl_program(request, program_id):
     else:
        project_id = 0
 
-    prog = m.Programs.objects.get(pk = program_id)
+    prog = Programs.objects.get(pk = program_id)
     prog.progname = prog.progname + ' COPY' 
     prog.pk = None
     prog.save()
 
     try:
-       progdesc = m.ProgramDesc.objects.get(programId_id = program_id)
-       progdesc.programId_id = prog.id
+       progdesc = ProgramDesc.objects.get(programId = program_id)
+       progdesc.programId = prog.id
        old_progdesc_id = progdesc.pk
        progdesc.pk = None
        progdesc.save()
-       for part in m.ParticipantsPerYear.objects.filter(programdescId_id = old_progdesc_id):
-          ppy = m.ParticipantsPerYear.objects.get(pk = part.id)
+       for part in ParticipantsPerYear.objects.filter(programdescId_id = old_progdesc_id):
+          ppy = ParticipantsPerYear.objects.get(pk = part.id)
           ppy.programdescId_id = progdesc.id
           ppy.pk = None
           ppy.save()
@@ -5014,21 +5045,21 @@ def dupl_program(request, program_id):
        print('program desc does not exist')
 
     try:
-       eff = m.Effectiveness.objects.get(programId_id = program_id)
-       eff.programId_id = prog.id
+       eff = Effectiveness.objects.get(programId = program_id)
+       eff.programId = prog.id
        eff.pk = None
        eff.save()
     except ObjectDoesNotExist:
        print('effectiveness does not exist')
 
     try:
-       for i in  m.Ingredients.objects.filter(programId=program_id):
-          ing = m.Ingredients.objects.get(pk = i.id)
+       for i in  Ingredients.objects.filter(programId=program_id):
+          ing = Ingredients.objects.get(pk = i.id)
           ing.programId = prog.id
           ing.pk = None
           ing.save()
           try:
-             dis = m.Distribution.objects.get(ingredientId = program_id)
+             dis = Distribution.objects.get(ingredientId = program_id)
              dis.programId = prog.id
              dis.ingredientId = ing.id
              dis.pk = None
@@ -5039,7 +5070,7 @@ def dupl_program(request, program_id):
        print('ingredients do not exist')
 
     try:
-       ag = m.Agencies.objects.get(programId=program_id)
+       ag = Agencies.objects.get(programId=program_id)
        ag.programId = prog.id
        ag.pk = None
        ag.save()
@@ -5047,14 +5078,14 @@ def dupl_program(request, program_id):
        print('agencies do not exist')
 
     try:
-       for t in m.Transfers.objects.filter(programId=program_id):
-          trans = m.Transfers.objects.get(pk=t.id)
+       for t in Transfers.objects.filter(programId=program_id):
+          trans = Transfers.objects.get(pk=t.id)
           trans.programId = prog.id
           trans.pk = None
           trans.save()
     except ObjectDoesNotExist:
        print('transfers do not exist')
-    upd = updateDate(project_id, None)
+    #reimaging upd = updateDate(project_id, None)
     return HttpResponseRedirect('/project/programs/' + project_id + '/program_list.html')
 
 def edit_program(request, program_id):
@@ -5062,7 +5093,7 @@ def edit_program(request, program_id):
        project_id = request.session['project_id']
     else:
        project_id = 0
-    prog = m.Programs.objects.get(pk=program_id)
+    prog = Programs.objects.get(pk=program_id)
     context = RequestContext(request)
 
     if request.method == 'POST':
@@ -5072,20 +5103,18 @@ def edit_program(request, program_id):
             progname = programform.save(commit=False)
             progname.save()
             upd = updateDate(project_id, program_id)
-            return HttpResponseRedirect('/project/programs/'+project_id+'/program_list.html')
+            return HttpResponseRedirect('/project/programs/%s/program_list.html' % project_id)
         else:
             print(programform.errors)
 
     else:
         programform = ProgramsForm(instance=prog)
 
-    return render(
-            'project/programs/edit_program.html',
-            {'programform': programform, 'project_id':project_id}, context)
+    return render(request, 'project/programs/edit_program.html',{'programform': programform, 'project_id':project_id})
 
 def index(request):
     two_days_ago = datetime.utcnow() - timedelta(days=2)
-    recent_projects = m.Projects.objects.filter(created_at__gt = two_days_ago).all()
+    recent_projects = Projects.objects.filter(created_at__gt = two_days_ago).all()
     #template = loader.get_template('index.html')
  
     #context = Context({
@@ -5094,10 +5123,9 @@ def index(request):
     #return HttpResponse(template.render(context))
     return render(request, 'index.html', {'projects_list' : recent_projects})
 
-'''def about(request):
+def about(request):
     context = RequestContext(request)
-    return render('about.html', {}, context)
-'''
+    return render(request, 'about.html')
 def add_project(request):
     context = RequestContext(request)
     if 'user' not in request.session:
@@ -5110,18 +5138,19 @@ def add_project(request):
              projectname = projectform.save()
              projectname.user = request.session['user']
              try:
-                p = m.Projects.objects.filter(projectname = projectname.projectname, user = projectname.user).count()
+                p = Projects.objects.filter(projectname = projectname.projectname, user = projectname.user).count()
                 if p > 0:
-                   return render('project/add_project.html',{'projectform':projectform,'err':'This project name is already taken. Please enter a unique name.'}, context)
+                    #04142022 
+                   return render(request, 'project/add_project.html',{'projectform':projectform,'err':'This project name is already taken. Please enter a unique name.'})
              except ObjectDoesNotExist:
                 print(projectname.projectname)
              projectname.save()
-             for i in m.InflationIndices_orig.objects.all():
-                 inf =  m.InflationIndices.objects.create(yearCPI=i.yearCPI, indexCPI=i.indexCPI, projectId=projectname.id)
-             for g in m.GeographicalIndices_orig.objects.all():
-                 geo = m.GeographicalIndices.objects.create(stateIndex=g.stateIndex, areaIndex=g.areaIndex, geoIndex=g.geoIndex, projectId=projectname.id)
-             latest = m.InflationIndices_orig.objects.all().latest('yearCPI')
-             s = m.Settings.objects.create(discountRateEstimates=3.5, yearEstimates = latest.yearCPI, stateEstimates='All states', areaEstimates="All areas", selectDatabase="[u'CBCSE',u'My']",limitEdn="[u'Select',u'General',u'Grades PK', u'Grades K-6', u'Grades 6-8', u'Grades 9-12',u'Grades K-12','PostSecondary']",limitSector="[u'Select',u'Any',u'Public',u'Private']",limitYear="[u'All',u'recent']",hrsCalendarYr=2080,hrsAcademicYr=1440,hrsHigherEdn=1560,projectId=projectname.id) 
+             for i in InflationIndices_orig.objects.all():
+                 inf =  InflationIndices.objects.create(yearCPI=i.yearCPI, indexCPI=i.indexCPI, projectId=projectname.id)
+             for g in GeographicalIndices_orig.objects.all():
+                 geo = GeographicalIndices.objects.create(stateIndex=g.stateIndex, areaIndex=g.areaIndex, geoIndex=g.geoIndex, projectId=projectname.id)
+             latest = InflationIndices_orig.objects.all().latest('yearCPI')
+             s = Settings.objects.create(discountRateEstimates=3.5, yearEstimates = latest.yearCPI, stateEstimates='All states', areaEstimates="All areas", selectDatabase="[u'CBCSE',u'My']",limitEdn="[u'Select',u'General',u'Grades PK', u'Grades K-6', u'Grades 6-8', u'Grades 9-12',u'Grades K-12','PostSecondary']",limitSector="[u'Select',u'Any',u'Public',u'Private']",limitYear="[u'All',u'recent']",hrsCalendarYr=2080,hrsAcademicYr=1440,hrsHigherEdn=1560,projectId=projectname.id) 
              request.session['project_id'] = projectname.id
              return HttpResponseRedirect('/project/settings.html')
              #return render('project/add_project.html',{'projectform':projectform}, context)
@@ -5131,12 +5160,12 @@ def add_project(request):
        else:
           projectform = ProjectsForm()        
 
-       return render(
+       return render(request,
             'project/add_project.html',
-            {'projectform': projectform}, context)
+            {'projectform': projectform})
 
 def edit_project(request, project_id):
-    proj = m.Projects.objects.get(pk=project_id)
+    proj = Projects.objects.get(pk=project_id)
     context = RequestContext(request)
    
     if request.method == 'POST':
@@ -5145,9 +5174,10 @@ def edit_project(request, project_id):
         if projectform.is_valid():
             projectname = projectform.save(commit=False)
             try:
-               p = m.Projects.objects.filter(projectname = projectname.projectname).count()
+               p = Projects.objects.filter(projectname = projectname.projectname).count()
                if p > 1:
-                  return render('project/edit_project.html',{'projectform':projectform,'err':'This project name is already taken. Please enter a unique name.'}, context)
+                   #04142022 
+                  return render(request, 'project/edit_project.html',{'projectform':projectform,'err':'This project name is already taken. Please enter a unique name.'})
             except ObjectDoesNotExist:
                 print(projectname.projectname)
             projectname.updated_at = datetime.datetime.now()
@@ -5159,9 +5189,9 @@ def edit_project(request, project_id):
     else:
         projectform = ProjectsForm(instance=proj)
 
-    return render(
+    return render(request,
             'project/edit_project.html',
-            {'projectform': projectform}, context)
+            {'projectform': projectform})
 
 def share_project(request, project_id):
     context = RequestContext(request)
@@ -5169,17 +5199,17 @@ def share_project(request, project_id):
        loggedinuser = request.session['user']     
     else:
        loggedinuser = 'ccc'
-    f = open( '/home/amritha/costtool/documents/f.txt', 'w+' )
+    f = open( '/home/costout/costtool/documents/f.txt', 'w+' )
     # if shared user is deleted, mark delrec as Y, go through all the forms in the formset; insert the new rows - add deleted forms id to a list - ask user confirmation if he wants to delete the forms and only then delete
     delrec = 'N'
     shareList = []
-    project = m.Projects.objects.get(pk=project_id)   
+    project = Projects.objects.get(pk=project_id)   
     projectname = project.projectname
     if loggedinuser == project.user:
        sameuser = 'Y'
     else:
        sameuser = 'N' 
-    MFormSet = modelformset_factory(m.SharedProj, form=ShareProjForm, extra=10)
+    MFormSet = modelformset_factory(SharedProj, ShareProjForm, fields=['shared_user', 'shared_date'], extra=10)
     if request.method == 'POST':
        shareform = MFormSet(request.POST,request.FILES,prefix="shareform" )
        if shareform.is_valid():
@@ -5188,16 +5218,16 @@ def share_project(request, project_id):
           sid = 0
           for p in proj1:
               if (p.shared_user == loggedinuser):
-                  return render('project/share_project.html',{'shareform':shareform,'sameuser': sameuser, 'delrec':delrec, 'loggedinuser' : loggedinuser, 'projectname': projectname,'shareduser': p.shared_user, 'err1':'The user name you have entered is ', 'err2':'. You cannot enter your own name. Please enter a valid user name.'}, context) 
+                  return render(request, 'project/share_project.html',{'shareform':shareform,'sameuser': sameuser, 'delrec':delrec, 'loggedinuser' : loggedinuser, 'projectname': projectname,'shareduser': p.shared_user, 'err1':'The user name you have entered is ', 'err2':'. You cannot enter your own name. Please enter a valid user name.'}) 
               #try:
-                 #existing = m.SharedProj.objects.filter(projectid=project_id).filter(shared_user=p.shared_user)
+                 #existing = SharedProj.objects.filter(projectid=project_id).filter(shared_user=p.shared_user)
                  #return render('project/share_project.html',{'shareform':shareform,'shareduser': p.shared_user,'err1':'The user name you have entered is ', 'err2':'. He is already a shared project user. Please enter another user.'}, context)                   
               #except:
               try:
-                 login = m.Login.objects.filter(user=p.shared_user).latest('startDate')
+                 login = Login.objects.filter(user=p.shared_user).latest('startDate')
               except:
                   if p.shared_user != '': 
-                      return render('project/share_project.html',{'shareform':shareform,'sameuser': sameuser,'delrec':delrec,'loggedinuser' : loggedinuser, 'projectname': projectname,'shareduser': p.shared_user,'err1':'The user name you have entered is ', 'err2':'. It does not exist. Please enter a valid user name.'}, context)    
+                      return render(request, 'project/share_project.html',{'shareform':shareform,'sameuser': sameuser,'delrec':delrec,'loggedinuser' : loggedinuser, 'projectname': projectname,'shareduser': p.shared_user,'err1':'The user name you have entered is ', 'err2':'. It does not exist. Please enter a valid user name.'})    
               p.shared_date = datetime.datetime.now()
               p.projectid = project_id
               if p.shared_user != '':
@@ -5223,9 +5253,9 @@ def share_project(request, project_id):
              return HttpResponseRedirect('/project/%s/share_project.html' % project_id) 
        else:
           print(shareform.errors)
-          return render( 'project/share_project.html',{'shareform':shareform, 'sameuser': sameuser,'delrec':delrec,'loggedinuser' : loggedinuser,'projectname': projectname, 'err':shareform.errors},context)
+          return render(request, 'project/share_project.html',{'shareform':shareform, 'sameuser': sameuser,'delrec':delrec,'loggedinuser' : loggedinuser,'projectname': projectname, 'err':shareform.errors})
     else:
-       qset = m.SharedProj.objects.filter(projectid=project_id)
+       qset = SharedProj.objects.filter(projectid=project_id)
        #for q in qset:
            #oldList.append(q.shared_user)
        #f.write(''.join(oldList))
@@ -5234,17 +5264,16 @@ def share_project(request, project_id):
        for form in shareform:
            if sameuser != 'Y':
               form.fields['shared_user'].widget.attrs['readonly'] = True 
-    return render(
-            'project/share_project.html',{'shareform':shareform, 'sameuser': sameuser,'delrec':delrec, 'loggedinuser' : loggedinuser, 'projectname': projectname},
-             context)
+    return render(request,
+            'project/share_project.html',{'shareform':shareform, 'sameuser': sameuser,'delrec':delrec, 'loggedinuser' : loggedinuser, 'projectname': projectname})
 
 def del_sharproj(request):                                                                                                              
     context = RequestContext(request)
-    #f = open( '/home/amritha/costtool/documents/f.txt', 'w+' )
+    #f = open( '/home/costout/costtool/documents/f.txt', 'w+' )
     if 'shareList' in request.session:
        for s in request.session['shareList']:
            try: 
-              sharproj = m.SharedProj.objects.get(id=s)
+              sharproj = SharedProj.objects.get(id=s)
               project_id = sharproj.projectid
               sharproj.delete()
               upd = updateProj(project_id)
@@ -5262,7 +5291,7 @@ def del_sharproj(request):
 def dupl_project(request, project_id):
     context = RequestContext(request)
 
-    proj = m.Projects.objects.get(pk = project_id)
+    proj = Projects.objects.get(pk = project_id)
     proj.projectname = proj.projectname + ' COPY'
     proj.user = request.session['user'];
     proj.shared = None;
@@ -5272,8 +5301,8 @@ def dupl_project(request, project_id):
     proj.save()
 
     try:
-       for i in m.InflationIndices.objects.filter(projectId=project_id):
-          inf = m.InflationIndices.objects.get(pk = i.id)
+       for i in InflationIndices.objects.filter(projectId=project_id):
+          inf = InflationIndices.objects.get(pk = i.id)
           inf.projectId = proj.id
           inf.pk = None
           inf.save()
@@ -5281,8 +5310,8 @@ def dupl_project(request, project_id):
           print('inf does not exist')
 
     try:
-       for g in m.GeographicalIndices.objects.filter(projectId=project_id):
-          geo = m.GeographicalIndices.objects.get(pk = g.id)
+       for g in GeographicalIndices.objects.filter(projectId=project_id):
+          geo = GeographicalIndices.objects.get(pk = g.id)
           geo.projectId = proj.id
           geo.pk = None
           geo.save()
@@ -5290,27 +5319,27 @@ def dupl_project(request, project_id):
           print('geo does not exist')
 
     try:
-       sett = m.Settings.objects.get(projectId=project_id)
+       sett = Settings.objects.get(projectId=project_id)
        sett.projectId = proj.id
        sett.pk = None
        sett.save()
     except ObjectDoesNotExist:
        print('sett does not exist')
 
-    for prog in m.Programs.objects.filter(projectId = project_id):
-       prog2 = m.Programs.objects.get(pk = prog.id)
+    for prog in Programs.objects.filter(projectId = project_id):
+       prog2 = Programs.objects.get(pk = prog.id)
        prog2.progname = prog.progname + ' COPY'
        prog2.projectId = proj.id
        prog2.pk = None
        prog2.save()
        try:
-          progdesc = m.ProgramDesc.objects.get(programId_id = prog.id)
-          progdesc.programId_id = prog2.id
+          progdesc = ProgramDesc.objects.get(programId = prog.id)
+          progdesc.programId = prog2.id
           old_progdesc_id = progdesc.pk
           progdesc.pk = None
           progdesc.save()
-          for part in m.ParticipantsPerYear.objects.filter(programdescId_id = old_progdesc_id):
-             ppy = m.ParticipantsPerYear.objects.get(pk = part.id)
+          for part in ParticipantsPerYear.objects.filter(programdescId_id = old_progdesc_id):
+             ppy = ParticipantsPerYear.objects.get(pk = part.id)
              ppy.programdescId_id = progdesc.id
              ppy.pk = None
              ppy.save()
@@ -5318,21 +5347,21 @@ def dupl_project(request, project_id):
           print('program desc does not exist')
 
        try:
-          eff = m.Effectiveness.objects.get(programId_id = prog.id)
-          eff.programId_id = prog2.id
+          eff = Effectiveness.objects.get(programId = prog.id)
+          eff.programId = prog2.id
           eff.pk = None
           eff.save()
        except ObjectDoesNotExist:
           print('effectiveness does not exist')
 
        try:
-          for i in  m.Ingredients.objects.filter(programId=prog.id):
-             ing = m.Ingredients.objects.get(pk = i.id)
+          for i in  Ingredients.objects.filter(programId=prog.id):
+             ing = Ingredients.objects.get(pk = i.id)
              ing.programId = prog2.id
              ing.pk = None
              ing.save()
              try:
-                dis = m.Distribution.objects.get(ingredientId = i.id)
+                dis = Distribution.objects.get(ingredientId = i.id)
                 dis.programId = prog2.id
                 dis.ingredientId = ing.id
                 dis.pk = None
@@ -5343,7 +5372,7 @@ def dupl_project(request, project_id):
           print('ingredients do not exist')
 
        try:
-          ag = m.Agencies.objects.get(programId=prog.id)
+          ag = Agencies.objects.get(programId=prog.id)
           ag.programId = prog2.id
           ag.pk = None
           ag.save()
@@ -5351,8 +5380,8 @@ def dupl_project(request, project_id):
           print('agencies do not exist')
 
        try:
-          for t in m.Transfers.objects.filter(programId=prog.id):
-             trans = m.Transfers.objects.get(pk=t.id)
+          for t in Transfers.objects.filter(programId=prog.id):
+             trans = Transfers.objects.get(pk=t.id)
              trans.programId = prog2.id
              trans.pk = None
              trans.save()
@@ -5362,7 +5391,7 @@ def dupl_project(request, project_id):
     return HttpResponseRedirect('/project/project_list.html')
 
 def project_list(request):
-    #f = open( '/home/amritha/costtool/documents/f.txt', 'w+' )
+    #f = open( '/home/costout/costtool/documents/f.txt', 'w+' )
     if 'project_id' in request.session:
         del request.session['project_id']
 
@@ -5374,69 +5403,71 @@ def project_list(request):
     else:
        loggedinuser = 'ccc'
     try:
-       login = m.Login.objects.filter(user=loggedinuser).latest('startDate')
-       template = loader.get_template('project/project_list.html')
+       login = Login.objects.filter(user=loggedinuser).latest('startDate')
+       #template = loader.get_template('project/project_list.html')
     except ObjectDoesNotExist:   
-       template = loader.get_template('prices/message.html')
-    
-    allprojects = m.Projects.objects.filter(user = loggedinuser)
+       #template = loader.get_template('prices/message.html')
+       return render(request,'prices/message.html')   
 
-    #if loggedinuser in ('amritha_yahoo', 'ammtest', 'amritha', 'fh4', 'Atsuko Muroga', 'yilinpan','Maya Escueta' ):
+    allprojects = Projects.objects.filter(user = loggedinuser)
+
+    #if loggedinuser in ('costout_yahoo', 'ammtest', 'costout', 'fh4', 'Atsuko Muroga', 'yilinpan','Maya Escueta' ):
     projlist = [] 
-    for s in m.SharedProj.objects.filter(shared_user = loggedinuser):
+    for s in SharedProj.objects.filter(shared_user = loggedinuser):
            #f.write('\n') 
        projlist.append(s.projectid)
        #f.write(str(projlist))
-       allprojects = allprojects | m.Projects.objects.filter(id__in=projlist)
+       allprojects = allprojects | Projects.objects.filter(id__in=projlist)
     #f.close()
     allprojects = allprojects.order_by('-id')
     context = Context({
         'allprojects' : allprojects,'loggedinuser' : loggedinuser
     })
-    return HttpResponse(template.render(context))
+    #return HttpResponse(template.render(context))
+    return render(request,'project/project_list.html',{'allprojects':allprojects, 'loggedinuser':loggedinuser})  
 
 def del_project(request, project_id):
     context = RequestContext(request)
     
-    for p in m.Programs.objects.filter(projectId = project_id): 
+    for p in Programs.objects.filter(projectId = project_id): 
        try:
-          m.Distribution.objects.filter(programId=p.id).delete()
+          Distribution.objects.filter(programId=p.id).delete()
        except ObjectDoesNotExist:
           print('distribution do not exist')
 
        try:
-          m.Agencies.objects.filter(programId=p.id).delete()
+          Agencies.objects.filter(programId=p.id).delete()
        except ObjectDoesNotExist:
           print('agencies do not exist')
 
        try:
-          m.Transfers.objects.filter(programId=p.id).delete()
+          Transfers.objects.filter(programId=p.id).delete()
        except ObjectDoesNotExist:
           print('transfers do not exist')
 
        try:
-          m.Ingredients.objects.filter(programId=p.id).delete()
+          Ingredients.objects.filter(programId=p.id).delete()
        except ObjectDoesNotExist:
           print('ingredients do not exist')
             
        try:
-          m.Effectiveness.objects.get(programId_id = p.id).delete()
+          Effectiveness.objects.get(programId = p.id).delete()
        except ObjectDoesNotExist:
           print('effectiveness does not exist')
             
        try:
-          progdesc = m.ProgramDesc.objects.get(programId_id = p.id)
-          m.ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
-          m.ProgramDesc.objects.get(programId_id = p.id).delete()
+          progdesc = ProgramDesc.objects.get(programId = p.id)
+          ParticipantsPerYear.objects.filter(programdescId_id = progdesc.id).delete()
+          ProgramDesc.objects.get(programId = p.id).delete()
        except ObjectDoesNotExist:
           print('program desc does not exist')
             
-       m.Programs.objects.get(pk = p.id).delete()
+       Programs.objects.get(pk = p.id).delete()
     
-    m.InflationIndices.objects.filter(projectId=project_id).delete()
-    m.GeographicalIndices.objects.filter(projectId=project_id).delete()
-    m.Settings.objects.get(projectId=project_id).delete()
-    m.Projects.objects.get(pk=project_id).delete()
+    InflationIndices.objects.filter(projectId=project_id).delete()
+    GeographicalIndices.objects.filter(projectId=project_id).delete()
+    Settings.objects.get(projectId=project_id).delete()
+    Projects.objects.get(pk=project_id).delete()
     return HttpResponseRedirect('/project/project_list.html')
 
 def add_price(request):
@@ -5453,26 +5484,27 @@ def add_price(request):
         else:
             print(pricesform.errors)
             form_errors = pricesform.errors
-            return render('prices/add_price.html',{'form_errors': form_errors, 'pricesform': pricesform}, context)
+             #04142022
+            return render(request, 'prices/add_price.html',{'form_errors': form_errors, 'pricesform': pricesform})
 
     else:
         pricesform = PricesForm(user = myUser)
 
-    return render(
+    return render(request,
             'prices/add_price.html',
-            {'pricesform': pricesform}, context)
+            {'pricesform': pricesform})
 
 def view_price(request, price_id):
-    price = m.Prices.objects.get(pk=price_id)
+    price = Prices.objects.get(pk=price_id)
 
-    template = loader.get_template('prices/view_price.html')
+    '''template = loader.get_template('prices/view_price.html')
     context = Context({
         'price' : price
     })
-    return HttpResponse(template.render(context))
-
+    return HttpResponse(template.render(context))'''
+    return render(request,'prices/view_price.html',{'price': price})
 def view_price2(request, price_id):
-    price = m.Prices.objects.get(pk=price_id)
+    price = Prices.objects.get(pk=price_id)
     if 'search_cat' in request.session:                                                                                                                                                                          
        cat = request.session['search_cat']
     else:
@@ -5490,14 +5522,15 @@ def view_price2(request, price_id):
     else:
        ingredient = 'ccc'
 
-    template = loader.get_template('prices/view_price2.html')
+    '''template = loader.get_template('prices/view_price2.html')
     context = Context({
         'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient, 'price' : price
     })
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context))'''
+    return render(request,'prices/view_price2.html',{'cat' : cat, 'edLevel':  edLevel, 'sector': sector,'ingredient' : ingredient, 'price' : price})
 
 def edit_price(request, price_id):
-    price = m.Prices.objects.get(pk=price_id)
+    price = Prices.objects.get(pk=price_id)
     myUser = request.session['user']
     context = RequestContext(request)
 
@@ -5511,37 +5544,39 @@ def edit_price(request, price_id):
             print(pricesform.errors)
     else:
         pricesform = PricesForm(instance=price,user = myUser)
-
-    return render(
+     #04142022 
+    return render(request,
             'prices/edit_price.html',
-            {'pricesform': pricesform}, context)
+            {'pricesform': pricesform})
 
 def del_price(request, price_id):
     context = RequestContext(request)
-    m.Prices.objects.get(pk=price_id).delete()
+    Prices.objects.get(pk=price_id).delete()
     return HttpResponseRedirect('/prices/my_price_list.html')
 
 def clear_prices(request):
     context = RequestContext(request)
-    m.Prices.objects.filter(priceProvider=request.session['user']).delete()
+    Prices.objects.filter(priceProvider=request.session['user']).delete()
     return HttpResponseRedirect('/prices/my_price_list.html')
 
 def price_list(request):
     if 'user' not in request.session:
        return render(request,'prices/message.html')
     else:
-       allprices = m.Prices.objects.filter(priceProvider='CBCSE').order_by('ingredient') 
+       allprices = Prices.objects.filter(priceProvider='CBCSE').order_by('ingredient') 
 
-       template = loader.get_template('prices/price_list.html')
-       context = Context({'allprices' : allprices})
-       return HttpResponse(template.render(context))
+       #template = loader.get_template('prices/price_list.html')
+       #context = Context({'allprices' : allprices})
+       #return HttpResponse(template.render(context))
+       return render(request, 'prices/price_list.html',{'allprices':allprices})
 
 def my_price_list(request):
-    allprices2 = m.Prices.objects.filter(priceProvider=request.session['user']).order_by('ingredient')
+    allprices2 = Prices.objects.filter(priceProvider=request.session['user']).order_by('ingredient')
 
-    template = loader.get_template('prices/my_price_list.html')
-    context = Context({'allprices2' : allprices2})
-    return HttpResponse(template.render(context))
+    #template = loader.get_template('prices/my_price_list.html')
+    #context = Context({'allprices2' : allprices2})
+    #return HttpResponse(template.render(context))
+    return render(request, 'prices/my_price_list.html',{'allprices2':allprices2})
 
 def export_full_table(request):
     response = HttpResponse(content_type='application/ms-excel')
@@ -5549,21 +5584,21 @@ def export_full_table(request):
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet("Expanded Cost Information")
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     programId = request.session['program_id']
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
        projectId = 0
 
-    project = m.Projects.objects.get(pk = projectId)
-    program = m.Programs.objects.get(pk = programId)
-    sett = m.Settings.objects.get(projectId = projectId)
+    project = Projects.objects.get(pk = projectId)
+    program = Programs.objects.get(pk = programId)
+    sett = Settings.objects.get(projectId = projectId)
     try:
-       programdesc = m.ProgramDesc.objects.get(programId_id = programId)
+       programdesc = ProgramDesc.objects.get(programId = programId)
        noofpart = programdesc.numberofparticipants
        try:
-          part = m.ParticipantsPerYear.objects.filter(programdescId_id = programdesc.id)[:1].get()
+          part = ParticipantsPerYear.objects.filter(programdescId_id = programdesc.id)[:1].get()
           partExists = True
        except ObjectDoesNotExist:
           partExists = False
@@ -5691,7 +5726,7 @@ def export_full_table(request):
 
     sql2 = """SELECT yearqtyused, sum(costperingredient) sumcost, sum(percentageCost) sumperc, noofparticipants, sum(costPerParticipant) sumpart FROM costtool_ingredients, costtool_participantsperyear WHERE programid = %(programId)s  AND yearqtyused = yearnumber AND programdescid_id = (SELECT id FROM costtool_programdesc WHERE programid_id = %(programId)s) group by yearqtyused"""
 
-    ing = m.Ingredients.objects.filter(programId = programId)[:1].get()
+    ing = Ingredients.objects.filter(programId = programId)[:1].get()
     ws.write(12, 0, 'Total Cost of program', font_style5)
     ws.write(12, 1, '', money_xf2)
     ws.write(12, 2, ing.totalCost, money_xf)
@@ -5711,7 +5746,7 @@ def export_full_table(request):
     ws.write(0, 8, '% of Total', font_style5)
 
     fixtot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Fixed'):
+    for i in Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Fixed'):
        if i.costPerIngredient is not None:
           fixtot = fixtot + i.costPerIngredient
        else:
@@ -5723,7 +5758,7 @@ def export_full_table(request):
     ws.write(1, 8, fixperc, money_p)
 
     ltot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Lumpy'):
+    for i in Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Lumpy'):
        if i.costPerIngredient is not None:
           ltot = ltot + i.costPerIngredient
        else:
@@ -5735,7 +5770,7 @@ def export_full_table(request):
     ws.write(2, 8, lperc, money_p)
 
     vartot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Variable'):
+    for i in Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Variable'):
        if i.costPerIngredient is not None:
           vartot = vartot + i.costPerIngredient
        else:
@@ -5752,7 +5787,7 @@ def export_full_table(request):
     ws.write(5, 8, '% of Total', font_style5)
 
     pertot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(category = 'Personnel'):
+    for i in Ingredients.objects.filter(programId = programId).filter(category = 'Personnel'):
        if i.costPerIngredient is not None:
           pertot = pertot + i.costPerIngredient
        else:
@@ -5764,7 +5799,7 @@ def export_full_table(request):
     ws.write(6, 8, perperc, money_p)
 
     mattot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(category = 'Material/Equipment'):
+    for i in Ingredients.objects.filter(programId = programId).filter(category = 'Material/Equipment'):
        if i.costPerIngredient is not None:
           mattot = mattot + i.costPerIngredient
        else:
@@ -5776,7 +5811,7 @@ def export_full_table(request):
     ws.write(7, 8, matperc, money_p)
 
     factot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(category = 'Facilities'):
+    for i in Ingredients.objects.filter(programId = programId).filter(category = 'Facilities'):
        if i.costPerIngredient is not None:
           factot = factot + i.costPerIngredient
        else:
@@ -5788,7 +5823,7 @@ def export_full_table(request):
     ws.write(8, 8, facperc, money_p)
 
     inptot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(category = 'Other Inputs'):
+    for i in Ingredients.objects.filter(programId = programId).filter(category = 'Other Inputs'):
        if i.costPerIngredient is not None:
           inptot = inptot + i.costPerIngredient
        else:
@@ -5810,7 +5845,7 @@ def export_full_table(request):
            (u"Average Cost per participant", 5000),
         ]
 
-        for col_num in xrange(len(columns)):
+        for col_num in range(len(columns)):
            ws.write(row_num, col_num, columns[col_num][0], font_style)
            # set column width
            ws.col(col_num).width = columns[col_num][1]
@@ -5827,7 +5862,7 @@ def export_full_table(request):
               sumperc = row[2]
               noofparticipants = row[3]
               sumpart = row[4]
-              for col_num in xrange(len(row)):
+              for col_num in range(len(row)):
                  if col_num == 0:
                     ws.write(row_num, col_num, row[col_num], font_style)
                  elif col_num == 2:
@@ -5878,7 +5913,7 @@ def export_full_table(request):
         (u"Description", 30000)
     ]
 
-    for col_num in xrange(len(columns)):
+    for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columns[col_num][1]
@@ -5924,7 +5959,7 @@ def export_full_table(request):
           sourceBenefitData = row[31]
           yearBenefit = row[32]
           notes = row[33]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row[8] % 2 == 0:
                 if col_num == 8 or col_num ==9 or col_num ==10:
                    ws.write(row_num, col_num, row[col_num], font_cent_22)
@@ -5958,21 +5993,21 @@ def export_cost_table(request):
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet("Cost Information")
     
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     programId = request.session['program_id']
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
        projectId = 0
 
-    project = m.Projects.objects.get(pk = projectId)
-    program = m.Programs.objects.get(pk = programId)
-    sett = m.Settings.objects.get(projectId = projectId)
+    project = Projects.objects.get(pk = projectId)
+    program = Programs.objects.get(pk = programId)
+    sett = Settings.objects.get(projectId = projectId)
     try:
-       programdesc = m.ProgramDesc.objects.get(programId_id = programId)
+       programdesc = ProgramDesc.objects.get(programId = programId)
        noofpart = programdesc.numberofparticipants
        try: 
-          part = m.ParticipantsPerYear.objects.filter(programdescId_id = programdesc.id)[:1].get()
+          part = ParticipantsPerYear.objects.filter(programdescId_id = programdesc.id)[:1].get()
           partExists = True 
        except ObjectDoesNotExist:
           partExists = False
@@ -6100,7 +6135,7 @@ def export_cost_table(request):
 
     sql2 = """SELECT yearqtyused, sum(costperingredient) sumcost, sum(percentageCost) sumperc, noofparticipants, sum(costPerParticipant) sumpart FROM costtool_ingredients, costtool_participantsperyear WHERE programid = %(programId)s  AND yearqtyused = yearnumber AND programdescid_id = (SELECT id FROM costtool_programdesc WHERE programid_id = %(programId)s) group by yearqtyused"""
 
-    ing = m.Ingredients.objects.filter(programId = programId)[:1].get()
+    ing = Ingredients.objects.filter(programId = programId)[:1].get()
     ws.write(12, 0, 'Total Cost of program', font_style5)
     ws.write(12, 1, '', money_xf2)
     ws.write(12, 2, ing.totalCost, money_xf)
@@ -6120,7 +6155,7 @@ def export_cost_table(request):
     ws.write(0, 8, '% of Total', font_style5) 
 
     fixtot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Fixed'):
+    for i in Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Fixed'):
        if i.costPerIngredient is not None:
           fixtot = fixtot + i.costPerIngredient
        else:
@@ -6132,7 +6167,7 @@ def export_cost_table(request):
     ws.write(1, 8, fixperc, money_p) 
 
     ltot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Lumpy'):
+    for i in Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Lumpy'):
        if i.costPerIngredient is not None:
           ltot = ltot + i.costPerIngredient
        else:
@@ -6144,7 +6179,7 @@ def export_cost_table(request):
     ws.write(2, 8, lperc, money_p)
 
     vartot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Variable'):
+    for i in Ingredients.objects.filter(programId = programId).filter(variableFixed = 'Variable'):
        if i.costPerIngredient is not None:
           vartot = vartot + i.costPerIngredient
        else:
@@ -6161,7 +6196,7 @@ def export_cost_table(request):
     ws.write(5, 8, '% of Total', font_style5)
 
     pertot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(category = 'Personnel'):
+    for i in Ingredients.objects.filter(programId = programId).filter(category = 'Personnel'):
        if i.costPerIngredient is not None:
           pertot = pertot + i.costPerIngredient
        else:
@@ -6173,7 +6208,7 @@ def export_cost_table(request):
     ws.write(6, 8, perperc, money_p)
 
     mattot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(category = 'Material/Equipment'):
+    for i in Ingredients.objects.filter(programId = programId).filter(category = 'Material/Equipment'):
        if i.costPerIngredient is not None:
           mattot = mattot + i.costPerIngredient
        else:
@@ -6185,7 +6220,7 @@ def export_cost_table(request):
     ws.write(7, 8, matperc, money_p)
 
     factot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(category = 'Facilities'):
+    for i in Ingredients.objects.filter(programId = programId).filter(category = 'Facilities'):
        if i.costPerIngredient is not None:
           factot = factot + i.costPerIngredient
        else:
@@ -6197,7 +6232,7 @@ def export_cost_table(request):
     ws.write(8, 8, facperc, money_p)
 
     inptot = 0
-    for i in m.Ingredients.objects.filter(programId = programId).filter(category = 'Other Inputs'):
+    for i in Ingredients.objects.filter(programId = programId).filter(category = 'Other Inputs'):
        if i.costPerIngredient is not None:
           inptot = inptot + i.costPerIngredient
        else:
@@ -6219,7 +6254,7 @@ def export_cost_table(request):
            (u"Average Cost per participant", 5000),
         ]
 
-        for col_num in xrange(len(columns)):
+        for col_num in range(len(columns)):
            ws.write(row_num, col_num, columns[col_num][0], font_style)
            # set column width
            ws.col(col_num).width = columns[col_num][1]
@@ -6236,7 +6271,7 @@ def export_cost_table(request):
               sumperc = row[2]
               noofparticipants = row[3] 
               sumpart = row[4]
-              for col_num in xrange(len(row)):
+              for col_num in range(len(row)):
                  if col_num == 0:
                     ws.write(row_num, col_num, row[col_num], font_style)
                  elif col_num == 2:
@@ -6264,7 +6299,7 @@ def export_cost_table(request):
         (u"Description", 30000)
     ]
 
-    for col_num in xrange(len(columns)):
+    for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columns[col_num][1]
@@ -6288,7 +6323,7 @@ def export_cost_table(request):
           costPerParticipant = row[9]
           notes = row[10]
           maxnum = row_num
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row[2] % 2 == 0:
                 if col_num == 2 or col_num == 3:
                    ws.write(row_num, col_num, row[col_num], font_cent_22)
@@ -6321,7 +6356,7 @@ def export_dist(request):
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet("Distribution of Costs")
   
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     if 'project_id' in request.session:
        projectId = request.session['project_id']
     else:
@@ -6331,14 +6366,14 @@ def export_dist(request):
     else:
        programId = 0   
 
-    project = m.Projects.objects.get(pk = projectId)
-    program = m.Programs.objects.get(pk = programId)
-    sett = m.Settings.objects.get(projectId = projectId)
+    project = Projects.objects.get(pk = projectId)
+    program = Programs.objects.get(pk = programId)
+    sett = Settings.objects.get(projectId = projectId)
     try:
-       programdesc = m.ProgramDesc.objects.get(programId_id = programId)
+       programdesc = ProgramDesc.objects.get(programId = programId)
        noofpart = programdesc.numberofparticipants
        try:
-          part = m.ParticipantsPerYear.objects.filter(programdescId_id = programdesc.id)[:1].get()
+          part = ParticipantsPerYear.objects.filter(programdescId_id = programdesc.id)[:1].get()
           partExists = True
        except ObjectDoesNotExist:
           partExists = False
@@ -6490,7 +6525,7 @@ def export_dist(request):
     ws.write(9, 2, str(noofpart), font_style4)
     ws.write(9, 3, "", font_style4)
 
-    ing = m.Ingredients.objects.filter(programId = programId)[:1].get()
+    ing = Ingredients.objects.filter(programId = programId)[:1].get()
     ws.write(11, 0, 'Total Cost of program', font_style5)
     ws.write(11, 1, '', money_xf2)
     ws.write(11, 2, ing.totalCost, money_xf)
@@ -6526,17 +6561,17 @@ def export_dist(request):
        sql3 = """SELECT 'Transfers' cname, grantYear,  noofparticipants, SUM(IFNULL (total_amount,0.0)) cost, SUM(IFNULL (total_amount,0.0)) / noofparticipants Costperparticipant, SUM(IFNULL (t.cost_agency1,0.0)) t1, SUM(IFNULL (t.cost_agency2,0.0)) t2, SUM(IFNULL (t.cost_agency3 , 0.0)) t3, SUM(IFNULL (t.cost_agency4,0.0)) t4, SUM(IFNULL(t.cost_other, 0.0)) toth FROM costtool_transfers t, costtool_participantsperyear WHERE t.programid = %(programId)s and programdescid_id in (select id from costtool_programdesc where programid_id = %(programId)s) and grantYear = yearnumber group by grantYear"""
 
     else:
-       sqld = """SELECT 'Gross Costs' cname, yearQtyUsed, numberofparticipants, SUM(IFNULL (d.cost, 0.0)) cost, SUM(IFNULL (d.cost, 0.0)) / numberofparticipants Costperparticipant, SUM(IFNULL (d.cost_agency1, 0.0)) gc1, SUM(IFNULL (d.cost_agency2,0.0)) gc2, SUM(IFNULL (d.cost_agency3,0.0)) gc3, SUM(IFNULL (d.cost_agency4,0.0)) gc4, SUM(IFNULL(d.cost_other,0.0)) goth FROM costtool_distribution d, costtool_programdesc WHERE d.programid = %(programId)s and d.programid = programid_id  group by yearQtyUsed UNION SELECT 'Transfers' cname, grantYear, numberofparticipants,  SUM(IFNULL (total_amount,0.0)) cost, SUM(IFNULL (total_amount,0.0)) / numberofparticipants Costperparticipant, SUM(IFNULL (t.cost_agency1,0.0)) t1, SUM(IFNULL (t.cost_agency2,0.0)) t2, SUM(IFNULL (t.cost_agency3 , 0.0)) t3, SUM(IFNULL (t.cost_agency4,0.0)) t4, SUM(IFNULL(t.cost_other, 0.0)) toth FROM costtool_transfers t, costtool_programdesc  WHERE t.programid = %(programId)s and t.programid = programId_id group by grantYear ORDER BY yearQtyUsed, cname"""
+       sqld = """SELECT 'Gross Costs' cname, yearQtyUsed, numberofparticipants, SUM(IFNULL (d.cost, 0.0)) cost, SUM(IFNULL (d.cost, 0.0)) / numberofparticipants Costperparticipant, SUM(IFNULL (d.cost_agency1, 0.0)) gc1, SUM(IFNULL (d.cost_agency2,0.0)) gc2, SUM(IFNULL (d.cost_agency3,0.0)) gc3, SUM(IFNULL (d.cost_agency4,0.0)) gc4, SUM(IFNULL(d.cost_other,0.0)) goth FROM costtool_distribution d, costtool_programdesc WHERE d.programid = %(programId)s and d.programid = programid_id  group by yearQtyUsed UNION SELECT 'Transfers' cname, grantYear, numberofparticipants,  SUM(IFNULL (total_amount,0.0)) cost, SUM(IFNULL (total_amount,0.0)) / numberofparticipants Costperparticipant, SUM(IFNULL (t.cost_agency1,0.0)) t1, SUM(IFNULL (t.cost_agency2,0.0)) t2, SUM(IFNULL (t.cost_agency3 , 0.0)) t3, SUM(IFNULL (t.cost_agency4,0.0)) t4, SUM(IFNULL(t.cost_other, 0.0)) toth FROM costtool_transfers t, costtool_programdesc  WHERE t.programid = %(programId)s and t.programid = programId group by grantYear ORDER BY yearQtyUsed, cname"""
 
        sqlg = """SELECT 'Gross Costs' cname, yearQtyUsed, numberofparticipants, SUM(IFNULL (d.cost, 0.0)) cost,SUM(IFNULL (d.cost, 0.0))/ numberofparticipants Costperparticipant, SUM(IFNULL (d.cost_agency1, 0.0)) gc1, SUM(IFNULL (d.cost_agency2,0.0)) gc2, SUM(IFNULL (d.cost_agency3,0.0)) gc3, SUM(IFNULL (d.cost_agency4,0.0)) gc4, SUM(IFNULL(d.cost_other,0.0)) goth FROM costtool_distribution d, costtool_programdesc WHERE d.programid = %(programId)s and d.programid = programid_id  group by yearQtyUsed"""
 
-       sql3 = """SELECT 'Transfers' cname, grantYear, numberofparticipants, SUM(IFNULL (total_amount,0.0)) cost, SUM(IFNULL (total_amount,0.0))/numberofparticipants Costperparticipant, SUM(IFNULL (t.cost_agency1,0.0)) t1, SUM(IFNULL (t.cost_agency2,0.0)) t2, SUM(IFNULL (t.cost_agency3 , 0.0)) t3, SUM(IFNULL (t.cost_agency4,0.0)) t4, SUM(IFNULL(t.cost_other, 0.0)) toth FROM costtool_transfers t, costtool_programdesc  WHERE t.programid = %(programId)s and t.programid = programId_id  group by grantYear"""
+       sql3 = """SELECT 'Transfers' cname, grantYear, numberofparticipants, SUM(IFNULL (total_amount,0.0)) cost, SUM(IFNULL (total_amount,0.0))/numberofparticipants Costperparticipant, SUM(IFNULL (t.cost_agency1,0.0)) t1, SUM(IFNULL (t.cost_agency2,0.0)) t2, SUM(IFNULL (t.cost_agency3 , 0.0)) t3, SUM(IFNULL (t.cost_agency4,0.0)) t4, SUM(IFNULL(t.cost_other, 0.0)) toth FROM costtool_transfers t, costtool_programdesc  WHERE t.programid = %(programId)s and t.programid = programId  group by grantYear"""
 
     cursortot = database.cursor ()
 
-    sqltot = """SELECT 'TOTAL GROSS COSTS ALL YEARS' cname, 'ALL' yearQtyUsed, numberofparticipants, SUM(IFNULL (d.cost, 0.0)) cost, FORMAT(CONVERT(SUM(IFNULL (d.cost, 0.0))/ numberofparticipants, DECIMAL(10,2)),2) costperparticipant,  SUM(IFNULL (d.cost_agency1, 0.0)) gc1, SUM(IFNULL (d.cost_agency2,0.0)) gc2, SUM(IFNULL (d.cost_agency3,0.0)) gc3, SUM(IFNULL (d.cost_agency4,0.0)) gc4, SUM(IFNULL(d.cost_other,0.0)) goth FROM costtool_distribution d, costtool_programdesc WHERE d.programid = %(programId)s AND d.programid = programId_id UNION SELECT 'NET COSTS AFTER TRANSFERS' cname, 'ALL' yearQtyUsed, numberofparticipants, total_cost, FORMAT(CONVERT(total_cost/numberofparticipants, DECIMAL(10,2)),2) costperparticipant, net_agency1, net_agency2, net_agency3, net_agency4, net_other FROM costtool_agencies a, costtool_programdesc  WHERE a.programid =  %(programId)s AND a.programid = programId_id UNION SELECT 'Percentage of net costs borne by agency' cname, 'ALL' yearQtyUsed, numberofparticipants, 100, 'N/A' costperparticipant,(net_agency1 * 100) / total_cost, (net_agency2 * 100) / total_cost, (net_agency3 * 100) / total_cost, (net_agency4 * 100) / total_cost, (net_other * 100) / total_cost FROM costtool_agencies a, costtool_programdesc  WHERE a.programId = %(programId)s AND a.programId = programId_id"""
+    sqltot = """SELECT 'TOTAL GROSS COSTS ALL YEARS' cname, 'ALL' yearQtyUsed, numberofparticipants, SUM(IFNULL (d.cost, 0.0)) cost, FORMAT(CONVERT(SUM(IFNULL (d.cost, 0.0))/ numberofparticipants, DECIMAL(10,2)),2) costperparticipant,  SUM(IFNULL (d.cost_agency1, 0.0)) gc1, SUM(IFNULL (d.cost_agency2,0.0)) gc2, SUM(IFNULL (d.cost_agency3,0.0)) gc3, SUM(IFNULL (d.cost_agency4,0.0)) gc4, SUM(IFNULL(d.cost_other,0.0)) goth FROM costtool_distribution d, costtool_programdesc WHERE d.programid = %(programId)s AND d.programid = programId  UNION SELECT 'NET COSTS AFTER TRANSFERS' cname, 'ALL' yearQtyUsed, numberofparticipants, total_cost, FORMAT(CONVERT(total_cost/numberofparticipants, DECIMAL(10,2)),2) costperparticipant, net_agency1, net_agency2, net_agency3, net_agency4, net_other FROM costtool_agencies a, costtool_programdesc  WHERE a.programid =  %(programId)s AND a.programid = programId  UNION SELECT 'Percentage of net costs borne by agency' cname, 'ALL' yearQtyUsed, numberofparticipants, 100, 'N/A' costperparticipant,(net_agency1 * 100) / total_cost, (net_agency2 * 100) / total_cost, (net_agency3 * 100) / total_cost, (net_agency4 * 100) / total_cost, (net_other * 100) / total_cost FROM costtool_agencies a, costtool_programdesc  WHERE a.programId = %(programId)s AND a.programId = programId"""
 
-    ag = m.Agencies.objects.get(programId = programId)
+    ag = Agencies.objects.get(programId = programId)
 
     columnd = [
         (u"Summary Table of Gross and Net Costs", 5000),
@@ -6581,7 +6616,12 @@ def export_dist(request):
     row_num = 16
     maxnum = row_num 
     mnum = row_num
-    for col_num in xrange(len(columnd)):
+    #initialyear = 0
+    #noofparticipants = 0
+    #ncost = 0
+    #costperparticipant = 0
+
+    for col_num in range(len(columnd)):
         ws.write(row_num, col_num, columnd[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columnd[col_num][1]
@@ -6613,7 +6653,7 @@ def export_dist(request):
           gc4 = row[8]
           goth = row[9]
           mnum = row_num
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if col_num == 1 or col_num == 2:
                 ws.write(row_num, col_num, row[col_num], font_cent)
              elif col_num == 0  or col_num == 3 or  col_num == 4 or col_num == 5 or  col_num == 6 or col_num == 7 or  col_num == 8 or col_num == 9:
@@ -6641,7 +6681,7 @@ def export_dist(request):
           t4 = row[8]
           toth = row[9]
           mnum = row_num
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if col_num == 1 or col_num == 2:
                 ws.write(row_num, col_num, row[col_num], font_cent_22)
              elif col_num == 0  or col_num == 3 or  col_num == 4 or col_num == 5 or  col_num == 6 or col_num == 7 or  col_num == 8 or col_num == 9:
@@ -6700,7 +6740,7 @@ def export_dist(request):
 
     except:
        print("Error: unable to fetch data cursord")
-
+    '''mnum=mnum+1
     ws.write(mnum, 0, 'Net Costs', money_xf)
     ws.write(mnum, 1, initialyear, font_cent)
     ws.write(mnum, 2, noofparticipants, font_cent)
@@ -6710,7 +6750,7 @@ def export_dist(request):
     ws.write(mnum, 6, n2, money_xf)
     ws.write(mnum, 7, n3, money_xf)
     ws.write(mnum, 8, n4, money_xf)
-    ws.write(mnum, 9, noth, money_xf)
+    ws.write(mnum, 9, noth, money_xf)'''
 
     row_num = mnum
 
@@ -6732,7 +6772,7 @@ def export_dist(request):
           gc4 = row[8]
           goth = row[9]
           maxnum = row_num
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if cname == 'NET COSTS AFTER TRANSFERS':
                 if col_num == 1 or col_num == 2:
                    ws.write(row_num, col_num, row[col_num], font_cent)
@@ -6763,7 +6803,7 @@ def export_dist(request):
     else:
        row_num = row_num + 3
 
-    for col_num in xrange(len(columns2)):
+    for col_num in range(len(columns2)):
         ws.write(row_num, col_num, columns2[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columns2[col_num][1]
@@ -6795,7 +6835,7 @@ def export_dist(request):
           net_agency4 = row[16]
           net_other = row[17]
           maxnum = row_num 
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row[1] % 2 == 0:
                 if col_num == 1:
                    ws.write(row_num, col_num, row[col_num], font_cent_22)
@@ -6816,7 +6856,7 @@ def export_dist(request):
     else:
        row_num = row_num + 3
 
-    for col_num in xrange(len(columns)):
+    for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columns[col_num][1]
@@ -6848,7 +6888,7 @@ def export_dist(request):
           total_agency3 = row[17]
           total_agency4 = row[18]
           total_other = row[19]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row[2] % 2 == 0:
                 if col_num == 2:
                    ws.write(row_num, col_num, row[col_num], font_cent_22)
@@ -6880,7 +6920,7 @@ def export_to_inf(request):
    
     row_num = 0
    
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
@@ -6903,7 +6943,7 @@ def export_to_inf(request):
     font_style.font.bold = True
     font_style.alignment = a
 
-    for col_num in xrange(len(columns)):
+    for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columns[col_num][1]
@@ -6919,7 +6959,7 @@ def export_to_inf(request):
           row_num += 1
           yearCPI = row[0]
           indexCPI = row[1]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              ws.write(row_num, col_num, row[col_num], money_xf)
 
     except:
@@ -6938,7 +6978,7 @@ def export_to_geo(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
@@ -6962,7 +7002,7 @@ def export_to_geo(request):
     font_style.font.bold = True
     font_style.alignment = a
 
-    for col_num in xrange(len(columns)):
+    for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columns[col_num][1]
@@ -6979,7 +7019,7 @@ def export_to_geo(request):
           stateIndex = row[0]
           areaIndex = row[1]
           geoIndex = row[2]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              ws.write(row_num, col_num, row[col_num], money_xf)
 
     except:
@@ -6998,7 +7038,7 @@ def export_cbcse_prices(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     cursor = database.cursor ()
 
     #Heading of tables
@@ -7061,7 +7101,7 @@ def export_cbcse_prices(request):
         (u"Next Check Date", 5000)
     ]
 
-    for col_num in xrange(len(columns)):
+    for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columns[col_num][1]
@@ -7087,7 +7127,7 @@ def export_cbcse_prices(request):
           urlPrice = row[11]
           lastChecked = row[12]
           nextCheckDate = row[13]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row_num  % 2 == 0:
                 if col_num == 7:
                    ws.write(row_num, col_num, row[col_num], money_str_22)
@@ -7109,11 +7149,12 @@ def export_cbcse_prices(request):
     wb.save(response)
     return response
 
-'''def export_cbcse_prices(request):
+'''
+def export_cbcse_prices(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="cbcse_prices.csv"'
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     cursor = database.cursor ()
 
     # Create the INSERT INTO sql query
@@ -7132,16 +7173,16 @@ def export_cbcse_prices(request):
        # Fetch all the rows in a list of lists.
        results = cursor.fetchall()
        for row in results:
-           print(row[0]
+           print(row[0])
            #print(row[1]
            #writer.writerow([row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12],row[13]])
     except:
-       print("Error: unable to fetch data"
+       print("Error: unable to fetch data")
     # disconnect from server
     database.close()
 
-    return response'''
-
+    return response
+'''
 
 def export_prices(request):
     response = HttpResponse(content_type='application/ms-excel')
@@ -7151,7 +7192,7 @@ def export_prices(request):
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     priceProvider = request.session['user']
     cursor = database.cursor ()
 
@@ -7215,7 +7256,7 @@ def export_prices(request):
         (u"Next Check Date", 5000)
     ]
 
-    for col_num in xrange(len(columns)):
+    for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num][0], font_style)
         # set column width
         ws.col(col_num).width = columns[col_num][1]
@@ -7227,6 +7268,7 @@ def export_prices(request):
        results = cursor.fetchall()
        for row in results:
           row_num += 1
+          print (row[0])
           category = row[0]
           ingredient = row[1]
           edLevel = row[2]
@@ -7241,7 +7283,7 @@ def export_prices(request):
           urlPrice = row[11] 
           lastChecked = row[12]
           nextCheckDate = row[13]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row_num  % 2 == 0:
                 if col_num == 7:
                    ws.write(row_num, col_num, row[col_num], money_str_22)
@@ -7265,22 +7307,22 @@ def export_progdesc(request):
     response = HttpResponse(content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=program_desc.xls'
     wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet("Program Description")
+    ws = wb.add_sheet("PrograDescription")
 
     row_num = 0
 
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     programId = request.session['program_id']
     if 'project_id' in request.session:
        projectId = request.session['project_id']                                                                                                                                                                
     else:
        projectId = 0
 
-    project = m.Projects.objects.get(pk = projectId)
-    program = m.Programs.objects.get(pk = programId)
-    sett = m.Settings.objects.get(projectId = projectId)
+    project = Projects.objects.get(pk = projectId)
+    program = Programs.objects.get(pk = programId)
+    sett = Settings.objects.get(projectId = projectId)
     try:
-       programdesc = m.ProgramDesc.objects.get(programId_id = programId)
+       programdesc = ProgramDesc.objects.get(programId = programId)
        noofpart = programdesc.numberofparticipants
     except ObjectDoesNotExist:
        print('does not exist')
@@ -7290,10 +7332,10 @@ def export_progdesc(request):
     cursor2 = database.cursor ()
 
     # Create the INSERT INTO sql query
-    sql = """SELECT progobjective, progsubjects, progdescription, numberofparticipants, lengthofprogram, numberofyears FROM costtool_programdesc WHERE programId_id = %(programId)s""" 
+    sql = """SELECT progobjective, progsubjects, progdescription, numberofparticipants, lengthofprogram, numberofyears FROM costtool_programdesc WHERE programId = %(programId)s""" 
 
     try:
-       eff = m.Effectiveness.objects.get(programId_id = programId)
+       eff = Effectiveness.objects.get(programId = programId)
        effExists = True
     except ObjectDoesNotExist:
        effExists = False
@@ -7495,7 +7537,7 @@ def export_progdesc(request):
 
        row_num = 27
 
-    sql2 = """SELECT yearnumber, noofparticipants FROM costtool_participantsperyear WHERE programdescId_id = (SELECT id FROM costtool_programdesc WHERE programId_id = %(programId)s)"""
+    sql2 = """SELECT yearnumber, noofparticipants FROM costtool_participantsperyear WHERE programdescId_id = (SELECT id FROM costtool_programdesc WHERE programId  = %(programId)s)"""
 
     columns = [
         (u"Year", 3000),
@@ -7506,7 +7548,7 @@ def export_progdesc(request):
        cursor2.execute(sql2,{'programId' : programId})
        results2 = cursor2.fetchall()
        if results2 != ():
-          for col_num in xrange(len(columns)):
+          for col_num in range(len(columns)):
              ws.write(row_num, col_num, columns[col_num][0], font_style)
              # set column width
              ws.col(col_num).width = columns[col_num][1]
@@ -7515,7 +7557,7 @@ def export_progdesc(request):
           row_num += 1
           yearnumber = row[0]
           noofparticipants = row[1]
-          for col_num in xrange(len(row)):
+          for col_num in range(len(row)):
              if row[0] % 2 == 0:
                 if col_num == 0:
                    ws.write(row_num, col_num, row[col_num], font_cent_22)
@@ -7538,12 +7580,12 @@ def export_progdesc(request):
  
 def import_excel(request):
     # Open the workbook and define the worksheet
-    book = xlrd.open_workbook("/home/amritha/costtool/documents/DBofPrices.xlsx")
+    book = xlrd.open_workbook("/home/costout/costtool/documents/DBofPrices.xls")
     sheet = book.sheet_by_name("Ingredients")
-    m.Prices.objects.filter(priceProvider='CBCSE').delete()
+    Prices.objects.filter(priceProvider='CBCSE').delete()
 
     # Establish a MySQL connection
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
     #database = MySQLdb.connect (host="localhost", user = "root", passwd = "", db = "costtool")
 
     # Get the cursor, which is used to traverse the database, line by line
@@ -7591,12 +7633,12 @@ def import_excel(request):
 
 def import_geo(request):
     # Open the workbook and define the worksheet
-    book = xlrd.open_workbook("/home/amritha/costtool/documents/GeographicalIndex.xlsx")
+    book = xlrd.open_workbook("/home/costout/costtool/documents/GeographicalIndex.xls")
     sheet = book.sheet_by_name("Sheet1")
-    m.GeographicalIndices_orig.objects.all().delete()
+    GeographicalIndices_orig.objects.all().delete()
 
     # Establish a MySQL connection
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
 
     # Get the cursor, which is used to traverse the database, line by line
     cursor = database.cursor()
@@ -7631,12 +7673,12 @@ def import_geo(request):
 
 def import_inf(request):
     # Open the workbook and define the worksheet
-    book = xlrd.open_workbook("/home/amritha/costtool/documents/InflationIndex.xlsx")
+    book = xlrd.open_workbook("/home/costout/costtool/documents/InflationIndex.xls")
     sheet = book.sheet_by_name("Sheet1")
-    m.InflationIndices_orig.objects.all().delete()
+    InflationIndices_orig.objects.all().delete()
 
     # Establish a MySQL connection
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
 
     # Get the cursor, which is used to traverse the database, line by line
     cursor = database.cursor()
@@ -7670,12 +7712,12 @@ def import_inf(request):
 
 def import_benefits(request):
     # Open the workbook and define the worksheet
-    book = xlrd.open_workbook("/home/amritha/costtool/documents/Database of Benefits Rates.xls")
+    book = xlrd.open_workbook("/home/costout/costtool/documents/Database of Benefits Rates.xls")
     sheet = book.sheet_by_name("Benefits")
-    m.Benefits.objects.all().delete()
+    Benefits.objects.all().delete()
 
     # Establish a MySQL connection
-    database = MySQLdb.connect (host="amritha.mysql.pythonanywhere-services.com", user = "amritha", passwd = "lilies19", charset="utf8", db = "amritha$costtool")
+    database = MySQLdb.connect (host="costout.mysql.pythonanywhere-services.com", user = "costout", passwd = "Apr2104$", charset="utf8", db = "costout$default")
 
     # Get the cursor, which is used to traverse the database, line by line
     cursor = database.cursor()
@@ -7717,11 +7759,11 @@ def import_benefits(request):
 
 def add_settings(request,project_id):
     request.session['project_id'] = project_id
-    proj = m.Projects.objects.get(pk = project_id)
+    proj = Projects.objects.get(pk = project_id)
     context = RequestContext(request)
     result = 0
     try:
-       setrec = m.Settings.objects.get(projectId=project_id)
+       setrec = Settings.objects.get(projectId=project_id)
        objectexists = True
        before_year = setrec.yearEstimates
        before_disc = setrec.discountRateEstimates
@@ -7740,7 +7782,7 @@ def add_settings(request,project_id):
             discountRateEstimates = setform.save(commit=False)
             discountRateEstimates.projectId = project_id
             discountRateEstimates.save()
-            upd = updateDate(project_id, None)
+            #reimaging upd = updateDate(project_id, None)
             if objectexists:
                if (before_year != discountRateEstimates.yearEstimates) or (before_disc != discountRateEstimates.discountRateEstimates) or (before_state != discountRateEstimates.stateEstimates) or (before_area != discountRateEstimates.areaEstimates): 
                   result = calculations(project_id)
@@ -7753,21 +7795,22 @@ def add_settings(request,project_id):
            setform = SettingsForm(instance=setrec)
         else:
            setform = SettingsForm()
-
-    return render(
+     #04142022
+    return render(request,
             'project/add_settings.html',
-            {'frm1': setform, 'projname':proj.projectname}, context)
+            {'frm1': setform, 'projname':proj.projectname})
+
 
 def addedit_inf(request):
-    InfFormSet = modelformset_factory(m.InflationIndices,form=InflationForm,extra=20)
     context = RequestContext(request)
+    InfFormSet = modelformset_factory(InflationIndices,form=InflationForm,fields=['yearCPI','indexCPI'],extra=20)
     if 'project_id' in request.session:
        project_id = request.session['project_id']                                                                                                                                                                
     else:
        project_id = 0
-    proj = m.Projects.objects.get(pk = project_id)
-    setrec = m.Settings.objects.get(projectId=project_id)
-    qset = m.InflationIndices.objects.filter(projectId=project_id)
+    proj = Projects.objects.get(pk = project_id)
+    setrec = Settings.objects.get(projectId=project_id)
+    qset = InflationIndices.objects.filter(projectId=project_id)
     oldRecId = 0
     oldYear = 0
     result = 0
@@ -7789,25 +7832,26 @@ def addedit_inf(request):
              if count != 1: 
                 i.projectId = project_id
                 if (i.indexCPI is None or i.indexCPI == '') and (i.yearCPI is not None and i.yearCPI != ''):
-                   return render('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Please enter the CPI for the year you entered.'}, context)
+                    #04142022 
+                   return render(request, 'project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Please enter the CPI for the year you entered.'})
                 elif i.yearCPI == '' and i.indexCPI == '':
-                   m.InflationIndices.objects.filter(id=i.id).delete()
+                   InflationIndices.objects.filter(id=i.id).delete()
                    return HttpResponseRedirect('/project/indices.html')
                 elif (i.yearCPI == '' or int(i.yearCPI) > 9999 or int(i.yearCPI) < 1000) and (i.indexCPI is not None and i.indexCPI != ''):
-                   return render('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Years must be entered as four-digit positive numbers.'}, context)
+                   return render(request, 'project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Years must be entered as four-digit positive numbers.'})
                 try:
                    float(i.indexCPI)
                    i.save()
-                   upd = updateDate(project_id, None)
+                   #reimaging upd = updateDate(project_id, None)
                 except IntegrityError as e:
-                   return render('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Year must be an unique number.'}, context)
+                   return render(request,'project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'Year must be an unique number.'})
                 except ValueError:
-                   return render('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'CPI must be a number.'}, context)
+                   return render(request, 'project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'CPI must be a number.'})
                 if i.id == oldRecId: 
                    print(i.id)
                    result = calculations(project_id)
              else:
-                return render ('project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'You cannot delete the inflation index for the year you selected in Project Settings.'},context) 
+                return render (request, 'project/inflation.html',{'infform':infform,'projname':proj.projectname, 'errtext': 'You cannot delete the inflation index for the year you selected in Project Settings.'}) 
           if 'priceExists' in request.session:
              if request.session['priceExists'] == False:
                 return HttpResponseRedirect('/project/programs/costs/'+request.session['price_id']+'/decideCat.html')
@@ -7815,11 +7859,11 @@ def addedit_inf(request):
              #return HttpResponseRedirect('/project/indices.html')
        else:
           form_errors = infform.errors
-          return render ('project/inflation.html',{'infform':infform,'form.errors': form_errors,'projname':proj.projectname},context)
+          return render (request, 'project/inflation.html',{'infform':infform,'form.errors': form_errors,'projname':proj.projectname})
     else:
-        qset = m.InflationIndices.objects.filter(projectId=project_id)
+        qset = InflationIndices.objects.filter(projectId=project_id)
         infform = InfFormSet(queryset=qset,prefix="infform")
-    return render ('project/inflation.html',{'infform':infform,'projname':proj.projectname},context)
+    return render (request, 'project/inflation.html',{'infform':infform,'projname':proj.projectname})
 
 def restore_inf(request):
     context = RequestContext(request)
@@ -7828,27 +7872,27 @@ def restore_inf(request):
     else:
        project_id = 0
     result = 0
-    setrec = m.Settings.objects.get(projectId=project_id)
-    latest = m.InflationIndices_orig.objects.all().latest('yearCPI')
-    m.InflationIndices.objects.filter(projectId=project_id).delete()
-    for e in m.InflationIndices_orig.objects.all():
-        m.InflationIndices.objects.create(yearCPI = e.yearCPI,indexCPI = e.indexCPI, projectId=project_id)
+    setrec = Settings.objects.get(projectId=project_id)
+    latest = InflationIndices_orig.objects.all().latest('yearCPI')
+    InflationIndices.objects.filter(projectId=project_id).delete()
+    for e in InflationIndices_orig.objects.all():
+        InflationIndices.objects.create(yearCPI = e.yearCPI,indexCPI = e.indexCPI, projectId=project_id)
     setrec.yearEstimates=latest.yearCPI
     setrec.save(update_fields=['yearEstimates'])
     result = calculations(project_id)
-    upd = updateDate(project_id, None)
+    #reimaging upd = updateDate(project_id, None)
     return HttpResponseRedirect('/project/indices.html')
 
 def addedit_geo(request):
-    GeoFormSet = modelformset_factory(m.GeographicalIndices,form=GeographicalForm,extra=20)
+    GeoFormSet = modelformset_factory(GeographicalIndices,form=GeographicalForm,fields = ('stateIndex', 'areaIndex','geoIndex'),extra=20)
     context = RequestContext(request)
     if 'project_id' in request.session:
        project_id = request.session['project_id']                                                                                                                                                                
     else:
        project_id = 0
-    proj = m.Projects.objects.get(pk = project_id)
-    setrec = m.Settings.objects.get(projectId=project_id)
-    qset = m.GeographicalIndices.objects.filter(projectId=project_id)
+    proj = Projects.objects.get(pk = project_id)
+    setrec = Settings.objects.get(projectId=project_id)
+    qset = GeographicalIndices.objects.filter(projectId=project_id)
     oldRecId = 0
     oldState = ''
     oldArea = ''
@@ -7874,35 +7918,36 @@ def addedit_geo(request):
              if count != 1: 
                 i.projectId = project_id  
                 if (i.stateIndex is None or i.stateIndex == '' or i.areaIndex is None or i.areaIndex == '') and (i.geoIndex is not None and i.geoIndex != ''):
-                   return render('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Please enter the State and Area for the Index you entered.'}, context)
+                    #04142022 
+                   return render(request, 'project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Please enter the State and Area for the Index you entered.'})
                 elif ((i.stateIndex is not None and i.stateIndex != '') or (i.areaIndex is not None and i.areaIndex != '')) and (i.geoIndex is None or i.geoIndex == ''):
-                   return render('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Please enter the Index for the State and Area you entered.'}, context)
+                   return render(request, 'project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Please enter the Index for the State and Area you entered.'})
                 elif i.stateIndex == '' and i.areaIndex == '' and i.geoIndex == '':
-                   m.GeographicalIndices.objects.filter(id=i.id).delete()
+                   GeographicalIndices.objects.filter(id=i.id).delete()
                    return HttpResponseRedirect('/project/indices.html')
 
                 try:
                    float(i.geoIndex)
                    i.save()
-                   upd = updateDate(project_id, None)
+                   #reimaging upd = updateDate(project_id, None)
                 except IntegrityError as e:
-                   return render('project/geo.html',{'geoform':geoform,'projname':proj.projectname,'errtext': 'The state / area combination must be unique in Geographical Indices.'})
+                   return render(request, 'project/geo.html',{'geoform':geoform,'projname':proj.projectname,'errtext': 'The state / area combination must be unique in Geographical Indices.'})
                 except ValueError:
-                   return render('project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Index must be a number.'}, context)
+                   return render(request, 'project/geo.html',{'geoform':geoform,'projname':proj.projectname, 'errtext': 'Index must be a number.'})
 
                 if i.id == oldRecId: 
                    result = calculations(project_id)
              else:
-                return render ('project/geo.html',{'geoform':geoform,'projname':proj.projectname,'errtext': 'You cannot delete the geographical index for the state and area  you selected in Project Settings.'},context)    
+                return render (request, 'project/geo.html',{'geoform':geoform,'projname':proj.projectname,'errtext': 'You cannot delete the geographical index for the state and area  you selected in Project Settings.'})    
           #return HttpResponseRedirect('/project/indices.html')
        else:
           form_errors = geoform.errors
-          return render ('project/geo.html',{'geoform':geoform,'form.errors': form_errors,'projname':proj.projectname},context)
+          return render (request, 'project/geo.html',{'geoform':geoform,'form.errors': form_errors,'projname':proj.projectname})
     else:
-       qset = m.GeographicalIndices.objects.filter(projectId=project_id)                                                               
+       qset = GeographicalIndices.objects.filter(projectId=project_id)                                                               
        geoform = GeoFormSet(queryset=qset,prefix="geoform")
 
-    return render ('project/geo.html',{'geoform':geoform,'projname':proj.projectname},context) 
+    return render (request, 'project/geo.html',{'geoform':geoform,'projname':proj.projectname}) 
 
 def restore_geo(request):
     context = RequestContext(request)
@@ -7911,13 +7956,13 @@ def restore_geo(request):
     else:
        project_id = 0
     result = 0
-    setrec = m.Settings.objects.get(projectId=project_id)
-    m.GeographicalIndices.objects.filter(projectId=project_id).delete()
-    for e in m.GeographicalIndices_orig.objects.all():
-        m.GeographicalIndices.objects.create(stateIndex = e.stateIndex,areaIndex = e.areaIndex, geoIndex = e.geoIndex, projectId=project_id)
+    setrec = Settings.objects.get(projectId=project_id)
+    GeographicalIndices.objects.filter(projectId=project_id).delete()
+    for e in GeographicalIndices_orig.objects.all():
+        GeographicalIndices.objects.create(stateIndex = e.stateIndex,areaIndex = e.areaIndex, geoIndex = e.geoIndex, projectId=project_id)
     setrec.stateEstimates='All states' 
     setrec.areaEstimates='All areas'
     setrec.save(update_fields=['stateEstimates','areaEstimates'])
     result = calculations(project_id)
-    upd = updateDate(project_id, None)
+    #reimaging upd = updateDate(project_id, None)
     return HttpResponseRedirect('/project/indices.html')
